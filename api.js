@@ -15,44 +15,58 @@ server.listen(2020)
 
 server.on('listening', function() {
   console.log('listening')
-  timers.setInterval(progress, 5000)
+  timers.setInterval(progress_report, 3000)
 })
+
 server.on('connection', function(socket) {
-  var client_id = clients.push(socket)
-  console.log('connected. '+clients.length+' clients. '+clients);
-  socket.on('data', go)
+  var me = {socket: socket, flags: {}}
+  var client_id = clients.push(me)
+  console.log(me.socket.address()+' connected. '+clients.length+' clients.');
+  socket.on('data', function(data) {go(me, data)})
   socket.on('close', function() {
-  	clients.splice(client_id-1,1)
+  	var idx = clients.indexOf(me)
+  	clients.splice(idx,1)
   	console.log('closed. client list '+clients)
   })
 })
+
 server.on('close', function() {console.log('closed')})
 
-function go(data) {
+function go(me, data) {
 	hits += 1
-		var lines = data.toString('utf8').split('\n')
-		lines.forEach(function(line) {
-        	try {
-        		if(line.length > 0) {
-					var msg = JSON.parse(line)
-					process(msg)
-			    }
+	var lines = data.toString('utf8').split('\n')
+	lines.forEach(function(line) {
+		if(line.length > 0) {
+			try {
+				var msg = JSON.parse(line)
 			} catch (err) {
 				console.log(err)
 			}
-		})
+				dispatch(me, msg)
+	    }
+	})
 }
 
-function process(msg) {
-	console.log(msg)
+function dispatch(me, msg) {
+	switch(msg.type) {
+		case 'location': couch_write(msg); break;
+		case 'stats': me.flags.stats = true; break;
+	}
 }
 
-function progress() {
+function progress_report() {
 	var now = new Date();
 	var period = (now - timeMark)/1000
 	var rate = hits / period
 	if (rate > 0) {
-      console.log(clients.length+" clients. "+rate+" hits/second")
+		clients.forEach(function(client) {
+			if(client.flags.stats == true) {
+	        	var pr = {msg_rate: rate, client_count: clients.length}
+	        	console.log(JSON.stringify(client.socket.address())+": "+pr)
+	        	client.socket.write(JSON.stringify(pr)+"\n")
+	        }
+			
+		})
     }
     counterReset()
 }
@@ -60,4 +74,8 @@ function progress() {
 function counterReset() {
     timeMark = new Date()
     hits = 0	
+}
+
+function couch_write(doc) {
+	console.log('couchwrite: '+doc)
 }
