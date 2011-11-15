@@ -12,13 +12,14 @@ server.listen(2020)
 
 server.on('listening', function() {
   console.log('listening')
-  timers.setInterval(progress_report, 3000)
+  timers.setInterval(progress_report, settings.progress_report_timer)
 })
 
 server.on('connection', function(socket) {
   var me = {socket: socket, flags: {}}
   var client_id = clients.push(me)
-  console.log(me.socket.address()+' connected. '+clients.length+' clients.');
+  console.log(me.socket.remoteAddress+':'+me.socket.remotePort+' connected. '
+              +clients.length+' clients.');
   socket.on('data', function(data) {go(me, data)})
   socket.on('close', function() {
   	var idx = clients.indexOf(me)
@@ -59,9 +60,9 @@ function progress_report() {
 	if (rate > 0) {
 		clients.forEach(function(client) {
 			if(client.flags.stats == true) {
-	        	var pr = {msg_rate: rate, client_count: clients.length}
-	        	console.log(JSON.stringify(client.socket.address())+": "+pr)
-	        	client.socket.write(JSON.stringify(pr)+"\n")
+	        	var stats_str = JSON.stringify({msg_rate: rate, client_count: clients.length})
+	        	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+": "+stats_str)
+	        	client.socket.write(stats_str+"\n")
 	        }
 			
 		})
