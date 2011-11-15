@@ -18,7 +18,7 @@ exports.factory = function() {
 			this.list.push(client)
 		},
 		remove: function(client) {
-			var idx = this.list.indexOf(me)
+			var idx = this.list.indexOf(client)
   			this.list.splice(idx,1)
 		}
 	}

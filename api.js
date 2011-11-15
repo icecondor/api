@@ -1,13 +1,17 @@
 "use strict"
 var timers = require('timers')
+var cradle = require('cradle')
 var server = require('./server').factory()
 var settings = require('./settings').settings
 
 server.listen(settings.listen_port)
+var couch = new(cradle.Connection)().database('icecondor');
+couch.create()
 
 server.on('listening', function() {
   console.log('icecondor api listening on :'+settings.listen_port)
   timers.setInterval(progress_report, settings.progress_report_timer)
+
 })
 
 server.on('connection', function(socket) {
@@ -26,7 +30,7 @@ server.on('connection', function(socket) {
 
   socket.on('close', function() {
   	server.clients.remove(me)
-  	console.log('closed. client list '+clients)
+  	console.log('closed. remaining client list: '+ server.clients.list)
   })
 })
 
@@ -75,7 +79,16 @@ function progress_report() {
 }
 
 function couch_write(doc) {
-	console.log('couchwrite: '+doc)
+	console.log('writing: '+ JSON.stringify(doc))
+	couch.save(doc.id, doc, couch_write_finish)
+}
+
+function couch_write_finish(error, response) {
+	if(error){
+		console.log("couch error: "+ JSON.stringify(error))
+	} else {
+		console.log("response: "+response)
+	}
 }
 
 function clog(client, msg) {
