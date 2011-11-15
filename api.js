@@ -5,9 +5,6 @@ var ic = require('./server')
 
 var server = ic.factory()
 
-var timeMark = new Date()
-var hits = 0
-
 var settings = JSON.parse(fs.readFileSync("settings.json"))
 var clients = []
 
@@ -33,7 +30,7 @@ server.on('connection', function(socket) {
 server.on('close', function() {console.log('closed')})
 
 function go(me, data) {
-	hits += 1
+	server.timer.hits += 1
 	var lines = data.toString('utf8').split('\n')
 	lines.forEach(function(line) {
 		if(line.length > 0) {
@@ -48,6 +45,7 @@ function go(me, data) {
 }
 
 function dispatch(me, msg) {
+	console.log("dispatch: "+msg.type)
 	switch(msg.type) {
 		case 'location': couch_write(msg); break;
 		case 'stats': me.flags.stats = true; break;
@@ -56,8 +54,8 @@ function dispatch(me, msg) {
 
 function progress_report() {
 	var now = new Date();
-	var period = (now - timeMark)/1000
-	var rate = hits / period
+	var period = (now - server.timer.mark)/1000
+	var rate = server.timer.hits / period
 	if (rate > 0) {
 		clients.forEach(function(client) {
 			if(client.flags.stats == true) {
@@ -68,12 +66,7 @@ function progress_report() {
 			
 		})
     }
-    counterReset()
-}
-
-function counterReset() {
-    timeMark = new Date()
-    hits = 0	
+    server.timer.reset()
 }
 
 function couch_write(doc) {
