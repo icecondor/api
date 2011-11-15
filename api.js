@@ -1,17 +1,14 @@
 "use strict"
-var fs = require ('fs')
 var timers = require('timers')
-var ic = require('./server')
+var server = require('./server').factory()
+var settings = require('./settings').settings
 
-var server = ic.factory()
-
-var settings = JSON.parse(fs.readFileSync("settings.json"))
 var clients = []
 
-server.listen(2020)
+server.listen(settings.listen_port)
 
 server.on('listening', function() {
-  console.log('listening')
+  console.log('listening on :'+settings.listen_port)
   timers.setInterval(progress_report, settings.progress_report_timer)
 })
 
