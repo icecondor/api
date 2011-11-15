@@ -6,7 +6,7 @@ var settings = require('./settings').settings
 server.listen(settings.listen_port)
 
 server.on('listening', function() {
-  console.log('listening on :'+settings.listen_port)
+  console.log('icecondor api listening on :'+settings.listen_port)
   timers.setInterval(progress_report, settings.progress_report_timer)
 })
 
@@ -16,12 +16,14 @@ server.on('connection', function(socket) {
   console.log(me.socket.remoteAddress+':'+me.socket.remotePort+' connected. '
               +server.clients.list.length+' clients.');
   socket.on('data', function(data) {
+			server.timer.hits += 1
 	        var msgs = multilineParse(data)
-			console.log("msgs:"+JSON.stringify(msgs))
+			clog(me, "msgs:"+JSON.stringify(msgs))
 	        msgs.forEach(function(msg){
 	        	dispatch(me, msg)
   		    })
   })
+
   socket.on('close', function() {
   	server.clients.remove(me)
   	console.log('closed. client list '+clients)
@@ -31,7 +33,6 @@ server.on('connection', function(socket) {
 server.on('close', function() {console.log('closed')})
 
 function multilineParse(data) {
-	server.timer.hits += 1
 	var lines = data.toString('utf8').split('\n')
 	lines = lines.map(function(line) {
 		if(line.length>0) {
@@ -48,7 +49,6 @@ function multilineParse(data) {
 }
 
 function dispatch(me, msg) {
-	console.log("dispatch: "+msg.type)
 	switch(msg.type) {
 		case 'location': couch_write(msg); break;
 		case 'stats': me.flags.stats = true; break;
@@ -62,10 +62,10 @@ function progress_report() {
 	if (rate > 0) {
 		server.clients.list.forEach(function(client) {
 			if(client.flags.stats == true) {
-	        	var stats_str = JSON.stringify({msg_rate: rate, 
-		        	                            client_count: server.clients.list.length})
-	        	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+": "+
-	        	            stats_str)
+				var stats = {msg_rate: rate, 
+		        	         client_count: server.clients.list.length}
+	        	var stats_str = JSON.stringify(stats)
+	        	clog(client, stats_str)
 	        	client.socket.write(stats_str+"\n")
 	        }
 			
@@ -76,4 +76,8 @@ function progress_report() {
 
 function couch_write(doc) {
 	console.log('couchwrite: '+doc)
+}
+
+function clog(client, msg) {
+	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+": "+msg);
 }
