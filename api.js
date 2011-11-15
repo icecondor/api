@@ -3,8 +3,6 @@ var timers = require('timers')
 var server = require('./server').factory()
 var settings = require('./settings').settings
 
-var clients = []
-
 server.listen(settings.listen_port)
 
 server.on('listening', function() {
@@ -14,32 +12,39 @@ server.on('listening', function() {
 
 server.on('connection', function(socket) {
   var me = {socket: socket, flags: {}}
-  var client_id = clients.push(me)
+  server.clients.add(me)
   console.log(me.socket.remoteAddress+':'+me.socket.remotePort+' connected. '
-              +clients.length+' clients.');
-  socket.on('data', function(data) {go(me, data)})
+              +server.clients.list.length+' clients.');
+  socket.on('data', function(data) {
+	        var msgs = multilineParse(data)
+			console.log("msgs:"+JSON.stringify(msgs))
+	        msgs.forEach(function(msg){
+	        	dispatch(me, msg)
+  		    })
+  })
   socket.on('close', function() {
-  	var idx = clients.indexOf(me)
-  	clients.splice(idx,1)
+  	server.clients.remove(me)
   	console.log('closed. client list '+clients)
   })
 })
 
 server.on('close', function() {console.log('closed')})
 
-function go(me, data) {
+function multilineParse(data) {
 	server.timer.hits += 1
 	var lines = data.toString('utf8').split('\n')
-	lines.forEach(function(line) {
-		if(line.length > 0) {
+	lines = lines.map(function(line) {
+		if(line.length>0) {
 			try {
 				var msg = JSON.parse(line)
+				return msg
 			} catch (err) {
 				console.log(err)
 			}
-				dispatch(me, msg)
-	    }
+		}
 	})
+	lines = lines.filter(function(msg){return msg})
+	return lines
 }
 
 function dispatch(me, msg) {
@@ -55,10 +60,12 @@ function progress_report() {
 	var period = (now - server.timer.mark)/1000
 	var rate = server.timer.hits / period
 	if (rate > 0) {
-		clients.forEach(function(client) {
+		server.clients.list.forEach(function(client) {
 			if(client.flags.stats == true) {
-	        	var stats_str = JSON.stringify({msg_rate: rate, client_count: clients.length})
-	        	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+": "+stats_str)
+	        	var stats_str = JSON.stringify({msg_rate: rate, 
+		        	                            client_count: server.clients.list.length})
+	        	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+": "+
+	        	            stats_str)
 	        	client.socket.write(stats_str+"\n")
 	        }
 			
