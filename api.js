@@ -4,9 +4,16 @@ var cradle = require('cradle')
 var server = require('./server').factory()
 var settings = require('./settings').settings
 
-server.listen(settings.listen_port)
 var couch = new(cradle.Connection)().database('icecondor');
 couch.create()
+couch.changes().on('response', function (res){
+     res.on('data', function (change) {
+          console.log(change);
+          couch.get(change.id, server_dispatch)
+      });
+})
+
+server.listen(settings.listen_port)
 
 server.on('listening', function() {
   console.log('icecondor api listening on :'+settings.listen_port)
@@ -17,8 +24,7 @@ server.on('listening', function() {
 server.on('connection', function(socket) {
   var me = {socket: socket, flags: {}}
   server.clients.add(me)
-  console.log(me.socket.remoteAddress+':'+me.socket.remotePort+' connected. '
-              +server.clients.list.length+' clients.');
+  clog(me,'connected. '+server.clients.list.length+' clients.');
   socket.on('data', function(data) {
 			server.timer.hits += 1
 	        var msgs = multilineParse(data)
@@ -30,7 +36,7 @@ server.on('connection', function(socket) {
 
   socket.on('close', function() {
   	server.clients.remove(me)
-  	console.log('closed. remaining client list: '+ server.clients.list)
+  	clog(me, 'closed. remaining client list: '+ server.clients.list)
   })
 })
 
@@ -56,6 +62,13 @@ function dispatch(me, msg) {
 	switch(msg.type) {
 		case 'location': couch_write(msg); break;
 		case 'stats': me.flags.stats = true; break;
+	}
+}
+
+function server_dispatch(err, doc) {
+	console.log("server dispatch "+doc)
+	switch(doc.type) {
+		case 'location': console.log('push location!'); break;
 	}
 }
 
