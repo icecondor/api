@@ -1,4 +1,7 @@
 {
 "progress_report_timer":3000,
-"listen_port":2020
+"listen_port":2020,
+"bouncy":{"listen_port":80,
+          "web_port":3000},
+"socket_io":{"listen_port":8080}
 }
