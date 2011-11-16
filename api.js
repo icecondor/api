@@ -68,8 +68,14 @@ function dispatch(me, msg) {
 function server_dispatch(err, doc) {
 	console.log("server dispatch "+doc)
 	switch(doc.type) {
-		case 'location': console.log('push location!'); break;
+		case 'location': pump_location(doc); break;
 	}
+}
+
+function pump_location(location) {
+	server.clients.list.forEach(function(client) {
+		client.socket.write(JSON.stringify(location)+"\n")
+	})
 }
 
 function progress_report() {
