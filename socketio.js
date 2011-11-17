@@ -17,8 +17,8 @@ var client_sockets = {}
 
 // socket.io
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
+  socket.emit('update', { hello: 'world' });
+  socket.on('following', function (data) {
     console.log(data);
   });
 });
