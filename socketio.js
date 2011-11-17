@@ -28,4 +28,10 @@ io.sockets.on('connection', function (client) {
     console.log("writing"+data);
     apiSocket.write(data+"\n")
   });
+
+  client.on('disconnect', function(client) {
+    apiSocket.end()
+    console.log('disconnnect!')
+  })
 });
+

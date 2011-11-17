@@ -38,7 +38,7 @@ server.on('connection', function(socket) {
 
   socket.on('close', function() {
   	server.clients.remove(me)
-  	clog(me, 'closed. remaining client list: '+ server.clients.list)
+  	clog(me, 'closed. '+server.clients.list.length+" remain")
   })
 })
 
