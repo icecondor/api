@@ -24,13 +24,16 @@ server.on('connection', function(socket) {
   var me = {socket: socket, flags: {}}
   server.clients.add(me)
   clog(me,'connected. '+server.clients.list.length+' clients.');
+  var hello = {type: "hello", version: 0.1}
+  socket.write(JSON.stringify(hello)+"\n")
+
   socket.on('data', function(data) {
-			server.timer.hits += 1
-	        var msgs = multilineParse(data)
-			clog(me, "msgs:"+JSON.stringify(msgs))
-	        msgs.forEach(function(msg){
-	        	dispatch(me, msg)
-  		    })
+		server.timer.hits += 1
+    var msgs = multilineParse(data)
+		clog(me, "msgs:"+JSON.stringify(msgs))
+    msgs.forEach(function(msg){
+    	dispatch(me, msg)
+    })
   })
 
   socket.on('close', function() {
