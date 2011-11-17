@@ -1,4 +1,5 @@
-var settings = require('./settings').settings;
+var settings = require('./settings').settings,
+    net = require('net');
 
 console.log("socket.io listening on "+settings.socket_io.listen_port)
 
@@ -12,11 +13,11 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 });
 
-// per-client connections to the api
-var client_sockets = {}
-
 // socket.io
 io.sockets.on('connection', function (socket) {
+  net.connect(settings.api.listen_port, "localhost")
+  
+  socket.set('api-socket')		
   socket.emit('update', { hello: 'world' });
   socket.on('following', function (data) {
     console.log(data);
