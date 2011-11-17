@@ -14,12 +14,15 @@ app.get('/', function (req, res) {
 });
 
 // socket.io
-io.sockets.on('connection', function (socket) {
-  net.connect(settings.api.listen_port, "localhost")
-  
-  socket.set('api-socket')		
-  socket.emit('update', { hello: 'world' });
-  socket.on('following', function (data) {
+io.sockets.on('connection', function (client) {
+  console.log(client.id+"connection to API")
+  var apiSocket = net.connect(settings.api.listen_port, "localhost")
+  apiSocket.write('{"type":"status"}')
+  apiSocket.on('data', function(data) {console.log(client.id+"API SOCKET GOT: "+data)})
+  client.set('api-socket', apiSocket)
+
+  client.emit('update', { hello: 'world' });
+  client.on('following', function (data) {
     console.log(data);
   });
 });

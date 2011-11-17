@@ -60,7 +60,7 @@ function multilineParse(data) {
 function dispatch(me, msg) {
 	switch(msg.type) {
 		case 'location': couch_write(msg); break;
-		case 'stats': me.flags.stats = true; break;
+		case 'status': me.flags.stats = true; break;
 	}
 }
 
