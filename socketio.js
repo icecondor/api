@@ -18,7 +18,7 @@ io.sockets.on('connection', function (client) {
   console.log(client.id+"connection to API")
   var apiSocket = net.connect(settings.api.listen_port, "localhost")
   apiSocket.write('{"type":"status"}')
-  apiSocket.on('data', function(data) {console.log(client.id+"API SOCKET GOT: "+data)})
+  apiSocket.on('data', function(data) {client.emit('update',data.toString('utf8'))})
   client.set('api-socket', apiSocket)
 
   client.emit('update', { hello: 'world' });
