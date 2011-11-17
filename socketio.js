@@ -24,8 +24,7 @@ io.sockets.on('connection', function (client) {
   })
 
   client.on('following', function (msg) {
-    var data = JSON.stringify(msg)
-    console.log("writing"+data);
+    var data = JSON.stringify((JSON.parse(msg))[0])
     apiSocket.write(data+"\n")
   });
 
