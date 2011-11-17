@@ -4,6 +4,7 @@ var cradle = require('cradle')
 var server = require('./server').factory()
 var settings = require('./settings').settings
 
+console.log("connection to couchdb/icecondor")
 var couch = new(cradle.Connection)().database('icecondor');
 couch.create()
 couch.changes().on('response', function (res){
@@ -13,12 +14,11 @@ couch.changes().on('response', function (res){
       });
 })
 
-server.listen(settings.listen_port)
+console.log("api listening on "+JSON.stringify(settings.api.listen_port))
+server.listen(settings.api.listen_port)
 
 server.on('listening', function() {
-  console.log('icecondor api listening on :'+settings.listen_port)
   timers.setInterval(progress_report, settings.progress_report_timer)
-
 })
 
 server.on('connection', function(socket) {
