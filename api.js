@@ -6,7 +6,6 @@ var settings = require('./settings').settings
 
 console.log("connection to couchdb/icecondor")
 var couch = new(cradle.Connection)().database('icecondor');
-couch.create()
 couch.changes().on('response', function (res){
      res.on('data', function (change) {
           console.log(change);
