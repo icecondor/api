@@ -8,21 +8,24 @@ var app = require('express').createServer()
 
 app.listen(settings.socket_io.listen_port);
 
-// webserver because, why not
+// serve an html page for testing
 app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
+  res.sendfile(__dirname + '/html/index.html');
 });
 
 // socket.io
 io.sockets.on('connection', function (client) {
-  console.log(client.id+"connection to API")
+  console.log(client.id+" connecting to API")
   var apiSocket = net.connect(settings.api.listen_port, "localhost")
-  apiSocket.write('{"type":"status"}')
-  apiSocket.on('data', function(data) {client.emit('update',data.toString('utf8'))})
-  client.set('api-socket', apiSocket)
 
-  client.emit('update', { hello: 'world' });
-  client.on('following', function (data) {
-    console.log(data);
+  apiSocket.on('data', function(data) {
+    var msg = JSON.parse(data.toString('utf8'))
+    client.emit('update',msg)
+  })
+
+  client.on('following', function (msg) {
+    var data = JSON.stringify(msg)
+    console.log("writing"+data);
+    apiSocket.write(data+"\n")
   });
 });
