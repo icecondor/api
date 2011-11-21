@@ -5,7 +5,8 @@ var server = require('./server').factory()
 var settings = require('./settings').settings
 
 console.log("connection to couchdb/icecondor")
-var couch = new(cradle.Connection)().database('icecondor');
+var ccon = new(cradle.Connection)()
+var couch = ccon.database('icecondor');
 couch.changes().on('response', function (res){
      res.on('data', function (change) {
           console.log(change);
@@ -17,12 +18,16 @@ console.log("api listening on "+JSON.stringify(settings.api.listen_port))
 server.listen(settings.api.listen_port)
 
 server.on('listening', function() {
-  timers.setInterval(progress_report, settings.progress_report_timer)
+  timers.setInterval(function() {
+      progress_report();
+      server.timer.reset();
+    }, settings.api.progress_report_timer)
 })
 
 server.on('connection', function(socket) {
   var me = {socket: socket, flags: {}}
   server.clients.add(me)
+  progress_report()
   clog(me,'connected. '+server.clients.list.length+' clients.');
   var hello = {type: "hello", version: 0.1}
   socket.write(JSON.stringify(hello)+"\n")
@@ -38,6 +43,7 @@ server.on('connection', function(socket) {
 
   socket.on('close', function() {
   	server.clients.remove(me)
+    progress_report()
   	clog(me, 'closed. '+server.clients.list.length+" remain")
   })
 })
@@ -82,21 +88,18 @@ function pump_location(location) {
 
 function progress_report() {
 	var now = new Date();
-	var period = (now - server.timer.mark)/1000
+	var period = (now - server.timer.mark) / 1000
 	var rate = server.timer.hits / period
-	if (rate > 0) {
-		server.clients.list.forEach(function(client) {
-			if(client.flags.stats == true) {
-				var stats = {msg_rate: rate, 
-		        	         client_count: server.clients.list.length}
-	        	var stats_str = JSON.stringify(stats)
-	        	clog(client, stats_str)
-	        	client.socket.write(stats_str+"\n")
-	        }
-			
-		})
-    }
-    server.timer.reset()
+	server.clients.list.forEach(function(client) {
+		if(client.flags.stats == true) {
+			var stats = {    msg_rate: rate, 
+	        	       client_count: server.clients.list.length}
+        	var stats_str = JSON.stringify(stats)
+        	clog(client, stats_str)
+        	client.socket.write(stats_str+"\n")
+        }
+		
+	})
 }
 
 function couch_write(doc) {

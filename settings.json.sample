@@ -1,6 +1,8 @@
 {
-"api":{"listen_port":2020,
-       "progress_report_timer":3000},
+"api":{
+  "listen_port":2020,
+  "progress_report_timer":3000
+ },
 "bouncy":{"listen_port":9340},
 "web":{"listen_port":9350},
 "socket_io":{"listen_port":9360}
