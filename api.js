@@ -2,10 +2,14 @@
 var timers = require('timers')
 var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
-
-console.log("connection to couchdb/icecondor")
 var couch = require('./lib/couchdb')
 
+/* iriscouch/follow */
+var follow = require('follow')
+follow({db:settings.couchdb.url, include_docs:true}, couch_dispatch)
+
+
+console.log("connection to "+settings.couchdb.url)
 console.log("api listening on "+JSON.stringify(settings.api.listen_port))
 server.listen(settings.api.listen_port)
 
@@ -29,7 +33,7 @@ server.on('connection', function(socket) {
     var msgs = multilineParse(data)
 		clog(me, "msgs:"+JSON.stringify(msgs))
     msgs.forEach(function(msg){
-    	dispatch(me, msg)
+    	client_dispatch(me, msg)
     })
   })
 
@@ -58,18 +62,23 @@ function multilineParse(data) {
 	return lines
 }
 
-function dispatch(me, msg) {
+function client_dispatch(me, msg) {
 	switch(msg.type) {
 		case 'location': couch_write(msg); break;
 		case 'status': me.flags.stats = true; break;
 	}
 }
 
-function server_dispatch(err, doc) {
-	console.log("server dispatch "+doc)
-	switch(doc.type) {
-		case 'location': pump_location(doc); break;
-	}
+function couch_dispatch(err, change) {
+  if (err) {
+  } else {
+    var doc = change.doc
+  	console.log("#"+change.seq+" server dispatching "+JSON.stringify(doc))
+  	switch(doc.type) {
+      case 'location': pump_location(doc); break;
+      case 'status_report': pump_status(doc); break;
+  	}
+  }
 }
 
 function pump_location(location) {
@@ -82,17 +91,20 @@ function progress_report() {
 	var now = new Date();
 	var period = (now - server.timer.mark) / 1000
 	var rate = server.timer.hits / period
-  var stats = {    msg_rate: rate, 
+  var stats = {       type: "status_report",
+                  msg_rate: rate, 
                client_count: server.clients.list.length}
   couch.db.insert(stats, couch_write_finish)
-	server.clients.list.forEach(function(client) {
-		if(client.flags.stats == true) {
-        	var stats_str = JSON.stringify(stats)
-        	clog(client, stats_str)
-        	client.socket.write(stats_str+"\n")
-        }
-		
-	})
+}
+
+function pump_status(status) {
+  server.clients.list.forEach(function(client) {
+    if(client.flags.stats == true) {
+      var stats_str = JSON.stringify(status)
+      clog(client, stats_str)
+      client.socket.write(stats_str+"\n")
+    }
+  })
 }
 
 function couch_write(doc) {
