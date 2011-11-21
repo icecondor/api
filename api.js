@@ -4,10 +4,7 @@ var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
 
 console.log("connection to couchdb/icecondor")
-var couch = require('nano')('http://localhost:5984/icecondor');
-couch.changes(function (err, change) {
-  console.log(change);
-})
+var couch = require('./lib/couchdb')
 
 console.log("api listening on "+JSON.stringify(settings.api.listen_port))
 server.listen(settings.api.listen_port)
@@ -85,10 +82,11 @@ function progress_report() {
 	var now = new Date();
 	var period = (now - server.timer.mark) / 1000
 	var rate = server.timer.hits / period
+  var stats = {    msg_rate: rate, 
+               client_count: server.clients.list.length}
+  couch.db.insert(stats, couch_write_finish)
 	server.clients.list.forEach(function(client) {
 		if(client.flags.stats == true) {
-			var stats = {    msg_rate: rate, 
-	        	       client_count: server.clients.list.length}
         	var stats_str = JSON.stringify(stats)
         	clog(client, stats_str)
         	client.socket.write(stats_str+"\n")
@@ -99,14 +97,14 @@ function progress_report() {
 
 function couch_write(doc) {
 	console.log('writing: '+ JSON.stringify(doc))
-	couch.insert(doc, couch_write_finish)
+	couch.db.insert(doc, couch_write_finish)
 }
 
 function couch_write_finish(error, body, headers) {
 	if(error){
 		console.log("couch error: "+ JSON.stringify(error))
 	} else {
-		console.log("response: "+body)
+		console.log("couch response: "+JSON.stringify(body))
 	}
 }
 
