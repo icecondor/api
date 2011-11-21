@@ -1,13 +1,12 @@
 "use strict"
 var timers = require('timers')
-var cradle = require('cradle')
-var server = require('./server').factory()
-var settings = require('./settings').settings
+var settings = require('./lib/settings')
+var server = require('./lib/server').factory()
 
 console.log("connection to couchdb/icecondor")
 var couch = require('nano')('http://localhost:5984/icecondor');
 couch.changes(function (err, change) {
-          console.log(change);
+  console.log(change);
 })
 
 console.log("api listening on "+JSON.stringify(settings.api.listen_port))

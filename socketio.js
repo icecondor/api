@@ -1,4 +1,4 @@
-var settings = require('./settings').settings,
+var settings = require('./settings'),
     net = require('net');
 
 console.log("socket.io listening on "+settings.socket_io.listen_port)
