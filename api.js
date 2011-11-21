@@ -5,13 +5,9 @@ var server = require('./server').factory()
 var settings = require('./settings').settings
 
 console.log("connection to couchdb/icecondor")
-var ccon = new(cradle.Connection)()
-var couch = ccon.database('icecondor');
-couch.changes().on('response', function (res){
-     res.on('data', function (change) {
+var couch = require('nano')('http://localhost:5984/icecondor');
+couch.changes(function (err, change) {
           console.log(change);
-          couch.get(change.id, server_dispatch)
-      });
 })
 
 console.log("api listening on "+JSON.stringify(settings.api.listen_port))
@@ -104,14 +100,14 @@ function progress_report() {
 
 function couch_write(doc) {
 	console.log('writing: '+ JSON.stringify(doc))
-	couch.save(doc.id, doc, couch_write_finish)
+	couch.insert(doc, couch_write_finish)
 }
 
-function couch_write_finish(error, response) {
+function couch_write_finish(error, body, headers) {
 	if(error){
 		console.log("couch error: "+ JSON.stringify(error))
 	} else {
-		console.log("response: "+response)
+		console.log("response: "+body)
 	}
 }
 
