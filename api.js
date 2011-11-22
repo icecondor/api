@@ -8,7 +8,7 @@ var couch = require('./lib/couchdb')
 var follow = require('follow')
 follow({db:settings.couchdb.url, include_docs:true}, couch_dispatch)
 
-
+console.log(settings.api.hostname+" starting")
 console.log("connection to "+settings.couchdb.url)
 console.log("api listening on "+JSON.stringify(settings.api.listen_port))
 server.listen(settings.api.listen_port)
@@ -92,8 +92,9 @@ function progress_report() {
 	var period = (now - server.timer.mark) / 1000
 	var rate = server.timer.hits / period
   var stats = {       type: "status_report",
+                    server: settings.api.hostname,
                   msg_rate: rate, 
-               client_count: server.clients.list.length}
+              client_count: server.clients.list.length}
   couch.db.insert(stats, couch_write_finish)
 }
 

@@ -1,7 +1,8 @@
 {
   "api":{
     "listen_port":2020,
-    "progress_report_timer":3000
+    "progress_report_timer":3000,
+    "hostname":"server1"
    },
   "bouncy":{"listen_port":9340},
   "web":{"listen_port":9350},
