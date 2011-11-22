@@ -93,6 +93,7 @@ function progress_report() {
 	var rate = server.timer.hits / period
   var stats = {       type: "status_report",
                     server: settings.api.hostname,
+                      date: new Date(),
                   msg_rate: rate, 
               client_count: server.clients.list.length}
   couch.db.insert(stats, couch_write_finish)
