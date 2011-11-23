@@ -5,7 +5,7 @@ var rest = require('restler')
 var settings = require('./settings')
 var client
 
-client = net.connect(settings.api.listen_port, "donpark.org", start_timer)
+client = net.connect(settings.api.listen_port, "localhost", start_timer)
 
 function start_timer() {
   console.log('api connected. start timer')
@@ -23,6 +23,7 @@ function iss_request(callback) {
 function iss_position(request) {
   var msg = { type:"location",
               username:"iss",
+              date: new Date(),
               position: { latitude:request.iss_position.latitude,
                           longitude:request.iss_position.longitude}
             }
