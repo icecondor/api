@@ -3,6 +3,7 @@ var timers = require('timers')
 var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
 var couch = require('./lib/couchdb')
+var version="0.2"
 
 /* iriscouch/follow */
 var follow = require('follow')
@@ -25,7 +26,7 @@ server.on('connection', function(socket) {
   server.clients.add(me)
   progress_report()
   clog(me,'connected. '+server.clients.list.length+' clients.');
-  var hello = {type: "hello", version: 0.1}
+  var hello = {type: "hello", version: version}
   socket.write(JSON.stringify(hello)+"\n")
 
   socket.on('data', function(data) {
@@ -96,6 +97,7 @@ function progress_report() {
 	var rate = server.timer.hits / period
   var stats = {       type: "status_report",
                     server: settings.api.hostname,
+                   version: version,
                       date: new Date(),
                   msg_rate: rate, 
               client_count: server.clients.list.length}
