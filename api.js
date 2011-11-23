@@ -21,7 +21,7 @@ server.on('listening', function() {
 })
 
 server.on('connection', function(socket) {
-  var me = {socket: socket, flags: {}}
+  var me = {socket: socket, flags: {}, following: []}
   server.clients.add(me)
   progress_report()
   clog(me,'connected. '+server.clients.list.length+' clients.');
@@ -66,6 +66,7 @@ function client_dispatch(me, msg) {
 	switch(msg.type) {
 		case 'location': couch_write(msg); break;
 		case 'status': me.flags.stats = true; break;
+    case 'follow': me.following.push(msg.username); break;
 	}
 }
 
@@ -83,7 +84,9 @@ function couch_dispatch(err, change) {
 
 function pump_location(location) {
 	server.clients.list.forEach(function(client) {
-		client.socket.write(JSON.stringify(location)+"\n")
+    if(client.following.indexOf(location.username) >= 0) {
+		  client.socket.write(JSON.stringify(location)+"\n")
+    }
 	})
 }
 
