@@ -7,7 +7,7 @@ var version="0.2"
 
 /* iriscouch/follow */
 var follow = require('follow')
-follow({db:settings.couchdb.url, include_docs:true}, couch_dispatch)
+follow({db:settings.couchdb.url, include_docs:true, since:"now"}, couch_dispatch)
 
 console.log(settings.api.hostname+" starting")
 console.log("connection to "+settings.couchdb.url)
