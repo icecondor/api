@@ -1,5 +1,5 @@
 var bouncy = require('bouncy')
-  , settings = require('./settings').settings;
+  , settings = require('./settings');
 
 console.log("bouncy listening on "+settings.bouncy.listen_port)
 bouncy(function (req, bounce) {
