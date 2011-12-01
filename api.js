@@ -75,7 +75,7 @@ function couch_dispatch(err, change) {
   if (err) {
   } else {
     var doc = change.doc
-  	console.log("ch#"+change.seq+" dispatching "+doc.type+" "+JSON.stringify(doc))
+  	console.log("ch#"+change.seq+" *"+doc.type+" "+JSON.stringify(doc))
   	switch(doc.type) {
       case 'location': pump_location(doc); break;
       case 'status_report': pump_status(doc); break;
