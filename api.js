@@ -7,7 +7,7 @@ var version="0.2"
 
 /* iriscouch/follow */
 var follow = require('follow')
-follow({db:settings.couchdb.url, include_docs:true}, couch_dispatch)
+follow({db:settings.couchdb.url, include_docs:true, limit:1}, couch_dispatch)
 
 console.log(settings.api.hostname+" starting")
 console.log("connection to "+settings.couchdb.url)
@@ -75,7 +75,7 @@ function couch_dispatch(err, change) {
   if (err) {
   } else {
     var doc = change.doc
-  	console.log("#"+change.seq+" server dispatching "+JSON.stringify(doc))
+  	console.log("ch#"+change.seq+" dispatching "+doc.type+" "+JSON.stringify(doc))
   	switch(doc.type) {
       case 'location': pump_location(doc); break;
       case 'status_report': pump_status(doc); break;
@@ -115,7 +115,7 @@ function pump_status(status) {
 }
 
 function couch_write(doc) {
-	console.log('writing: '+ JSON.stringify(doc))
+	//console.log('writing: '+ JSON.stringify(doc))
 	couch.db.insert(doc, couch_write_finish)
 }
 
@@ -123,7 +123,7 @@ function couch_write_finish(error, body, headers) {
 	if(error){
 		console.log("couch error: "+ JSON.stringify(error))
 	} else {
-		console.log("couch response: "+JSON.stringify(body))
+	//	console.log("couch response: "+JSON.stringify(body))
 	}
 }
 
