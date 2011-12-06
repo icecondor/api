@@ -3,9 +3,11 @@ var settings = require('./settings'),
 
 console.log("socket.io listening on "+settings.socket_io.listen_port)
 
-var app = require('express').createServer()
+var express = require('express')
+  , app = express.createServer()
   , io = require('socket.io').listen(app)
 
+app.use(express.static(__dirname + '/html'));
 app.listen(settings.socket_io.listen_port);
 
 // serve an html page for testing
@@ -24,7 +26,7 @@ io.sockets.on('connection', function (client) {
   })
 
   client.on('following', function (msg) {
-    var data = JSON.stringify((JSON.parse(msg))[0])
+    var data = JSON.stringify(msg)
     apiSocket.write(data+"\n")
   });
 
