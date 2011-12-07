@@ -16,7 +16,7 @@ function start_timer() {
   console.log('api connected. start timer')
   timers.setInterval(function() {
       trimet_request(trimet_positions);
-    }, 5000)
+    }, 30000)
 }
 
 function trimet_request(callback) {
