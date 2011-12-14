@@ -22,10 +22,10 @@ io.sockets.on('connection', function (client) {
 
   apiSocket.on('data', function(data) {
     var msg = JSON.parse(data.toString('utf8'))
-    client.emit('update',msg)
+    client.emit('dispatch',msg)
   })
 
-  client.on('following', function (msg) {
+  client.on('api', function (msg) {
     var data = JSON.stringify(msg)
     apiSocket.write(data+"\n")
   });
