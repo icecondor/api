@@ -130,8 +130,21 @@ function couch_write_finish(error, body, headers) {
 
 function start_auth(client, msg) {
   console.log('start_auth')
-  var res = couch.db.view('User','by_email', {key: msg.email}, 
-                          function(_, result){finish_auth(_,result, msg.password, client)});
+  if(msg.email) {
+    var res = couch.db.view('User','by_email', {key: msg.email}, 
+                            function(_, result){
+                              finish_auth(_,result, msg.password, client)
+                            });
+  } else if (msg.oauth_token) {
+    var res = couch.db.view('User','by_oauth_token', {key: msg.oauth_token}, 
+                            function(_, result){
+                              finish_auth(_,result, msg.password, client)
+                            });    
+  } else {
+    var omsg = {type:"auth"}
+    omsg.status = client.flags.authorized ? "OK" : "NOLOGIN"
+    client.socket.write(JSON.stringify(omsg)+"\n")
+  }
 }
 
 function finish_auth(_,result, password, client) {
