@@ -1,0 +1,21 @@
+<body>
+WebSockets in the raw.
+
+<script>
+var ws = new MozWebSocket('ws://localhost:2040/');
+ws.onopen = function () {
+  console.log('ws client open');
+  ws.send('back atcha')
+}
+
+ws.onmessage = function (e) {
+  console.log(e.data);
+};
+
+ws.onerror = function (error) {
+  console.log('WebSocket Error ');
+  console.log(error);
+};
+</script>
+
+</body>
