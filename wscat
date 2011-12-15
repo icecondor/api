@@ -1,9 +1,14 @@
 #!/usr/bin/env node
-var wsock = require('websock');
 var readline = require('readline');
+var path = require('path');
+var wsock = require('websock');
 var settings = require('./settings');
 
 var url = process.argv[2]
+if(typeof url == "undefined") {
+  console.log("Usage: "+path.basename(process.argv[1])+" wss://webserver");
+  process.exit(1);
+}
 console.log('opening '+url);
 var ws = new wsock.connect(url);
 
