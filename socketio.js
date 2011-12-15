@@ -21,17 +21,22 @@ io.sockets.on('connection', function (client) {
   var apiSocket = net.connect(settings.api.listen_port, "localhost")
 
   apiSocket.on('data', function(data) {
-    console.log("->"+data)
+    console.log("-> "+data)
     var msg = JSON.parse(data.toString('utf8'))
     client.emit('dispatch',msg)
   })
 
-  client.on('api', function (str) {
-    console.log("<- "+str)
+  client.on('api', function (msg) {
+    /* which is it? */
+    /* string */ /*
     msgs = JSON.parse(str)
     msgs.forEach(function(msg){
       apiSocket.write(JSON.stringify(msg)+"\n")
-    })
+    }) */
+    /* message */
+    var str = JSON.stringify(msg);
+    console.log("<- "+str)
+    apiSocket.write(str+"\n")
   });
 
   client.on('disconnect', function(client) {
