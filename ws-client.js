@@ -8,7 +8,7 @@ console.log('opening '+url);
 var ws = new wsock.connect(url);
 
 var rl = readline.createInterface(process.stdin, process.stdout);
-rl.setPrompt('=> ')
+rl.setPrompt('')
 
 ws.on('open', function() {
   rl.prompt()
@@ -21,7 +21,7 @@ ws.on('open', function() {
 });
 
 ws.on('message', function(data) {
-  console.log('-> '+data)
+  console.log(data)
   rl.prompt()
 });
 
