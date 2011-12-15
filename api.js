@@ -68,6 +68,7 @@ function client_dispatch(me, msg) {
 		case 'location': couch_write(msg); break;
 		case 'status': me.flags.stats = true; break;
     case 'follow': me.following.push(msg.username); break;
+    case 'auth': start_auth(me, msg); break;
 	}
 }
 
@@ -125,6 +126,37 @@ function couch_write_finish(error, body, headers) {
 	} else {
 	//	console.log("couch response: "+JSON.stringify(body))
 	}
+}
+
+function start_auth(client, msg) {
+  console.log('start_auth')
+  var res = couch.db.view('User','by_email', {key: msg.email}, 
+                          function(_, result){finish_auth(_,result, msg.password, client)});
+}
+
+function finish_auth(_,result, password, client) {
+  console.log('finish_auth')
+  console.log(result)
+  var msg = {type:"auth"}
+  if (result.rows.length > 0) {
+    console.log('loading '+result.rows[0].id)
+    couch.db.get(result.rows[0].id, function(_, user) {
+      console.log('inside get')
+      console.log(user)
+      if (user.password == password) {
+        msg.status = "OK"
+        msg.user = user
+      } else {
+        msg.status = "BADPASS"
+      }
+      console.log('writing')
+      console.log(JSON.stringify(msg))
+      client.socket.write(JSON.stringify(msg)+"\n")
+    })
+  } else {
+    msg.status = "NOTFOUND"
+    client.socket.write(JSON.stringify(msg)+"\n")
+  }
 }
 
 function clog(client, msg) {
