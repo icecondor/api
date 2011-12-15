@@ -12,6 +12,10 @@ ws.on('message', function(data) {
   console.log('-> '+data)
 });
 
+ws.on('error', function(data) {
+  console.log('ERR-> '+data)
+});
+
 ws.on('close', function() {
   console.log('ws close');
 });
