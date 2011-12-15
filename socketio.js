@@ -26,7 +26,7 @@ io.sockets.on('connection', function (client) {
     client.emit('dispatch',msg)
   })
 
-  client.on('api', function (msg) {
+  client.on('api', function (str) {
     console.log("<- "+str)
     msgs = JSON.parse(str)
     msgs.forEach(function(msg){
