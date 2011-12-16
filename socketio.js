@@ -28,16 +28,20 @@ io.sockets.on('connection', function (client) {
 
   client.on('api', function (str) {
     /* which is it? */
-    /* string */ 
-    msgs = JSON.parse(str)
-    msgs.forEach(function(msg){
-      var data = JSON.stringify(msg)
-      console.log("<- "+data)
-      apiSocket.write(data+"\n")
-    }) 
-    /* message */
-    /*var str = JSON.stringify(msg);*/
-    /*apiSocket.write(msg+"\n")*/
+    if(typeof str == 'String') {
+      /* string */ 
+      msgs = JSON.parse(str)
+      msgs.forEach(function(msg){
+        var data = JSON.stringify(msg)
+        console.log("<- "+data)
+        apiSocket.write(data+"\n")
+      }) 
+    } else {
+      /* message object */
+      var ostr = JSON.stringify(str);
+      console.log("<- "+ostr);
+      apiSocket.write(ostr+"\n")
+    }
   });
 
   client.on('disconnect', function(client) {
