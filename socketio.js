@@ -26,17 +26,18 @@ io.sockets.on('connection', function (client) {
     client.emit('dispatch',msg)
   })
 
-  client.on('api', function (msg) {
+  client.on('api', function (str) {
     /* which is it? */
-    /* string */ /*
+    /* string */ 
     msgs = JSON.parse(str)
     msgs.forEach(function(msg){
-      apiSocket.write(JSON.stringify(msg)+"\n")
-    }) */
+      var data = JSON.stringify(msg)
+      console.log("<- "+data)
+      apiSocket.write(data+"\n")
+    }) 
     /* message */
-    var str = JSON.stringify(msg);
-    console.log("<- "+str)
-    apiSocket.write(str+"\n")
+    /*var str = JSON.stringify(msg);*/
+    /*apiSocket.write(msg+"\n")*/
   });
 
   client.on('disconnect', function(client) {
