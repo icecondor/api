@@ -28,9 +28,9 @@ io.sockets.on('connection', function (client) {
 
   client.on('api', function (str) {
     /* which is it? */
-    if(typeof str == 'String') {
+    if(typeof str == 'string') {
       /* string */ 
-      msgs = JSON.parse(str)
+      var msgs = JSON.parse(str)
       msgs.forEach(function(msg){
         var data = JSON.stringify(msg)
         console.log("<- "+data)
