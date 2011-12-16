@@ -40,9 +40,10 @@ function writeApi(location) {
   var msg = { type:"location",
               username:"trimet14",
               date: new Date(new Date(location.at).getTime()),
+              heading: location.heading,
               position: { latitude: location.lat,
                           longitude: location.lng,
-                          heading: location.heading}
+                         }
             }
   var msg_s = JSON.stringify(msg)+"\n"
   console.log(msg_s)
