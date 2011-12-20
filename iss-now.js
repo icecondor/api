@@ -24,6 +24,7 @@ function iss_position(request) {
   var msg = { type:"location",
               username:"iss",
               date: new Date(),
+              provider: "api",
               position: { latitude:request.iss_position.latitude,
                           longitude:request.iss_position.longitude}
             }

@@ -41,6 +41,7 @@ function writeApi(location) {
               username:"trimet14",
               date: new Date(new Date(location.at).getTime()),
               heading: location.heading,
+              provider: "api",
               position: { latitude: location.lat,
                           longitude: location.lng,
                          }
