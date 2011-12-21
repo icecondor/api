@@ -133,12 +133,12 @@ function start_auth(client, msg) {
   if(msg.email) {
     var res = couch.db.view('User','by_email', {key: msg.email}, 
                             function(_, result){
-                              finish_auth(_,result, msg.password, client)
+                              finish_auth(_,result, {password:msg.password}, client)
                             });
   } else if (msg.oauth_token) {
     var res = couch.db.view('User','by_oauth_token', {key: msg.oauth_token}, 
                             function(_, result){
-                              finish_auth(_,result, msg.password, client)
+                              finish_auth(_,result, {oauth_token:msg.oauth_token}, client)
                             });    
   } else {
     var omsg = {type:"auth"}
@@ -147,7 +147,7 @@ function start_auth(client, msg) {
   }
 }
 
-function finish_auth(_,result, password, client) {
+function finish_auth(_,result, cred, client) {
   console.log('finish_auth')
   console.log(result)
   var msg = {type:"auth"}
@@ -156,9 +156,11 @@ function finish_auth(_,result, password, client) {
     couch.db.get(result.rows[0].id, function(_, user) {
       console.log('inside get')
       console.log(user)
-      if (user.password == password) {
+      if (user.password === cred.password ||
+          user.oauth_token === cred.oauth_token) {
         msg.status = "OK"
         msg.user = user
+        client.flags.authorized = true
       } else {
         msg.status = "BADPASS"
       }
