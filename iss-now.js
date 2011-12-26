@@ -8,7 +8,7 @@ var client
 client = net.connect(settings.api.listen_port, "localhost", start_timer)
 
 function start_timer() {
-  console.log('api connected. start timer')
+  console.log('api connected. start timer 5 seconds')
   timers.setInterval(function() {
       iss_request(iss_position);
     }, 5000)
