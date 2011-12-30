@@ -4,7 +4,8 @@ var bouncy = require('bouncy')
 console.log("bouncy listening on "+settings.bouncy.listen_port)
 
 bouncy(function (req, bounce) {
-  console.log(req.url)
+  var host = req.headers.host;
+  console.log(host+req.url)
 
   if (host.match(/^(www\.)?icecondor\.com/)) {
     if (req.url.match(/^\/socket.io\//)) {
