@@ -33,13 +33,13 @@ io.sockets.on('connection', function (client) {
       var msgs = JSON.parse(str)
       msgs.forEach(function(msg){
         var data = JSON.stringify(msg)
-        console.log("<- "+data)
+        console.log("<-s "+data)
         apiSocket.write(data+"\n")
       }) 
     } else {
       /* message object */
       var ostr = JSON.stringify(str);
-      console.log("<- "+ostr);
+      console.log("<-o "+ostr);
       apiSocket.write(ostr+"\n")
     }
   });
