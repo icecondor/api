@@ -165,7 +165,7 @@ function start_auth(client, msg) {
 
 function finish_auth(_,result, cred, client) {
   var msg = {type:"auth"}
-  if (result.rows.length > 0) {
+  if (!result.error && result.rows.length > 0) {
     console.log('loading '+result.rows[0].id)
     couch.db.get(result.rows[0].id, function(_, user) {
       if (user.password === cred.password ||
