@@ -117,9 +117,7 @@ function pump_status(status) {
 
 function process_location(me, msg) {
   if(me.flags.authorized) {
-    couch_write(msg)
-    client_write(me, {id:msg.id,
-                      status: 'OK'})
+    couch_write(me, msg)
   } else {
     client_write(me, {id:msg.id,
                       status: 'ERR',
@@ -127,21 +125,27 @@ function process_location(me, msg) {
   }
 }
 
-function couch_write(doc) {
-	//console.log('writing: '+ JSON.stringify(doc))
-	couch.db.insert(doc, couch_write_finish)
+function couch_write(me, doc) {
+	//console.log('couch writing: '+ JSON.stringify(doc))
+	couch.db.insert(doc, function(error, body, headers){couch_write_finish(error,body,headers,me)})
 }
 
-function couch_write_finish(error, body, headers) {
+function couch_write_finish(error, body, headers, me) {
 	if(error){
-		console.log("couch error: "+ JSON.stringify(error))
+	    if(me) {
+		    client_write(me, {id:body.id,
+		                      status: 'ERR',
+		                      message: JSON.stringify(error)})
+	    }
 	} else {
-	//	console.log("couch response: "+JSON.stringify(body))
+	    if(me){
+		    client_write(me, {id:body.id,
+		                      status: 'OK'})
+	    }
 	}
 }
 
 function start_auth(client, msg) {
-  console.log('start_auth')
   if(msg.email) {
     var res = couch.db.view('User','by_email', {key: msg.email}, 
                             function(_, result){
@@ -160,14 +164,10 @@ function start_auth(client, msg) {
 }
 
 function finish_auth(_,result, cred, client) {
-  console.log('finish_auth')
-  console.log(result)
   var msg = {type:"auth"}
   if (result.rows.length > 0) {
     console.log('loading '+result.rows[0].id)
     couch.db.get(result.rows[0].id, function(_, user) {
-      console.log('inside get')
-      console.log(user)
       if (user.password === cred.password ||
           user.oauth_token === cred.oauth_token) {
         msg.status = "OK"
@@ -176,7 +176,6 @@ function finish_auth(_,result, cred, client) {
       } else {
         msg.status = "BADPASS"
       }
-      console.log('writing')
       console.log(JSON.stringify(msg))
       client.socket.write(JSON.stringify(msg)+"\n")
     })
@@ -187,6 +186,7 @@ function finish_auth(_,result, cred, client) {
 }
 
 function client_write(client, msg) {
+  //console.log('client write'+ JSON.stringify(msg));
   client.socket.write(JSON.stringify(msg)+"\n")
 }
 
