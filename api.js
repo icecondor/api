@@ -65,7 +65,7 @@ function multilineParse(data) {
 
 function client_dispatch(me, msg) {
 	switch(msg.type) {
-		case 'location': if(me.flags.authorized) {couch_write(msg)}; break;
+		case 'location': process_location(me, msg); break;
 		case 'status': me.flags.stats = true; break;
     case 'follow': me.following.push(msg.username); break;
     case 'auth': start_auth(me, msg); break;
@@ -113,6 +113,16 @@ function pump_status(status) {
       client.socket.write(stats_str+"\n")
     }
   })
+}
+
+function process_location(me, msg) {
+  if(me.flags.authorized) {
+    couch_write(msg)
+  } else {
+    client_write(me, {id:msg.id,
+                      status: 'ERR',
+                      message: 'not authorized'})
+  }
 }
 
 function couch_write(doc) {
@@ -172,6 +182,10 @@ function finish_auth(_,result, cred, client) {
     msg.status = "NOTFOUND"
     client.socket.write(JSON.stringify(msg)+"\n")
   }
+}
+
+function client_write(client, msg) {
+  client.socket.write(JSON.stringify(msg)+"\n")
 }
 
 function clog(client, msg) {
