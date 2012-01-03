@@ -65,7 +65,7 @@ function multilineParse(data) {
 
 function client_dispatch(me, msg) {
 	switch(msg.type) {
-		case 'location': couch_write(msg); break;
+		case 'location': if(me.flags.authorized) {couch_write(msg)}; break;
 		case 'status': me.flags.stats = true; break;
     case 'follow': me.following.push(msg.username); break;
     case 'auth': start_auth(me, msg); break;
@@ -160,7 +160,7 @@ function finish_auth(_,result, cred, client) {
           user.oauth_token === cred.oauth_token) {
         msg.status = "OK"
         msg.user = user
-        client.flags.authorized = true
+        client.flags.authorized = user.oauth_token
       } else {
         msg.status = "BADPASS"
       }
