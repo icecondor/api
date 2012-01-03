@@ -118,6 +118,8 @@ function pump_status(status) {
 function process_location(me, msg) {
   if(me.flags.authorized) {
     couch_write(msg)
+    client_write(me, {id:msg.id,
+                      status: 'OK'})
   } else {
     client_write(me, {id:msg.id,
                       status: 'ERR',
