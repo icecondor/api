@@ -32,7 +32,8 @@ function trimet_request(callback) {
 // unfortunately not able to track a specific bus
 function trimet_positions(msg) {
   var arrivals = msg.resultSet.arrival;
-  var estimateds = arrivals.filter(function(arrival) { return arrival.status == "estimated"})
+  var estimateds = arrivals.filter(function(arrival) { 
+    return arrival.route == trimet.route && arrival.status == "estimated"})
   writeApi(estimateds[0].blockPosition)
 }
 
