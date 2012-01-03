@@ -14,6 +14,7 @@ client = net.connect(settings.api.listen_port, "localhost", start_timer)
 
 function start_timer() {
   console.log('api connected. start timer')
+  trimet_request(trimet_positions);
   timers.setInterval(function() {
       trimet_request(trimet_positions);
     }, 30000)
@@ -34,7 +35,9 @@ function trimet_positions(msg) {
   var arrivals = msg.resultSet.arrival;
   var estimateds = arrivals.filter(function(arrival) { 
     return arrival.route == trimet.route && arrival.status == "estimated"})
-  writeApi(estimateds[0].blockPosition)
+  var position = estimateds[0].blockPosition
+  console.log(position)
+  writeApi(position)
 }
 
 function writeApi(location) {
@@ -47,8 +50,8 @@ function writeApi(location) {
                           longitude: location.lng,
                          }
             }
+  console.log(msg)
   var msg_s = JSON.stringify(msg)+"\n"
-  console.log(msg_s)
   client.write(msg_s)
 
 }
