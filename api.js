@@ -138,11 +138,13 @@ function couch_write(me, doc) {
 function couch_write_finish(error, body, headers, me) {
   var msg;
 	if(error){
-    msg = {id:body.id,
+    msg = {id: body.id,
+           type: 'location',
            status: 'ERR',
            message: JSON.stringify(error)}
 	} else {
-    msg = {id:body.id,
+    msg = {id: body.id,
+           type: 'location',
            status: 'OK'}
 	}
   if(me) {
