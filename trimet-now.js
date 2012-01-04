@@ -14,6 +14,9 @@ client = net.connect(settings.api.listen_port, "localhost", start_timer)
 
 function start_timer() {
   console.log('api connected. start timer')
+  var msg = { type:"auth",
+              oauth_token:settings.iss.oauth_token}
+  cwrite(client, msg)  
   trimet_request(trimet_positions);
   timers.setInterval(function() {
       trimet_request(trimet_positions);
@@ -50,8 +53,11 @@ function writeApi(location) {
                           longitude: location.lng,
                          }
             }
-  console.log(msg)
-  var msg_s = JSON.stringify(msg)+"\n"
-  client.write(msg_s)
+  cwrite(client,msg);
+}
 
+function cwrite(client, msg) {
+  var msg_s = JSON.stringify(msg)+"\n"
+  console.log(msg_s)
+  client.write(msg_s)
 }
