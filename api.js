@@ -32,7 +32,7 @@ server.on('connection', function(socket) {
   socket.on('data', function(data) {
 		server.timer.hits += 1
     var msgs = multilineParse(data)
-		clog(me, "msgs:"+JSON.stringify(msgs))
+		clog(me, "<- "+ JSON.stringify(msgs))
     msgs.forEach(function(msg){
     	client_dispatch(me, msg)
     })
@@ -119,9 +119,11 @@ function process_location(me, msg) {
   if(me.flags.authorized) {
     couch_write(me, msg)
   } else {
-    client_write(me, {id:msg.id,
+    var msg = {id:msg.id,
                       status: 'ERR',
-                      message: 'not authorized'})
+                      message: 'not authorized'};
+    clog(me,"-> "+JSON.stringify(msg))
+    client_write(me, msg)
   }
 }
 
@@ -131,18 +133,19 @@ function couch_write(me, doc) {
 }
 
 function couch_write_finish(error, body, headers, me) {
+  var msg;
 	if(error){
-	    if(me) {
-		    client_write(me, {id:body.id,
-		                      status: 'ERR',
-		                      message: JSON.stringify(error)})
-	    }
+    msg = {id:body.id,
+           status: 'ERR',
+           message: JSON.stringify(error)}
 	} else {
-	    if(me){
-		    client_write(me, {id:body.id,
-		                      status: 'OK'})
-	    }
+    msg = {id:body.id,
+           status: 'OK'}
 	}
+  if(me) {
+    clog(me, "-> "+JSON.stringify(msg))
+    client_write(me, msg)
+  }
 }
 
 function start_auth(client, msg) {
@@ -191,5 +194,8 @@ function client_write(client, msg) {
 }
 
 function clog(client, msg) {
-	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+": "+msg);
+  if (typeof msg !== "string") {
+    msg = JSON.stringify(msg)
+  }
+	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+" "+msg);
 }
