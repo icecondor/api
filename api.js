@@ -129,7 +129,10 @@ function process_location(me, msg) {
 
 function couch_write(me, doc) {
 	//console.log('couch writing: '+ JSON.stringify(doc))
-	couch.db.insert(doc, function(error, body, headers){couch_write_finish(error,body,headers,me)})
+  var id = doc.id
+  delete doc.id
+	couch.db.insert(doc, id, function(error, body, headers){
+                                   couch_write_finish(error,body,headers,me)})
 }
 
 function couch_write_finish(error, body, headers, me) {
