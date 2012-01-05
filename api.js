@@ -195,7 +195,10 @@ function finish_auth(_,result, cred, client) {
 
 function client_write(client, msg) {
   if(client.socket) {
-    client.socket.write(JSON.stringify(msg)+"\n")
+    if (typeof msg !== "string") {
+      msg = JSON.stringify(msg)
+    }
+    client.socket.write(msg+"\n")
   }
 }
 
