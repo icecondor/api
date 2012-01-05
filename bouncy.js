@@ -7,7 +7,7 @@ bouncy(function (req, bounce) {
   var host = req.headers.host;
   console.log(host+req.url)
 
-  if (host.match(/^(www\.)?icecondor\.com/)) {
+  if (host.match(/localhost/)) {
     if (req.url.match(/^\/socket.io\//)) {
       bounce(settings.socket_io.listen_port).on('error', errlog);
     }

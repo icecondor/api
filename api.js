@@ -110,7 +110,7 @@ function pump_status(status) {
     if(client.flags.stats == true) {
       var stats_str = JSON.stringify(status)
       clog(client, stats_str)
-      client.socket.write(stats_str+"\n")
+      client_write(client, stats_str+"\n")
     }
   })
 }
@@ -167,7 +167,7 @@ function start_auth(client, msg) {
   } else {
     var omsg = {type:"auth"}
     omsg.status = client.flags.authorized ? "OK" : "NOLOGIN"
-    client.socket.write(JSON.stringify(omsg)+"\n")
+    client_write(client, JSON.stringify(omsg)+"\n")
   }
 }
 
@@ -185,11 +185,11 @@ function finish_auth(_,result, cred, client) {
         msg.status = "BADPASS"
       }
       console.log(JSON.stringify(msg))
-      client.socket.write(JSON.stringify(msg)+"\n")
+      client_write(client, JSON.stringify(msg)+"\n")
     })
   } else {
     msg.status = "NOTFOUND"
-    client.socket.write(JSON.stringify(msg)+"\n")
+    client_write(client, (JSON.stringify(msg)+"\n"))
   }
 }
 
