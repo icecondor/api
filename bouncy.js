@@ -7,18 +7,13 @@ bouncy(function (req, bounce) {
   var host = req.headers.host;
   console.log(host+req.url)
 
-  if (host.match(/localhost/)) {
     if (req.url.match(/^\/socket.io\//)) {
       bounce(settings.socket_io.listen_port).on('error', errlog);
     }
     else {
       bounce(settings.web.listen_port).on('error', errlog);
     }
-  }
 
-  if (host.match(/^api\.icecondor\.com/)) {
-    bounce(settings.websockets.listen_port);
-  }
 }).listen(settings.bouncy.listen_port);
 
 function errlog(e) {
