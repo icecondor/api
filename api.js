@@ -194,8 +194,9 @@ function finish_auth(_,result, cred, client) {
 }
 
 function client_write(client, msg) {
-  //console.log('client write'+ JSON.stringify(msg));
-  client.socket.write(JSON.stringify(msg)+"\n")
+  if(client.socket) {
+    client.socket.write(JSON.stringify(msg)+"\n")
+  }
 }
 
 function clog(client, msg) {
