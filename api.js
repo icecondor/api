@@ -67,7 +67,7 @@ function client_dispatch(me, msg) {
 	switch(msg.type) {
 		case 'location': process_location(me, msg); break;
 		case 'status': me.flags.stats = true; break;
-    case 'follow': me.following.push(msg.username); break;
+    case 'follow': process_follow(me, msg); break;
     case 'auth': start_auth(me, msg); break;
 	}
 }
@@ -125,6 +125,11 @@ function process_location(me, msg) {
     clog(me,"-> "+JSON.stringify(msg))
     client_write(me, msg)
   }
+}
+
+function process_follow(me, msg) {
+  // check for authorization
+  me.following.push(msg.username)
 }
 
 function couch_write(me, doc) {
