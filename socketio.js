@@ -26,6 +26,10 @@ io.sockets.on('connection', function (client) {
     client.emit('dispatch',msg)
   })
 
+  apiSocket.on('error', function(err) {
+    console.log("apiSocket err: "+err)
+  })
+
   client.on('api', function (str) {
     /* which is it? */
     if(typeof str == 'string') {

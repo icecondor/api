@@ -7,19 +7,20 @@ console.log("websockets listening on "+settings.websockets.listen_port)
 
 function ws_connect(socket) {
   console.log('ws_connect')
-  var apiSocket;
+  var apiSocket = new net.Socket();
 
   console.log('ws open. connecting to '+settings.api.listen_port);
-  apiSocket = net.connect(settings.api.listen_port, "localhost")
 
   apiSocket.on('data', function(data) {
     console.log('-> '+data)
     socket.send(data)
   })
   
-  apiSocket.on('err', function(exception) {
+  apiSocket.on('error', function(exception) {
     console.log("apiSocket error: "+exception);
   })
+
+  apiSocket.connect(settings.api.listen_port, "localhost")
 
   socket.on('message', function(data) {
     console.log('<- '+data)
