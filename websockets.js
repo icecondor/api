@@ -9,28 +9,27 @@ function ws_connect(socket) {
   console.log('ws_connect')
   var apiSocket = new net.Socket();
 
-  console.log('ws open. connecting to '+settings.api.listen_port);
+  console.log('websockets open. connecting to api on '+settings.api.listen_port);
 
   apiSocket.on('data', function(data) {
-    console.log('-> '+data)
+    console.log('ws-> '+data)
     socket.send(data)
   })
   
   apiSocket.on('error', function(exception) {
     console.log("apiSocket error: "+exception);
-    socket.close()
   })
 
   apiSocket.connect(settings.api.listen_port, "localhost")
 
   socket.on('message', function(data) {
-    console.log('<- '+data)
+    console.log('<-ws '+data)
     apiSocket.write(data+"\n")
   });
 
   socket.on('close', function() {
     apiSocket.end();
-    console.log('ws close');
+    console.log('websockets close');
   });
 
 }
