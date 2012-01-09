@@ -18,6 +18,7 @@ function ws_connect(socket) {
   
   apiSocket.on('error', function(exception) {
     console.log("apiSocket error: "+exception);
+    socket.close()
   })
 
   apiSocket.connect(settings.api.listen_port, "localhost")
