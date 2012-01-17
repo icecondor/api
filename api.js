@@ -211,5 +211,8 @@ function clog(client, msg) {
   if (typeof msg !== "string") {
     msg = JSON.stringify(msg)
   }
-	console.log(client.socket.remoteAddress+':'+client.socket.remotePort+" "+msg);
+  if(client.socket) {
+    msg = client.socket.remoteAddress+':'+client.socket.remotePort+" "+msg;
+  }
+  console.log(msg);
 }
