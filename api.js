@@ -39,9 +39,10 @@ server.on('connection', function(socket) {
   })
 
   socket.on('close', function() {
-  	server.clients.remove(me)
+    me.socket = null
+    server.clients.remove(me)
     progress_report()
-  	clog(me, 'closed. '+server.clients.list.length+" remain")
+    clog(me, 'closed. '+server.clients.list.length+" remain")
   })
 })
 
