@@ -20,7 +20,9 @@ function start_timer() {
 function iss_request(callback) {
   var url='http://api.open-notify.org/iss-now/'
   console.log(url)
-  rest.get(url).on('complete', callback)
+  var emitter = rest.get(url)
+  emitter.on('complete', callback)
+  emitter.on('error', function(e){console.log("error: "+e)})
 }
 
 function iss_position(request) {
