@@ -39,9 +39,11 @@ function trimet_positions(msg) {
   var arrivals = msg.resultSet.arrival;
   var estimateds = arrivals.filter(function(arrival) { 
     return arrival.route == trimet.route && arrival.status == "estimated"})
-  var position = estimateds[0].blockPosition
-  console.log(position)
-  writeApi(position)
+  if(estimateds.length > 0) { 
+    var position = estimateds[0].blockPosition
+    console.log(position)
+    writeApi(position)
+  }
 }
 
 function writeApi(location) {
