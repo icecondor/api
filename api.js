@@ -121,8 +121,9 @@ function process_location(me, msg) {
     couch_write(me, msg)
   } else {
     var msg = {id:msg.id,
-                      status: 'ERR',
-                      message: 'not authorized'};
+               type: 'location',
+               status: 'ERR',
+               message: 'not authorized'};
     clog(me,"-> "+JSON.stringify(msg))
     client_write(me, msg)
   }
