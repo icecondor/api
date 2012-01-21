@@ -205,6 +205,10 @@ function finish_auth(_,result, cred, client) {
     couch.db.get(result.rows[0].id, function(_, user) {
       if (user.password === cred.password ||
           user.oauth_token === cred.oauth_token) {
+        delete user.password
+        delete user.oauth_token
+        delete user._id
+        delete user._rev
         msg.status = "OK"
         msg.user = user
         client.user = user
