@@ -212,7 +212,7 @@ function finish_auth(_,result, cred, client) {
         msg.status = "OK"
         msg.user = user
         client.user = user
-        client.flags.authorized = user.oauth_token
+        client.flags.authorized = true
       } else {
         msg.status = "BADPASS"
       }
