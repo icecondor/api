@@ -129,8 +129,30 @@ function process_location(me, msg) {
 }
 
 function process_follow(me, msg) {
-  // check for authorization
-  me.following.push(msg.username)
+  // check for login
+  if(me.user) {
+    // check for authorization
+    if(me.user.friends.indexOf(msg.username) >= 0) {
+      var msg = {type: "follow",
+                 status: "OK",
+                 message: "following"}    
+      clog(me,"-> "+JSON.stringify(msg))
+      client_write(me, msg)
+      me.following.push(msg.username)
+    } else {
+      var msg = {type: "follow",
+                 status: "ERR",
+                 message: "not friends"}    
+      clog(me,"-> "+JSON.stringify(msg))
+      client_write(me, msg)
+    }
+  } else {
+    var msg = {type: "follow",
+               status: "ERR",
+               message: "not logged in"}    
+    clog(me,"-> "+JSON.stringify(msg))
+    client_write(me, msg)
+  }
 }
 
 function couch_write(me, doc) {
@@ -185,6 +207,7 @@ function finish_auth(_,result, cred, client) {
           user.oauth_token === cred.oauth_token) {
         msg.status = "OK"
         msg.user = user
+        client.user = user
         client.flags.authorized = user.oauth_token
       } else {
         msg.status = "BADPASS"
