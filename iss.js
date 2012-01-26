@@ -26,6 +26,7 @@ function iss_request(callback) {
 }
 
 function iss_position(request) {
+  if(request.iss_position) {
   var msg = { type:"location",
               username:"iss",
               date: new Date(),
@@ -34,6 +35,7 @@ function iss_position(request) {
                           longitude:request.iss_position.longitude}
             }
   cwrite(client, msg)            
+  }
 }
 
 function cwrite(client, msg) {
