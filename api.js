@@ -134,12 +134,12 @@ function process_follow(me, msg) {
   if(me.user) {
     // check for authorization
     if(me.user.friends.indexOf(msg.username) >= 0) {
+      me.following.push(msg.username)
       var msg = {type: "follow",
                  status: "OK",
                  message: "following"}    
       clog(me,"-> "+JSON.stringify(msg))
       client_write(me, msg)
-      me.following.push(msg.username)
     } else {
       var msg = {type: "follow",
                  status: "ERR",
