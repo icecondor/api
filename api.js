@@ -86,11 +86,14 @@ function couch_dispatch(err, change) {
 }
 
 function pump_location(location) {
-	server.clients.list.forEach(function(client) {
+  server.clients.list.forEach(function(client) {
     if(client.following.indexOf(location.username) >= 0) {
-		  client.socket.write(JSON.stringify(location)+"\n")
+      location.id = location._id;
+      delete location._id;
+      delete location._rev;
+      client.socket.write(JSON.stringify(location)+"\n")
     }
-	})
+  })
 }
 
 function progress_report() {
