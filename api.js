@@ -96,6 +96,24 @@ function pump_location(location) {
   })
 }
 
+function pump_last_location(me, username) {
+  var now = (new Date()).toISOString()
+  var res = couch.db.view('Location','by_username_and_date', 
+                          {startkey: [username, now],
+                           endkey: [username, ""],
+                           limit: 1, descending: true, reduce: false}, 
+                          function(_, result){
+                            if (!result.error && result.rows.length > 0) {
+                              couch.db.get(result.rows[result.rows.length-1].id, function(_, location) {
+                                location.id = location._id
+                                delete location._id
+                                delete location._rev
+                                client_write(me, location)                               
+                              })
+                            }
+                          });
+}
+
 function progress_report() {
 	var now = new Date();
 	var period = (now - server.timer.mark) / 1000
@@ -180,6 +198,7 @@ function follow_finish(me, username, message) {
                    message: message}    
         clog(me,"-> "+JSON.stringify(msg))
         client_write(me, msg)
+        pump_last_location(me, username)
 }
 
 function couch_write(me, doc) {
