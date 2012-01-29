@@ -137,13 +137,7 @@ function process_follow(me, msg) {
   if(me.user) {
     // check for authorization
     if(me.user.friends.indexOf(msg.username) >= 0) {
-      me.following.push(msg.username)
-      var msg = {type: "follow",
-                 status: "OK",
-                 username: msg.username,
-                 message: "following"}    
-      clog(me,"-> "+JSON.stringify(msg))
-      client_write(me, msg)
+      follow_finish(me, msg.username, "following")
     } else {
       var msg = {type: "follow",
                  status: "ERR",
@@ -165,13 +159,7 @@ function process_follow_with_user(_, me, result) {
   if (!result.error && result.rows.length > 0) {
     couch.db.get(result.rows[0].id, function(_, user) {
       if(user.friends && user.friends.indexOf('frontpage') >= 0) {
-        me.following.push(user.username)
-        var msg = {type: "follow",
-                   username: user.username,
-                   status: "OK",
-                   message: "following public profile"}    
-        clog(me,"-> "+JSON.stringify(msg))
-        client_write(me, msg)
+        follow_finish(me, user.username, "following public profile")
       } else {
         var msg = {type: "follow",
                    username: user.username,
@@ -182,6 +170,16 @@ function process_follow_with_user(_, me, result) {
       }
     })
   }
+}
+
+function follow_finish(me, username, message) {
+        me.following.push(username)
+        var msg = {type: "follow",
+                   username: username,
+                   status: "OK",
+                   message: message}    
+        clog(me,"-> "+JSON.stringify(msg))
+        client_write(me, msg)
 }
 
 function couch_write(me, doc) {
