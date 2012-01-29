@@ -69,6 +69,7 @@ function client_dispatch(me, msg) {
 		case 'location': process_location(me, msg); break;
 		case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
+    case 'unfollow': process_unfollow(me, msg); break;
     case 'auth': start_auth(me, msg); break;
 	}
 }
@@ -199,6 +200,26 @@ function follow_finish(me, username, message) {
         clog(me,"-> "+JSON.stringify(msg))
         client_write(me, msg)
         pump_last_location(me, username)
+}
+
+function process_unfollow(me, msg) {
+  var follow_idx = me.following.indexOf(msg.username)
+  if(follow_idx >= 0) {    
+    delete me.following[follow_idx]
+    var msg = {type: "unfollow",
+               username: msg.username,
+               status: "OK",
+               message: "stopped following"}    
+    clog(me,"-> "+JSON.stringify(msg))
+    client_write(me, msg)    
+  } else {
+    var msg = {type: "unfollow",
+               username: msg.username,
+               status: "ERR",
+               message: "not following"}    
+    clog(me,"-> "+JSON.stringify(msg))
+    client_write(me, msg)        
+  }
 }
 
 function couch_write(me, doc) {
