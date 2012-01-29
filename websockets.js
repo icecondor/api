@@ -12,7 +12,7 @@ function ws_connect(socket) {
   console.log('websockets open. connecting to api on '+settings.api.listen_port);
 
   apiSocket.on('data', function(data) {
-    console.log(client.socket.remoteAddress+'-> '+data)
+    console.log(socket.remoteAddress+'-> '+data)
     socket.send(data)
   })
   
