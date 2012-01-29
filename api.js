@@ -140,22 +140,47 @@ function process_follow(me, msg) {
       me.following.push(msg.username)
       var msg = {type: "follow",
                  status: "OK",
+                 username: msg.username,
                  message: "following"}    
       clog(me,"-> "+JSON.stringify(msg))
       client_write(me, msg)
     } else {
       var msg = {type: "follow",
                  status: "ERR",
+                 username: msg.username,
                  message: "not friends"}    
       clog(me,"-> "+JSON.stringify(msg))
       client_write(me, msg)
     }
   } else {
-    var msg = {type: "follow",
-               status: "ERR",
-               message: "not logged in"}    
-    clog(me,"-> "+JSON.stringify(msg))
-    client_write(me, msg)
+    // check for public profile
+    var res = couch.db.view('User','by_username', {key: msg.username}, 
+                            function(_, result){
+                              process_follow_with_user(_,me,result)
+                            });
+  }
+}
+
+function process_follow_with_user(_, me, result) {
+  if (!result.error && result.rows.length > 0) {
+    couch.db.get(result.rows[0].id, function(_, user) {
+      if(user.friends && user.friends.indexOf('frontpage') >= 0) {
+        me.following.push(user.username)
+        var msg = {type: "follow",
+                   username: user.username,
+                   status: "OK",
+                   message: "following public profile"}    
+        clog(me,"-> "+JSON.stringify(msg))
+        client_write(me, msg)
+      } else {
+        var msg = {type: "follow",
+                   username: user.username,
+                   status: "ERR",
+                   message: "profile is not public and not logged in"}    
+        clog(me,"-> "+JSON.stringify(msg))
+        client_write(me, msg)        
+      }
+    })
   }
 }
 
