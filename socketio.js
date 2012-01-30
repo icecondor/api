@@ -19,17 +19,11 @@ app.get('/', function (req, res) {
 io.sockets.on('connection', function (client) {
   console.log(client.id+" connecting to API")
   var apiSocket = net.connect(settings.api.listen_port, "localhost")
-  var apiBuffer = "";
 
   apiSocket.on('data', function(data) {
-    if(data.indexOf('\n')) {
-      var msg = JSON.parse(apiBuffer.toString('utf8'))
-      console.log("-> "+msg)
-      client.emit('dispatch',msg)
-      apiBuffer = "";
-    } else {
-      apiBuffer = apiBuffer + data;
-    }
+    var msg = JSON.parse(data.toString('utf8'))
+    console.log("-> "+msg)
+    client.emit('dispatch',msg)
   })
 
   apiSocket.on('error', function(err) {
