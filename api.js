@@ -1,5 +1,6 @@
 "use strict"
 var timers = require('timers')
+var crypto = require('crypto');
 var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
 var couch = require('./lib/couchdb')
@@ -198,10 +199,21 @@ function follow_finish(me, user, message) {
                    message: message}    
         if(user.mobile_avatar_url) {
           msg.mobile_avatar_url = user.mobile_avatar_url
+        } else {
+          if(user.email) {
+            msg.mobile_avatar_url = gravatar_url(user.email)
+          }
         }
         clog(me,"-> "+JSON.stringify(msg))
         client_write(me, msg)
         pump_last_location(me, user.username)
+}
+
+function gravatar_url(email) {
+  var md5sum = crypto.createHash('md5')
+  md5sum.update(email)
+  var url = "http://www.gravatar.com/avatar/"+md5sum.digest('hex')+"&s=20"
+  return url
 }
 
 function process_unfollow(me, msg) {
