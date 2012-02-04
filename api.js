@@ -152,33 +152,32 @@ function process_location(me, msg) {
 }
 
 function process_follow(me, msg) {
-  // check for login
-  if(me.user) {
-    // check for authorization
-    if(me.user.friends.indexOf(msg.username) >= 0) {
-      follow_finish(me, msg.username, "following")
-    } else {
-      var msg = {type: "follow",
-                 status: "ERR",
-                 username: msg.username,
-                 message: "not friends"}    
-      clog(me,"-> "+JSON.stringify(msg))
-      client_write(me, msg)
-    }
-  } else {
-    // check for public profile
-    var res = couch.db.view('User','by_username', {key: msg.username}, 
-                            function(_, result){
-                              process_follow_with_user(_,me,result)
-                            });
-  }
+  var res = couch.db.view('User','by_username', {key: msg.username}, 
+                          function(_, result){
+                            process_follow_with_user(_,me,result)
+                          });
 }
 
 function process_follow_with_user(_, me, result) {
   if (!result.error && result.rows.length > 0) {
     couch.db.get(result.rows[0].id, function(_, user) {
-      if(user.friends && user.friends.indexOf('frontpage') >= 0) {
-        follow_finish(me, user.username, "following public profile")
+      if(user.friends) {
+        if (user.friends.indexOf('frontpage') >= 0) {
+          follow_finish(me, user, "following public profile")
+          return
+        }
+        if (me.user) {
+          if (user.friends.indexOf(me.user.username) >= 0) {
+            follow_finish(me, user, "existing friendship")
+          } else {
+            var msg = {type: "follow",
+                       status: "ERR",
+                       username: user.username,
+                       message: "not friends"}    
+            clog(me,"-> "+JSON.stringify(msg))
+            client_write(me, msg)
+          }
+        }
       } else {
         var msg = {type: "follow",
                    username: user.username,
@@ -191,15 +190,18 @@ function process_follow_with_user(_, me, result) {
   }
 }
 
-function follow_finish(me, username, message) {
-        me.following.push(username)
+function follow_finish(me, user, message) {
+        me.following.push(user.username)
         var msg = {type: "follow",
-                   username: username,
+                   username: user.username,
                    status: "OK",
                    message: message}    
+        if(user.mobile_avatar_url) {
+          msg.mobile_avatar_url = user.mobile_avatar_url
+        }
         clog(me,"-> "+JSON.stringify(msg))
         client_write(me, msg)
-        pump_last_location(me, username)
+        pump_last_location(me, user.username)
 }
 
 function process_unfollow(me, msg) {
