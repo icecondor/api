@@ -22,14 +22,20 @@ io.sockets.on('connection', function (client) {
   var apiBuffer = "";
 
   apiSocket.on('data', function(data) {
-    if(data.indexOf('\n')) {
-      var msg = JSON.parse(apiBuffer.toString('utf8'))
-      console.log("-> "+msg)
-      client.emit('dispatch',msg)
-      apiBuffer = "";
-    } else {
-      apiBuffer = apiBuffer + data;
-    }
+    var dstr = data.toString('utf8')
+    dstr.split('\n').forEach(function(ds, idx) {
+      if (idx == 0) { ds = apiBuffer + ds }
+      if (idx == ds.length-1) { 
+        apiBuffer = ds 
+      } else {
+         if (ds.length > 0) {
+           console.log("json=>"+ds)
+           var msg = JSON.parse(ds)
+           console.log("-> "+ds)
+           client.emit('dispatch',msg)
+         }
+      }
+    })
   })
 
   apiSocket.on('error', function(err) {
