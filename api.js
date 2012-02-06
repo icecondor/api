@@ -212,7 +212,7 @@ function follow_finish(me, user, message) {
 function gravatar_url(email) {
   var md5sum = crypto.createHash('md5')
   md5sum.update(email)
-  var url = "http://www.gravatar.com/avatar/"+md5sum.digest('hex')+"&s=20"
+  var url = "http://www.gravatar.com/avatar/"+md5sum.digest('hex')+"?s=20"
   return url
 }
 
