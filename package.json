@@ -2,5 +2,5 @@
   "version" : "0.0.1",
   "dependencies" : { "nano": "0.9.5",
                      "follow" : "0.4.0",
-                     "websock" : "0.3.7" }
+                     "websock" : "~0.3.7" }
 }
