@@ -8,8 +8,14 @@ var settings = require('./settings')
 var util = require('util');
 var username;
 var client = net.connect(settings.api.listen_port, "localhost", play)
+client.on('disconnect', function(){console.log('disconnected from api')})
 
 function play() {
+  console.log('connected to localhost:'+settings.api.listen_port)
+  var msg = { type:"auth",
+               oauth_token:process.argv[3]}
+  cwrite(client, msg)
+
   var filename = process.argv[2]
   username = path.basename(filename, '.gpx')
   var xmlDoc = xml.parseXmlString(fs.readFileSync(filename,'utf8'));
@@ -48,5 +54,3 @@ function cwrite(client, msg) {
   console.log(msg_s)
   client.write(msg_s)
 }
-
-play('path.gpx')
