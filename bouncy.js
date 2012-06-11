@@ -14,7 +14,7 @@ bouncy(function (req, bounce) {
       bounce(settings.web.listen_port).on('error', errlog);
     }
 
-}).listen(settings.bouncy.listen_port);
+}).listen(settings.bouncy.listen_port).on('error', errlog);
 
 function errlog(e) {
   console.log(''+e)
