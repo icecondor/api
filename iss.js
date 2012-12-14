@@ -8,13 +8,14 @@ var client
 client = net.connect(settings.api.listen_port, "localhost", start_timer)
 
 function start_timer() {
-  console.log('api connected. start timer 5 seconds')
+  var seconds = 30
+  console.log('api connected. start timer '+seconds+' seconds')
   var msg = { type:"auth",
               oauth_token:settings.iss.oauth_token}
   cwrite(client, msg)
   timers.setInterval(function() {
       iss_request(iss_position);
-    }, 5000)
+    }, seconds*1000)
 }
 
 function iss_request(callback) {
