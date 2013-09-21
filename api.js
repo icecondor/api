@@ -241,20 +241,18 @@ function couch_write(me, doc) {
   var id = doc.id
   delete doc.id
 	couch.db.insert(doc, id, function(error, body, headers){
-                                   couch_write_finish(error,body,headers,me)})
+                                   couch_write_finish(error,body,headers,me, id)})
 }
 
-function couch_write_finish(error, body, headers, me) {
+function couch_write_finish(error, body, headers, me, id) {
   var msg;
+  msg = {id: id,
+         type: 'location'}
 	if(error){
-    msg = {id: body.id,
-           type: 'location',
-           status: 'ERR',
-           message: JSON.stringify(error)}
+    msg.status = 'ERR'
+    msg.message = JSON.stringify(error)
 	} else {
-    msg = {id: body.id,
-           type: 'location',
-           status: 'OK'}
+    msg.status = 'OK'
 	}
   if(me) {
     clog(me, "-> "+JSON.stringify(msg))
