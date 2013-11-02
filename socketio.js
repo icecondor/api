@@ -1,19 +1,17 @@
 var settings = require('./settings'),
-    net = require('net');
+    net = require('net'),
+    http = require('http'),
+    express = require('express'),
+    app = express(),
+    server = http.createServer(app),
+    io = require('socket.io').listen(server)
 
 console.log("socket.io listening on "+settings.socket_io.listen_port)
-
-var express = require('express')
-  , app = express.createServer()
-  , io = require('socket.io').listen(app)
-
-app.use(express.static(__dirname + '/html'));
-app.listen(settings.socket_io.listen_port);
-
-// serve an html page for testing
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/html/index.html');
 });
+
+server.listen(settings.socket_io.listen_port);
 
 // socket.io
 io.sockets.on('connection', function (client) {
