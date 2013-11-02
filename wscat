@@ -15,6 +15,7 @@ var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('')
 
 ws.on('open', function() {
+  console.log('connected to '+url)
   rl.on('line', function(answer){
       ws.send(answer); 
     }).on('close', function() {
