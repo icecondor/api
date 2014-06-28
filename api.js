@@ -6,12 +6,13 @@ var os = require('os')
 
 var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
-var db = require('./lib/rethinkdb')
+var rethink = require('rethinkdb')
+var db = rethink.connect({})
 var version="0.2"
 
 settings.api.hostname = os.hostname()
 console.log("v:"+version+" host:"+settings.api.hostname)
-console.log("api listening on "+settings.api.listen_port)
+console.log("api listening on *:"+settings.api.listen_port)
 server.listen(settings.api.listen_port)
 
 server.on('listening', function() {
@@ -125,7 +126,7 @@ function progress_report() {
                       date: new Date(),
                   msg_rate: rate,
               client_count: server.clients.list.length}
-  couch.db.insert(stats, couch_write_finish)
+  //couch.db.insert(stats, couch_write_finish)
 }
 
 function pump_status(status) {
@@ -260,6 +261,7 @@ function couch_write_finish(error, body, headers, me, id) {
 }
 
 function start_auth(client, msg) {
+  db.then(function(conn){ console.log(r.dbList().run(conn)) })
   if(msg.email) {
     var res = couch.db.view('User','by_email', {key: msg.email},
                             function(_, result){
