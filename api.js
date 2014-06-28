@@ -1,18 +1,17 @@
 "use strict"
+// nodejs
 var timers = require('timers')
 var crypto = require('crypto');
+var os = require('os')
+
 var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
-var couch = require('./lib/couchdb')
+var db = require('./lib/rethinkdb')
 var version="0.2"
 
-/* iriscouch/follow */
-var follow = require('follow')
-follow({db:settings.couchdb.url, include_docs:true, since:"now"}, couch_dispatch)
-
-console.log(settings.api.hostname+" starting")
-console.log("connection to "+settings.couchdb.url)
-console.log("api listening on "+JSON.stringify(settings.api.listen_port))
+settings.api.hostname = os.hostname()
+console.log("v:"+version+" host:"+settings.api.hostname)
+console.log("api listening on "+settings.api.listen_port)
 server.listen(settings.api.listen_port)
 
 server.on('listening', function() {
@@ -100,17 +99,17 @@ function pump_location(location) {
 
 function pump_last_location(me, username) {
   var now = (new Date()).toISOString()
-  var res = couch.db.view('Location','by_username_and_date', 
+  var res = couch.db.view('Location','by_username_and_date',
                           {startkey: [username, now],
                            endkey: [username, ""],
-                           limit: 1, descending: true, reduce: false}, 
+                           limit: 1, descending: true, reduce: false},
                           function(_, result){
                             if (!result.error && result.rows.length > 0) {
                               couch.db.get(result.rows[result.rows.length-1].id, function(_, location) {
                                 location.id = location._id
                                 delete location._id
                                 delete location._rev
-                                client_write(me, location)                               
+                                client_write(me, location)
                               })
                             }
                           });
@@ -124,7 +123,7 @@ function progress_report() {
                     server: settings.api.hostname,
                    version: version,
                       date: new Date(),
-                  msg_rate: rate, 
+                  msg_rate: rate,
               client_count: server.clients.list.length}
   couch.db.insert(stats, couch_write_finish)
 }
@@ -153,7 +152,7 @@ function process_location(me, msg) {
 }
 
 function process_follow(me, msg) {
-  var res = couch.db.view('User','by_username', {key: msg.username}, 
+  var res = couch.db.view('User','by_username', {key: msg.username},
                           function(_, result){
                             process_follow_with_user(_,me,result)
                           });
@@ -174,7 +173,7 @@ function process_follow_with_user(_, me, result) {
             var msg = {type: "follow",
                        status: "ERR",
                        username: user.username,
-                       message: "not friends"}    
+                       message: "not friends"}
             clog(me,"-> "+JSON.stringify(msg))
             client_write(me, msg)
           }
@@ -183,9 +182,9 @@ function process_follow_with_user(_, me, result) {
         var msg = {type: "follow",
                    username: user.username,
                    status: "ERR",
-                   message: "profile is not public and not logged in"}    
+                   message: "profile is not public and not logged in"}
         clog(me,"-> "+JSON.stringify(msg))
-        client_write(me, msg)        
+        client_write(me, msg)
       }
     })
   }
@@ -196,7 +195,7 @@ function follow_finish(me, user, message) {
         var msg = {type: "follow",
                    username: user.username,
                    status: "OK",
-                   message: message}    
+                   message: message}
         if(user.mobile_avatar_url) {
           msg.mobile_avatar_url = user.mobile_avatar_url
         } else {
@@ -218,21 +217,21 @@ function gravatar_url(email) {
 
 function process_unfollow(me, msg) {
   var follow_idx = me.following.indexOf(msg.username)
-  if(follow_idx >= 0) {    
+  if(follow_idx >= 0) {
     delete me.following[follow_idx]
     var msg = {type: "unfollow",
                username: msg.username,
                status: "OK",
-               message: "stopped following"}    
+               message: "stopped following"}
     clog(me,"-> "+JSON.stringify(msg))
-    client_write(me, msg)    
+    client_write(me, msg)
   } else {
     var msg = {type: "unfollow",
                username: msg.username,
                status: "ERR",
-               message: "not following"}    
+               message: "not following"}
     clog(me,"-> "+JSON.stringify(msg))
-    client_write(me, msg)        
+    client_write(me, msg)
   }
 }
 
@@ -262,15 +261,15 @@ function couch_write_finish(error, body, headers, me, id) {
 
 function start_auth(client, msg) {
   if(msg.email) {
-    var res = couch.db.view('User','by_email', {key: msg.email}, 
+    var res = couch.db.view('User','by_email', {key: msg.email},
                             function(_, result){
                               finish_auth(_,result, {password:msg.password}, client)
                             });
   } else if (msg.oauth_token) {
-    var res = couch.db.view('User','by_oauth_token', {key: msg.oauth_token}, 
+    var res = couch.db.view('User','by_oauth_token', {key: msg.oauth_token},
                             function(_, result){
                               finish_auth(_,result, {oauth_token:msg.oauth_token}, client)
-                            });    
+                            });
   } else {
     var omsg = {type:"auth"}
     omsg.status = client.flags.authorized ? "OK" : "NOLOGIN"
