@@ -8,7 +8,7 @@ var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory()
 
-var version="0.2"
+var version="2"
 
 if(!settings.api.hostname){settings.api.hostname = os.hostname()}
 console.log("v:"+version+" host:"+settings.api.hostname)
@@ -30,7 +30,7 @@ server.on('connection', function(socket) {
   progress_report()
   clog(me,'connected. '+server.clients.list.length+' clients.');
   var hello = {type: "hello", version: version}
-  socket.write(JSON.stringify(hello)+"\n")
+  client_write(me, hello)
 
   socket.on('data', function(data) {
 		server.timer.hits += 1

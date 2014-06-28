@@ -1,5 +1,5 @@
 { "name" : "icecondor-api",
-  "version" : "0.0.2",
+  "version" : "2.0.4",
   "description" : "location recording and processing for icecondor.com",
   "dependencies" : { "nano": "0.9.5",
                      "follow" : "0.4.0",
