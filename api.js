@@ -10,7 +10,7 @@ var db = require('./lib/dblib').factory()
 
 var version="0.2"
 
-settings.api.hostname = os.hostname()
+if(!settings.api.hostname){settings.api.hostname = os.hostname()}
 console.log("v:"+version+" host:"+settings.api.hostname)
 console.log("api listening on *:"+settings.api.listen_port)
 
@@ -129,7 +129,6 @@ function progress_report() {
                   msg_rate: rate,
               client_count: server.clients.list.length}
   db.insert(stats)
-  //couch.db.insert(stats, couch_write_finish)
 }
 
 function pump_status(status) {
