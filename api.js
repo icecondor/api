@@ -68,12 +68,12 @@ function multilineParse(data) {
 }
 
 function client_dispatch(me, msg) {
-	switch(msg.type) {
+	switch(msg.method) {
 		case 'location': process_location(me, msg); break;
 		case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
     case 'unfollow': process_unfollow(me, msg); break;
-    case 'auth': start_auth(me, msg); break;
+    case 'auth.token': start_auth(me, msg.params); break;
 	}
 }
 
@@ -263,6 +263,7 @@ function couch_write_finish(error, body, headers, me, id) {
 }
 
 function start_auth(client, msg) {
+  console.log('start_auth '+JSON.stringify(msg))
   db.then(function(conn){ console.log(r.dbList().run(conn)) })
   if(msg.email) {
     var res = couch.db.view('User','by_email', {key: msg.email},
