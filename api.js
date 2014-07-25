@@ -73,7 +73,8 @@ function client_dispatch(me, msg) {
 		case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
     case 'unfollow': process_unfollow(me, msg); break;
-    case 'auth.token': start_auth(me, msg.params); break;
+    case 'auth.token': send_token(me, msg.params); break;
+    case 'auth': start_auth(me, msg.params); break;
 	}
 }
 
@@ -262,9 +263,12 @@ function couch_write_finish(error, body, headers, me, id) {
   }
 }
 
+function send_token(client, msg) {
+  console.log('send_token '+JSON.stringify(msg))
+  var email = db.find_user_by_email(msg.email)
+}
+
 function start_auth(client, msg) {
-  console.log('start_auth '+JSON.stringify(msg))
-  db.then(function(conn){ console.log(r.dbList().run(conn)) })
   if(msg.email) {
     var res = couch.db.view('User','by_email', {key: msg.email},
                             function(_, result){
