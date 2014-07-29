@@ -4,7 +4,6 @@
 var timers = require('timers')
 var crypto = require('crypto')
 var fs = require('fs')
-var email = require('nodemailer')
 var os = require('os')
 
 var settings = require('./lib/settings')
