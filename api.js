@@ -268,7 +268,7 @@ function couch_write_finish(error, body, headers, me, id) {
 
 function send_token(client, msg) {
   console.log('send_token '+JSON.stringify(msg))
-  server.request_token(msg.email, msg.device_id)
+  server.request_token({email:msg.email, device_id:msg.device_id})
 }
 
 function start_auth(client, msg) {
