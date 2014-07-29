@@ -3,6 +3,7 @@
 // nodejs
 var timers = require('timers')
 var crypto = require('crypto')
+var fs = require('fs')
 var email = require('nodemailer')
 var os = require('os')
 
@@ -11,6 +12,7 @@ var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory()
 
 var version="2"
+try { version += "-"+fs.readFileSync('version') } catch(e) {}
 
 if(!settings.api.hostname){settings.api.hostname = os.hostname()}
 console.log("v:"+version+" host:"+settings.api.hostname)
