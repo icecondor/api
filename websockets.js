@@ -15,7 +15,7 @@ function ws_connect(socket) {
     console.log(socket.address+'-> '+data)
     socket.send(data)
   })
-  
+
   apiSocket.on('error', function(exception) {
     console.log("apiSocket error: "+exception);
   })

@@ -34,11 +34,11 @@ server.on('connection', function(socket) {
   client_write(me, hello)
 
   socket.on('data', function(data) {
-		server.timer.hits += 1
+    server.timer.hits += 1
     var msgs = multilineParse(data)
-		clog(me, "<- "+ JSON.stringify(msgs))
+    clog(me, "<- "+ JSON.stringify(msgs))
     msgs.forEach(function(msg){
-    	client_dispatch(me, msg)
+      client_dispatch(me, msg)
     })
   })
 
@@ -53,41 +53,41 @@ server.on('connection', function(socket) {
 server.on('close', function() {console.log('closed')})
 
 function multilineParse(data) {
-	var lines = data.toString('utf8').split('\n')
-	lines = lines.map(function(line) {
-		if(line.length>0) {
-			try {
-				var msg = JSON.parse(line)
-				return msg
-			} catch (err) {
-				console.log(err)
-			}
-		}
-	})
-	lines = lines.filter(function(msg){return msg})
-	return lines
+  var lines = data.toString('utf8').split('\n')
+  lines = lines.map(function(line) {
+    if(line.length>0) {
+      try {
+        var msg = JSON.parse(line)
+        return msg
+      } catch (err) {
+        console.log(err)
+      }
+    }
+  })
+  lines = lines.filter(function(msg){return msg})
+  return lines
 }
 
 function client_dispatch(me, msg) {
-	switch(msg.method) {
-		case 'location': process_location(me, msg); break;
-		case 'status': me.flags.stats = true; break;
+  switch(msg.method) {
+    case 'location': process_location(me, msg); break;
+    case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
     case 'unfollow': process_unfollow(me, msg); break;
     case 'auth.token': send_token(me, msg.params); break;
     case 'auth': start_auth(me, msg.params); break;
-	}
+  }
 }
 
 function couch_dispatch(err, change) {
   if (err) {
   } else {
     var doc = change.doc
-  	console.log("ch#"+change.seq+" *"+doc.type+" "+JSON.stringify(doc))
-  	switch(doc.type) {
+    console.log("ch#"+change.seq+" *"+doc.type+" "+JSON.stringify(doc))
+    switch(doc.type) {
       case 'location': pump_location(doc); break;
       case 'status_report': pump_status(doc); break;
-  	}
+    }
   }
 }
 
@@ -121,9 +121,9 @@ function pump_last_location(me, username) {
 }
 
 function progress_report() {
-	var now = new Date();
-	var period = (now - server.timer.mark) / 1000
-	var rate = server.timer.hits / period
+  var now = new Date();
+  var period = (now - server.timer.mark) / 1000
+  var rate = server.timer.hits / period
   var stats = {       type: "status_report",
                     server: settings.api.hostname,
                    version: version,
@@ -241,10 +241,10 @@ function process_unfollow(me, msg) {
 }
 
 function couch_write(me, doc) {
-	//console.log('couch writing: '+ JSON.stringify(doc))
+  //console.log('couch writing: '+ JSON.stringify(doc))
   var id = doc.id
   delete doc.id
-	couch.db.insert(doc, id, function(error, body, headers){
+  couch.db.insert(doc, id, function(error, body, headers){
                                    couch_write_finish(error,body,headers,me, id)})
 }
 
@@ -252,12 +252,12 @@ function couch_write_finish(error, body, headers, me, id) {
   var msg;
   msg = {id: id,
          type: 'location'}
-	if(error){
+  if(error){
     msg.status = 'ERR'
     msg.message = JSON.stringify(error)
-	} else {
+  } else {
     msg.status = 'OK'
-	}
+  }
   if(me) {
     clog(me, "-> "+JSON.stringify(msg))
     client_write(me, msg)
