@@ -1,7 +1,8 @@
 "use strict"
 // nodejs
 var timers = require('timers')
-var crypto = require('crypto');
+var crypto = require('crypto')
+var email = require('nodemailer')
 var os = require('os')
 
 var settings = require('./lib/settings')
@@ -265,7 +266,7 @@ function couch_write_finish(error, body, headers, me, id) {
 
 function send_token(client, msg) {
   console.log('send_token '+JSON.stringify(msg))
-  var email = db.find_user_by_email(msg.email)
+  server.request_token(msg.email, msg.device_id)
 }
 
 function start_auth(client, msg) {
