@@ -339,7 +339,7 @@ function finish_auth(_,result, cred, client) {
 function user_detail(client, params) {
   var msg = {id: params.id, result: {id:"ab14", user:"bob"}}
   client_write(client, msg)
-  clog(me,"user_detail-> "+JSON.stringify(msg))
+  clog(client, "user_detail-> "+JSON.stringify(msg))
 }
 
 
