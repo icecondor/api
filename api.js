@@ -78,6 +78,7 @@ function client_dispatch(me, msg) {
     case 'unfollow': process_unfollow(me, msg); break;
     case 'auth.token': send_token(me, msg.params); break;
     case 'auth': start_auth(me, msg.params); break;
+    case 'user.detail': user_detail(me, msg.params); break;
   }
 }
 
@@ -135,6 +136,25 @@ function progress_report() {
   db.insert(stats)
 }
 
+function client_write(client, msg) {
+  if(client.socket) {
+    if (typeof msg !== "string") {
+      msg = JSON.stringify(msg)
+    }
+    client.socket.write(msg+"\n")
+  }
+}
+
+function clog(client, msg) {
+  if (typeof msg !== "string") {
+    msg = JSON.stringify(msg)
+  }
+  if(client.socket) {
+    msg = client.socket.remoteAddress+':'+client.socket.remotePort+" "+msg;
+  }
+  console.log(msg);
+}
+
 function pump_status(status) {
   server.clients.list.forEach(function(client) {
     if(client.flags.stats == true) {
@@ -157,6 +177,8 @@ function process_location(me, msg) {
     client_write(me, msg)
   }
 }
+
+/* API calls */
 
 function process_follow(me, msg) {
   var res = couch.db.view('User','by_username', {key: msg.username},
@@ -314,21 +336,8 @@ function finish_auth(_,result, cred, client) {
   }
 }
 
-function client_write(client, msg) {
-  if(client.socket) {
-    if (typeof msg !== "string") {
-      msg = JSON.stringify(msg)
-    }
-    client.socket.write(msg+"\n")
-  }
+function user_detail(client, params) {
+  client_write(client, {id:"ab14", user:"bob"})
 }
 
-function clog(client, msg) {
-  if (typeof msg !== "string") {
-    msg = JSON.stringify(msg)
-  }
-  if(client.socket) {
-    msg = client.socket.remoteAddress+':'+client.socket.remotePort+" "+msg;
-  }
-  console.log(msg);
-}
+
