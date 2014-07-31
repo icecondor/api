@@ -157,6 +157,8 @@ function clog(client, msg) {
   }
   if (typeof msg !== "string") {
     parts.push(JSON.stringify(msg))
+  } else {
+    parts.push(msg)
   }
   console.log(parts.join(' '))
 }
@@ -347,5 +349,4 @@ function user_detail(client, msg) {
   client_write(client, response)
   clog(client, "user_detail-> "+JSON.stringify(response))
 }
-
 
