@@ -78,7 +78,7 @@ function client_dispatch(me, msg) {
     case 'unfollow': process_unfollow(me, msg); break;
     case 'auth.token': send_token(me, msg.params); break;
     case 'auth': start_auth(me, msg.params); break;
-    case 'user.detail': user_detail(me, msg.params); break;
+    case 'user.detail': user_detail(me, msg); break;
   }
 }
 
@@ -336,10 +336,10 @@ function finish_auth(_,result, cred, client) {
   }
 }
 
-function user_detail(client, params) {
-  var msg = {id: params.id, result: {id:"ab14", user:"bob"}}
-  client_write(client, msg)
-  clog(client, "user_detail-> "+JSON.stringify(msg))
+function user_detail(client, msg) {
+  var response = {id: msg.id, result: {id:"ab14", user:"bob"}}
+  client_write(client, response)
+  clog(client, "user_detail-> "+JSON.stringify(response))
 }
 
 
