@@ -6,6 +6,10 @@ var crypto = require('crypto')
 var fs = require('fs')
 var os = require('os')
 
+// npm
+var moment = require('moment')
+
+// local
 var settings = require('./lib/settings')
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory()
@@ -146,13 +150,15 @@ function client_write(client, msg) {
 }
 
 function clog(client, msg) {
-  if (typeof msg !== "string") {
-    msg = JSON.stringify(msg)
-  }
+  var parts = []
+  parts.push(moment().format())
   if(client.socket) {
-    msg = client.socket.remoteAddress+':'+client.socket.remotePort+" "+msg;
+    parts.push(client.socket.remoteAddress+':'+client.socket.remotePort);
   }
-  console.log(msg);
+  if (typeof msg !== "string") {
+    parts.push(JSON.stringify(msg))
+  }
+  console.log(parts.join(' '))
 }
 
 function pump_status(status) {
