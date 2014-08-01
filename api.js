@@ -302,6 +302,7 @@ function couch_write_finish(error, body, headers, me, id) {
 function send_token(client, msg) {
   db.ensure_user({email:msg.email})
   server.request_token({email:msg.email, device_id:msg.device_id})
+  client_write(client, {status: "sent"})
 }
 
 function start_auth(client, msg) {
