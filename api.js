@@ -19,19 +19,40 @@ try { version += "-"+fs.readFileSync('version') } catch(e) {}
 
 if(!settings.api.hostname){settings.api.hostname = os.hostname()}
 console.log("v:"+version+" host:"+settings.api.hostname)
-console.log("api listening on *:"+settings.api.listen_port)
 
-db.setup()
-server.listen(settings.api.listen_port)
+db.setup(function(){
+  server.listen(settings.api.listen_port)
+})
 
 server.on('listening', function() {
+  console.log("api listening on *:"+settings.api.listen_port)
   timers.setInterval(function() {
       progress_report();
       server.timer.reset();
     }, settings.api.progress_report_timer)
 })
 
-server.on('connection', function(socket) {
+server.on('connection', handleConnection)
+
+server.on('close', function() {console.log('closed')})
+
+function multilineParse(data) {
+  var lines = data.toString('utf8').split('\n')
+  lines = lines.map(function(line) {
+    if(line.length>0) {
+      try {
+        var msg = JSON.parse(line)
+        return msg
+      } catch (err) {
+        console.log(err)
+      }
+    }
+  })
+  lines = lines.filter(function(msg){return msg})
+  return lines
+}
+
+function handleConnection(socket) {
   var me = {socket: socket, flags: {}, following: []}
   server.clients.add(me)
   progress_report()
@@ -54,24 +75,6 @@ server.on('connection', function(socket) {
     progress_report()
     clog(me, 'closed. '+server.clients.list.length+" remain")
   })
-})
-
-server.on('close', function() {console.log('closed')})
-
-function multilineParse(data) {
-  var lines = data.toString('utf8').split('\n')
-  lines = lines.map(function(line) {
-    if(line.length>0) {
-      try {
-        var msg = JSON.parse(line)
-        return msg
-      } catch (err) {
-        console.log(err)
-      }
-    }
-  })
-  lines = lines.filter(function(msg){return msg})
-  return lines
 }
 
 function client_dispatch(me, msg) {
