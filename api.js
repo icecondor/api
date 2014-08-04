@@ -8,6 +8,7 @@ var os = require('os')
 
 // npm
 var moment = require('moment')
+var emailer = require('nodemailer')
 
 // local
 var version="2"
@@ -58,18 +59,6 @@ function client_dispatch(me, msg) {
     case 'auth.token': send_token(me, msg.params); break;
     case 'auth': start_auth(me, msg.params); break;
     case 'user.detail': user_detail(me, msg); break;
-  }
-}
-
-function couch_dispatch(err, change) {
-  if (err) {
-  } else {
-    var doc = change.doc
-    console.log("ch#"+change.seq+" *"+doc.type+" "+JSON.stringify(doc))
-    switch(doc.type) {
-      case 'location': pump_location(doc); break;
-      case 'status_report': pump_status(doc); break;
-    }
   }
 }
 
@@ -263,8 +252,11 @@ function couch_write_finish(error, body, headers, me, id) {
 }
 
 function send_token(client, msg) {
+  console.log('request_token '+JSON.stringify(msg))
   db.ensure_user({email:msg.email})
-  server.request_token({email:msg.email, device_id:msg.device_id})
+  var token = server.request_token({email:msg.email, device_id:msg.device_id})
+  var email_opts = build_token_email(msg.email, msg.device_id, token)
+  send_email(email_opts)
   protocol.respond(client, {status: "sent"})
 }
 
@@ -318,3 +310,27 @@ function user_detail(client, msg) {
   clog(client, "user_detail-> "+JSON.stringify(response))
 }
 
+function build_token_email(email, device_id, token) {
+  var auth_url = "icecondor://android/v2/auth?access_token="+token
+  var link = "https://icecondor.com/oauth2/authorize?client_id=icecondor-nest"+
+             "&response_type=token&redirect_uri="+encodeURIComponent(auth_url)
+  var emailOpt = {
+    from: 'IceCondor <system@icecondor.com>',
+    to: email,
+    subject: 'Android Login Link',
+    text: 'Android Login link\n'+link+'\nfrom device id: '+device_id,
+    //html: '<b>Hello world </b>'
+    }
+  return emailOpt
+}
+
+function send_email(params) {
+  var transporter = emailer.createTransport()
+  transporter.sendMail(params, function(error, info){
+    if(error){
+        console.log("email error: "+error);
+    } else {
+        console.log('Message sent to '+ params.to);
+    }
+  });
+}
