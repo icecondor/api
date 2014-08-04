@@ -10,12 +10,12 @@ var os = require('os')
 var moment = require('moment')
 
 // local
+var version="2"
 var settings = require('./lib/settings')
-var protocol = require('./lib/protocol')
+var protocol = require('./lib/protocol-v'+version)
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory()
 
-var version="2"
 try { version += "-"+fs.readFileSync('version').toString().trim() } catch(e) {}
 
 if(!settings.api.hostname){settings.api.hostname = os.hostname()}
@@ -37,45 +37,16 @@ server.on('connection', handleConnection)
 
 server.on('close', function() {console.log('closed')})
 
-function multilineParse(data) {
-  var lines = data.toString('utf8').split('\n')
-  lines = lines.map(function(line) {
-    if(line.length>0) {
-      try {
-        var msg = JSON.parse(line)
-        return msg
-      } catch (err) {
-        console.log(err)
-      }
-    }
-  })
-  lines = lines.filter(function(msg){return msg})
-  return lines
+function handleConnection(socket) {
+  var client = protocol.connection(socket, client_dispatch, end_of_connection)
+  server.clients.add(client)
+  clog(client, 'connected. '+server.clients.list.length+' clients.');
+  progress_report()
 }
 
-function handleConnection(socket) {
-  var me = {socket: socket, flags: {}, following: []}
-  server.clients.add(me)
+function end_of_connection(client) {
+  server.clients.remove(client)
   progress_report()
-  clog(me,'connected. '+server.clients.list.length+' clients.');
-  var hello = {type: "hello", version: version}
-  client_write(me, hello)
-
-  socket.on('data', function(data) {
-    server.timer.hits += 1
-    var msgs = multilineParse(data)
-    clog(me, "<- "+ JSON.stringify(msgs))
-    msgs.forEach(function(msg){
-      client_dispatch(me, msg)
-    })
-  })
-
-  socket.on('close', function() {
-    me.socket = null
-    server.clients.remove(me)
-    progress_report()
-    clog(me, 'closed. '+server.clients.list.length+" remain")
-  })
 }
 
 function client_dispatch(me, msg) {
@@ -142,15 +113,6 @@ function progress_report() {
                   msg_rate: rate,
               client_count: server.clients.list.length}
   db.insert(stats)
-}
-
-function client_write(client, msg) {
-  if(client.socket) {
-    if (typeof msg !== "string") {
-      msg = JSON.stringify(msg)
-    }
-    client.socket.write(msg+"\n")
-  }
 }
 
 function clog(client, msg) {
@@ -303,7 +265,7 @@ function couch_write_finish(error, body, headers, me, id) {
 function send_token(client, msg) {
   db.ensure_user({email:msg.email})
   server.request_token({email:msg.email, device_id:msg.device_id})
-  client_write(client, {status: "sent"})
+  protocol.respond(client, {status: "sent"})
 }
 
 function start_auth(client, msg) {
