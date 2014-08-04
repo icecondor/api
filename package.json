@@ -8,6 +8,7 @@
                      "moment": "2.*",
                      "bluebird": "2.2.*",
                      "then-redis": "0.3.*",
+                     "node-uuid": "1.4.*",
                      "forever": "0.11.*"
                    },
   "devDependencies": {
