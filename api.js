@@ -38,8 +38,13 @@ server.on('connection', handleConnection)
 
 server.on('close', function() {console.log('closed')})
 
+function build_client(socket) {
+  return {socket: socket, flags: {}, following: []}
+}
+
 function handleConnection(socket) {
-  var client = protocol.connection(socket, client_dispatch, end_of_connection)
+  var client = build_client(socket)
+  protocol.connection(client, client_dispatch, end_of_connection)
   server.clients.add(client)
   clog(client, 'connected. '+server.clients.list.length+' clients.');
   progress_report()
