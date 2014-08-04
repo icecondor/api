@@ -38,12 +38,8 @@ server.on('connection', handleConnection)
 
 server.on('close', function() {console.log('closed')})
 
-function build_client(socket) {
-  return {socket: socket, flags: {}, following: []}
-}
-
 function handleConnection(socket) {
-  var client = build_client(socket)
+  var client = server.build_client(socket)
   protocol.connection(client, client_dispatch, end_of_connection)
   server.clients.add(client)
   clog(client, 'connected. '+server.clients.list.length+' clients.');
@@ -62,7 +58,7 @@ function client_dispatch(me, msg) {
     case 'follow': process_follow(me, msg); break;
     case 'unfollow': process_unfollow(me, msg); break;
     case 'auth.token': send_token(me, msg.params); break;
-    case 'auth': start_auth(me, msg.params); break;
+    case 'auth': start_auth(me, msg); break;
     case 'user.detail': user_detail(me, msg); break;
   }
 }
@@ -259,10 +255,12 @@ function couch_write_finish(error, body, headers, me, id) {
 function send_token(client, msg) {
   console.log('request_token '+JSON.stringify(msg))
   db.ensure_user({email:msg.email})
-  var token = server.request_token({email:msg.email, device_id:msg.device_id})
-  var email_opts = build_token_email(msg.email, msg.device_id, token)
-  send_email(email_opts)
-  protocol.respond(client, {status: "sent"})
+  server.request_token({email:msg.email, device_id:msg.device_id}, function(token){
+    console.log('token cb')
+    var email_opts = build_token_email(msg.email, msg.device_id, token)
+    send_email(email_opts)
+    protocol.respond(client, {status: "sent"})
+  })
 }
 
 function start_auth(client, msg) {
@@ -310,9 +308,10 @@ function finish_auth(_,result, cred, client) {
 }
 
 function user_detail(client, msg) {
+  // default value is the authenticated user
   var response = {id:"ab14", user:"bob"}
   protocol.respond_success(client, msg.id, response)
-  clog(client, "user_detail-> "+JSON.stringify(response))
+  clog(client, "user_detail")
 }
 
 function build_token_email(email, device_id, token) {
