@@ -310,8 +310,8 @@ function finish_auth(_,result, cred, client) {
 }
 
 function user_detail(client, msg) {
-  var response = {id: msg.id, result: {id:"ab14", user:"bob"}}
-  client_write(client, response)
+  var response = {id:"ab14", user:"bob"}
+  protocol.respond_success(client, msg.id, response)
   clog(client, "user_detail-> "+JSON.stringify(response))
 }
 
