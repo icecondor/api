@@ -11,6 +11,7 @@ var moment = require('moment')
 
 // local
 var settings = require('./lib/settings')
+var protocol = require('./lib/protocol')
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory()
 
