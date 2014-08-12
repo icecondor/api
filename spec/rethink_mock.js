@@ -49,7 +49,6 @@ module.exports = (function() {
 
   mock.table = function(name){
     console.log('mock using table '+name)
-    console.dir(data)
     return data[db_name][name]
   }
 
@@ -60,10 +59,7 @@ module.exports = (function() {
   }
 
   mock._next_answer = function(table_name, answer) {
-    console.dir(data[db_name][table_name])
-    console.log('setting next answer for '+table_name+' to '+answer)
     data[db_name][table_name]._next_answer(answer)
-    console.dir(data[db_name][table_name])
   }
 
   function tableFactory(){

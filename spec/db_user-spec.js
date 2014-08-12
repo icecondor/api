@@ -7,7 +7,7 @@ describe("existing users", function(){
     rethink_mock._seed('icecondor', ['users'])
     db.setup(function(){
       rethink_mock._next_answer('users', {toArray:function(){return ['bob@server']}})
-      db.find_user_by_email('bob@server', function(user){
+      db.find_user_by_email('bob@server').then(function(user){
         expect(user).toEqual("bob@server")
         done() //jasmine
       })
@@ -15,9 +15,10 @@ describe("existing users", function(){
   })
 })
 
+
 describe("empty users", function(){
   it("should ensure a user exists", function(done) {
-    rethink_mock._seed({icecondor:{users: []}})
+    rethink_mock._seed('icecondor', ['users'])
     db.setup(function(){
       rethink_mock._next_answer('users', {toArray:function(){return []}})
       rethink_mock._next_answer('users', {next:function(){return "bob@server"}})
