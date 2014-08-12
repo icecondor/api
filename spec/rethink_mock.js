@@ -2,11 +2,16 @@ var Promise = require('bluebird');
 
 module.exports = (function() {
   var mock = {}
-  var existingDBs = []
-  var seed
+  var data = {}
+  var db_name
 
-  mock.tableSeeds = function(_seed) {
-    seed = _seed
+  mock._seed = function(_db_name, table_names){
+    db_name = _db_name
+    data[db_name] = {}
+    for(var idx in table_names) {
+      var name = table_names[idx]
+      data[db_name][name] = tableFactory()
+    }
   }
 
   function factoryRunAnswer(value){
@@ -25,39 +30,58 @@ module.exports = (function() {
   }
 
   mock.dbCreate = function(db_name) {
-    existingDBs.push(db_name)
+    data[db_name] = {}
     return factoryRunAnswer()
   }
 
   mock.dbList = function() {
-    return factoryRunAnswer(existingDBs)
+    return factoryRunAnswer(Object.keys(data))
   }
 
   mock.tableList = function() {
-    return factoryRunAnswer([])
+    return factoryRunAnswer(Object.keys(data[db_name]))
   }
 
   mock.tableCreate = function(name) {
+    data[db_name][name] = tableFactory()
     return factoryRunAnswer()
   }
 
   mock.table = function(name){
     console.log('mock using table '+name)
-    return tableFactory(seed[name])
+    console.dir(data)
+    return data[db_name][name]
   }
 
   var conn = {}
   conn.use = function(name) {
     console.log('mock using db '+name)
+    db_name = name
   }
 
-  function tableFactory(data){
+  mock._next_answer = function(table_name, answer) {
+    console.dir(data[db_name][table_name])
+    console.log('setting next answer for '+table_name+' to '+answer)
+    data[db_name][table_name]._next_answer(answer)
+    console.dir(data[db_name][table_name])
+  }
+
+  function tableFactory(){
     var table = {}
-    table.data = data
+    table.next_answers = []
+
+    table._next_answer = function(answer) {
+      table.next_answers.push(answer)
+    }
 
     table.filter = function(spec) {
-      return factoryRunAnswer({toArray:function(){return table.data}})
+      return factoryRunAnswer(table.next_answers.shift())
     }
+
+    table.insert = function(blob) {
+      return factoryRunAnswer(table.next_answers.shift())
+    }
+
     return table
   }
 
