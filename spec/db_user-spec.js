@@ -20,8 +20,8 @@ describe("empty users", function(){
   it("should ensure a user exists", function(done) {
     rethink_mock._seed('icecondor', ['users'])
     db.setup(function(){
-      rethink_mock._next_answer('users', {toArray:function(){return []}})
-      rethink_mock._next_answer('users', {next:function(){return "bob@server"}})
+      rethink_mock._next_answer('users', {toArray:function(){return []}}) // no users
+      rethink_mock._next_answer('users', {next:function(){return "bob@server"}}) // one was created
       db.ensure_user('bob@server')
         .then(function(user){
           expect(user).toEqual("bob@server")
