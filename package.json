@@ -19,7 +19,7 @@
     "url" : "http://github.com/icecondor/api.git"
   },
   "scripts": {
-    "run": "jasmine-node spec"
+    "test": "jasmine-node spec"
   }
 
 }
