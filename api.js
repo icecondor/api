@@ -9,13 +9,14 @@ var os = require('os')
 // npm
 var moment = require('moment')
 var emailer = require('nodemailer')
+var rethink = require('rethinkdb')
 
 // local
 var version="2"
 var settings = require('./lib/settings')
 var protocol = require('./lib/protocol-v'+version)
 var server = require('./lib/server').factory()
-var db = require('./lib/dblib').factory()
+var db = require('./lib/dblib').factory(rethink)
 
 try { version += "-"+fs.readFileSync('version').toString().trim() } catch(e) {}
 

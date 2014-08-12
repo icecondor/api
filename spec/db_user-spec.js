@@ -1,4 +1,5 @@
-var db = require('../lib/dblib').factory()
+var rethink_mock = require('../spec/rethink_mock')
+var db = require('../lib/dblib').factory(rethink_mock)
 
 describe("data users", function(){
   it("should search for user by email", function() {
