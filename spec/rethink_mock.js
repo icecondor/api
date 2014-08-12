@@ -5,9 +5,8 @@ module.exports = (function() {
   var existingDBs = []
   var seed
 
-  mock.seed = function(_seed) {
+  mock.tableSeeds = function(_seed) {
     seed = _seed
-    return mock
   }
 
   function factoryRunAnswer(value){
