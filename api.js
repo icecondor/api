@@ -53,13 +53,13 @@ function end_of_connection(client) {
 
 function client_dispatch(me, msg) {
   switch(msg.method) {
+    case 'auth.email': send_token(me, msg.params); break;
+    case 'auth.session': start_auth(me, msg); break;
+    case 'user.detail': user_detail(me, msg); break;
     case 'location': process_location(me, msg); break;
     case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
     case 'unfollow': process_unfollow(me, msg); break;
-    case 'auth.token': send_token(me, msg.params); break;
-    case 'auth': start_auth(me, msg); break;
-    case 'user.detail': user_detail(me, msg); break;
   }
 }
 
