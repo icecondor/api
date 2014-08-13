@@ -21,10 +21,11 @@ describe("empty users", function(){
     rethink_mock._seed('icecondor', ['users'])
     db.setup(function(){
       rethink_mock._next_answer('users', {toArray:function(){return []}}) // no users
-      rethink_mock._next_answer('users', {next:function(){return "bob@server"}}) // one was created
-      db.ensure_user('bob@server')
+      rethink_mock._next_answer_from_inserted('users') // one was created
+      var new_user = {email:'bob@server'}
+      db.ensure_user(new_user)
         .then(function(user){
-          expect(user).toEqual("bob@server")
+          expect(user).toEqual(new_user)
           done() //jasmine
         })
     })

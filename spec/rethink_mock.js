@@ -62,11 +62,21 @@ module.exports = (function() {
     data[db_name][table_name]._next_answer(answer)
   }
 
+  mock._next_answer_from_inserted = function(table_name) {
+    data[db_name][table_name]._next_answer_from_inserted()
+  }
+
   function tableFactory(){
     var table = {}
     table.next_answers = []
+    table.inserted = []
 
     table._next_answer = function(answer) {
+      table.next_answers.push(answer)
+    }
+
+    table._next_answer_from_inserted = function(answer) {
+      var answer = {next:function(){return table.inserted.shift()}}
       table.next_answers.push(answer)
     }
 
@@ -75,6 +85,7 @@ module.exports = (function() {
     }
 
     table.insert = function(blob) {
+      table.inserted.push(blob)
       return factoryRunAnswer(table.next_answers.shift())
     }
 
