@@ -92,7 +92,7 @@ module.exports = (function() {
 
   function cursorFactory(values) {
     var cursor = {}
-    if(values instanceof Array) {
+    if(Array.isArray(values)) {
       cursor.values = values
     } else {
       cursor.values = [values]
