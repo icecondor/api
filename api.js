@@ -266,10 +266,8 @@ function process_auth_email(client, msg) {
 }
 
 function process_auth_session(client, msg) {
-  server.find_token(client.device_id).then(function(token){
-    console.dir(msg.token)
-    console.dir(token)
-    if(msg.token === token) {
+  server.find_token(msg.params.device_id).then(function(token){
+    if(msg.params.token === token) {
       client.flags.authorized = true
       protocol.respond_success(client, msg.id)
     } else {
