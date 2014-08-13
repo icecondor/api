@@ -267,13 +267,15 @@ function process_auth_email(client, msg) {
 
 function process_auth_session(client, msg) {
   server.find_token(client.device_id).then(function(token){
-    if(msg.token == token) {
+    console.dir(msg.token)
+    console.dir(token)
+    if(msg.token === token) {
       client.flags.authorized = true
       protocol.respond_success(client, msg.id)
     } else {
       protocol.respond_fail(client, msg.id)
     }
-  })
+  }).catch(function(err){console.log('Err! '+err)})
 }
 
 function finish_auth(_,result, cred, client) {
