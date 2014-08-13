@@ -256,12 +256,13 @@ function couch_write_finish(error, body, headers, me, id) {
 function send_token(client, msg) {
   console.log('request_token '+JSON.stringify(msg))
   db.ensure_user({email:msg.email})
-  server.request_token({email:msg.email, device_id:msg.device_id}, function(token){
-    console.log('token cb')
-    var email_opts = build_token_email(msg.email, msg.device_id, token)
-    send_email(email_opts)
-    protocol.respond(client, {status: "sent"})
-  })
+  server.request_token({email:msg.email, device_id:msg.device_id})
+    .then(function(token){
+      console.log('token '+token)
+      var email_opts = build_token_email(msg.email, msg.device_id, token)
+      send_email(email_opts)
+      protocol.respond(client, {status: "sent"})
+    })
 }
 
 function start_auth(client, msg) {
