@@ -21,8 +21,8 @@ describe("empty users", function(){
   it("should ensure a user exists", function(done) {
     rethink_mock._seed('icecondor', ['users', 'actions'])
     db.setup(function(){
-      rethink_mock._next_answer('users', []) // no users
       var new_user = {email:'bob@server'}
+      rethink_mock._next_answer('users', []) // no users
       db.ensure_user(new_user)
         .then(function(){
           done() //jasmine
