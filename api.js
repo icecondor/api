@@ -55,7 +55,7 @@ function end_of_connection(client) {
 function client_dispatch(me, msg) {
   switch(msg.method) {
     case 'auth.email': process_auth_email(me, msg); break;
-    case 'auth.session': start_auth(me, msg); break;
+    case 'auth.session': process_auth_session(me, msg); break;
     case 'user.detail': user_detail(me, msg); break;
     case 'location': process_location(me, msg); break;
     case 'status': me.flags.stats = true; break;
@@ -265,22 +265,15 @@ function process_auth_email(client, msg) {
     })
 }
 
-function start_auth(client, msg) {
-  if(msg.email) {
-    var res = couch.db.view('User','by_email', {key: msg.email},
-                            function(_, result){
-                              finish_auth(_,result, {password:msg.password}, client)
-                            });
-  } else if (msg.oauth_token) {
-    var res = couch.db.view('User','by_oauth_token', {key: msg.oauth_token},
-                            function(_, result){
-                              finish_auth(_,result, {oauth_token:msg.oauth_token}, client)
-                            });
-  } else {
-    var omsg = {type:"auth"}
-    omsg.status = client.flags.authorized ? "OK" : "NOLOGIN"
-    client_write(client, JSON.stringify(omsg)+"\n")
-  }
+function process_auth_session(client, msg) {
+  server.find_token(client.device_id).then(function(token){
+    if(msg.token == token) {
+      client.flags.authorized = true
+      protocol.respond_success(client, msg.id)
+    } else {
+      protocol.respond_fail(client, msg.id)
+    }
+  })
 }
 
 function finish_auth(_,result, cred, client) {
