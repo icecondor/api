@@ -54,7 +54,7 @@ function end_of_connection(client) {
 
 function client_dispatch(me, msg) {
   switch(msg.method) {
-    case 'auth.email': send_token(me, msg.params); break;
+    case 'auth.email': process_auth_email(me, msg); break;
     case 'auth.session': start_auth(me, msg); break;
     case 'user.detail': user_detail(me, msg); break;
     case 'location': process_location(me, msg); break;
@@ -253,15 +253,15 @@ function couch_write_finish(error, body, headers, me, id) {
   }
 }
 
-function send_token(client, msg) {
+function process_auth_email(client, msg) {
+  var params = msg.params
   console.log('request_token '+JSON.stringify(msg))
-  db.ensure_user({email:msg.email})
-  server.request_token({email:msg.email, device_id:msg.device_id})
+  db.ensure_user({email:params.email})
+  server.create_token({device_id:params.device_id})
     .then(function(token){
-      console.log('token '+token)
-      var email_opts = build_token_email(msg.email, msg.device_id, token)
+      var email_opts = build_token_email(params.email, params.device_id, token)
       send_email(email_opts)
-      protocol.respond(client, {status: "sent"})
+      protocol.respond_success(client, msg.id, {status: "OK"})
     })
 }
 
