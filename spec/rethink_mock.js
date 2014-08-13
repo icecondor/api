@@ -48,7 +48,6 @@ module.exports = (function() {
   }
 
   mock.table = function(name){
-    console.log('mock using table '+name)
     return data[db_name][name]
   }
 
@@ -72,12 +71,11 @@ module.exports = (function() {
     table.inserted = []
 
     table._next_answer = function(answer) {
-      table.next_answers.push(answer)
+      table.next_answers.push(cursorFactory(answer))
     }
 
-    table._next_answer_from_inserted = function(answer) {
-      var answer = {next:function(){return table.inserted.shift()}}
-      table.next_answers.push(answer)
+    table._next_answer_from_inserted = function() {
+      table.next_answers.push(cursorFactory(table.inserted.shift()))
     }
 
     table.filter = function(spec) {
@@ -86,10 +84,29 @@ module.exports = (function() {
 
     table.insert = function(blob) {
       table.inserted.push(blob)
-      return factoryRunAnswer(table.next_answers.shift())
+      return factoryRunAnswer({inserted:1})
     }
 
     return table
+  }
+
+  function cursorFactory(values) {
+    var cursor = {}
+    if(values instanceof Array) {
+      cursor.values = values
+    } else {
+      cursor.values = [values]
+    }
+
+    cursor.toArray = function() {
+      return cursor.values
+    }
+
+    cursor.next = function() {
+      return cursor.values.shift()
+    }
+
+    return cursor
   }
 
   return mock

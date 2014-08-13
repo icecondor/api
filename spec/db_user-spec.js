@@ -6,9 +6,10 @@ describe("existing users", function(){
   it("should search for user by email", function(done) {
     rethink_mock._seed('icecondor', ['users'])
     db.setup(function(){
-      rethink_mock._next_answer('users', {toArray:function(){return ['bob@server']}})
+      var orig_user = {email:'bob@server'}
+      rethink_mock._next_answer('users', orig_user)
       db.find_user_by_email('bob@server').then(function(user){
-        expect(user).toEqual("bob@server")
+        expect(user).toEqual(orig_user)
         done() //jasmine
       })
     })
@@ -18,15 +19,16 @@ describe("existing users", function(){
 
 describe("empty users", function(){
   it("should ensure a user exists", function(done) {
-    rethink_mock._seed('icecondor', ['users'])
+    rethink_mock._seed('icecondor', ['users', 'actions'])
     db.setup(function(){
-      rethink_mock._next_answer('users', {toArray:function(){return []}}) // no users
-      rethink_mock._next_answer_from_inserted('users') // one was created
+      rethink_mock._next_answer('users', []) // no users
       var new_user = {email:'bob@server'}
       db.ensure_user(new_user)
-        .then(function(user){
-          expect(user).toEqual(new_user)
+        .then(function(){
           done() //jasmine
+        }, function(){
+          expect(false).toEqual(true) // expect this not to be called
+          done() //
         })
     })
   })
