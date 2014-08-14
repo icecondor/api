@@ -271,7 +271,7 @@ function process_auth_session(client, msg) {
       client.flags.authorized = device_id
       protocol.respond_success(client, msg.id)
     } else {
-      protocol.respond_fail(client, msg.id)
+      protocol.respond_fail(client, msg.id, {code: "BK1", message: "bad device_key"})
     }
   }).catch(function(err){console.log('Err! '+err)})
 }
