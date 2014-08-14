@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 var readline = require('readline');
 var path = require('path');
+var Url = require('url');
 var wsock = require('websock');
 var settings = require('./settings');
 
@@ -9,7 +10,12 @@ if(typeof url == "undefined") {
   console.log("Usage: "+path.basename(process.argv[1])+" wss://webserver");
   process.exit(1);
 }
-var ws = new wsock.connect(url, {agent: {rejectUnauthorized:false}});
+var uri = Url.parse(url)
+var sockopts = {}
+if(uri.protocol == 'wss:'){
+  sockopts.agent = {rejectUnauthorized:false}
+}
+var ws = new wsock.connect(uri, sockopts)
 
 var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('')
