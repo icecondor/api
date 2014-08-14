@@ -256,7 +256,7 @@ function couch_write_finish(error, body, headers, me, id) {
 function process_auth_email(client, msg) {
   var params = msg.params
   console.log('request_token '+JSON.stringify(msg))
-  db.ensure_user({email:params.email})
+  db.ensure_user(user_new(params.email, params.device_id))
   server.create_token({device_id:params.device_id})
     .then(function(token){
       var email_opts = build_token_email(params.email, params.device_id, token)
@@ -266,9 +266,9 @@ function process_auth_email(client, msg) {
 }
 
 function process_auth_session(client, msg) {
-  server.find_token(msg.params.device_id).then(function(token){
-    if(msg.params.token === token) {
-      client.flags.authorized = true
+  server.find_session(msg.params.device_key).then(function(device_id){
+    if(device_id) {
+      client.flags.authorized = device_id
       protocol.respond_success(client, msg.id)
     } else {
       protocol.respond_fail(client, msg.id)
@@ -300,6 +300,12 @@ function finish_auth(_,result, cred, client) {
     msg.status = "NOTFOUND"
     client_write(client, (JSON.stringify(msg)+"\n"))
   }
+}
+
+function user_new(email, device_id){
+  var user = {email:email, devices: {}}
+  user.devices[device_id] = {model: "phone"}
+  return user
 }
 
 function user_detail(client, msg) {
