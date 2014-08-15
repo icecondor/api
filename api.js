@@ -232,30 +232,6 @@ function process_unfollow(me, msg) {
   }
 }
 
-function couch_write(me, doc) {
-  //console.log('couch writing: '+ JSON.stringify(doc))
-  var id = doc.id
-  delete doc.id
-  couch.db.insert(doc, id, function(error, body, headers){
-                                   couch_write_finish(error,body,headers,me, id)})
-}
-
-function couch_write_finish(error, body, headers, me, id) {
-  var msg;
-  msg = {id: id,
-         type: 'location'}
-  if(error){
-    msg.status = 'ERR'
-    msg.message = JSON.stringify(error)
-  } else {
-    msg.status = 'OK'
-  }
-  if(me) {
-    clog(me, "-> "+JSON.stringify(msg))
-    client_write(me, msg)
-  }
-}
-
 function process_auth_email(client, msg) {
   var params = msg.params
   console.log('request_token '+JSON.stringify(msg))
@@ -279,31 +255,6 @@ function process_auth_session(client, msg) {
   }).catch(function(err){console.log('Err! '+err)})
 }
 
-function finish_auth(_,result, cred, client) {
-  var msg = {type:"auth"}
-  if (!result.error && result.rows.length > 0) {
-    couch.db.get(result.rows[0].id, function(_, user) {
-      if (user.password === cred.password ||
-          user.oauth_token === cred.oauth_token) {
-        delete user.password
-        delete user.oauth_token
-        delete user._id
-        delete user._rev
-        msg.status = "OK"
-        msg.user = user
-        client.user = user
-        client.flags.authorized = true
-      } else {
-        msg.status = "BADPASS"
-      }
-      console.log(JSON.stringify(msg))
-      client_write(client, JSON.stringify(msg)+"\n")
-    })
-  } else {
-    msg.status = "NOTFOUND"
-    client_write(client, (JSON.stringify(msg)+"\n"))
-  }
-}
 
 function user_new(email, device_id){
   var user = {email:email, devices: {}}
