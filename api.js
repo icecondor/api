@@ -12,18 +12,19 @@ var emailer = require('nodemailer')
 var rethink = require('rethinkdb')
 
 // local
-var minor_version
-try { minor_version = fs.readFileSync('version').toString().trim() } catch(e) {}
-var major_version="2"
-var version = major_version+"-"+minor_version
 var settings = require('./lib/settings')
-var protocol = require('./lib/protocol-v'+major_version)(minor_version)
+go_version(2)
+var protocol = require('./lib/protocol-v'+settings.api.major_version)(settings.api.minor_version, settings.api.hostname)
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory(rethink)
 
-
-if(!settings.api.hostname){settings.api.hostname = os.hostname()}
-console.log("v:"+version+" host:"+settings.api.hostname)
+function go_version(major_version) {
+  settings.api.major_version = major_version
+  try {settings.api.minor_version = fs.readFileSync('version').toString().trim() } catch(e) {}
+  settings.api.version = settings.api.major_version+"-"+settings.api.minor_version
+  if(!settings.api.hostname){settings.api.hostname = os.hostname()}
+  console.log("v:"+settings.api.version+" host:"+settings.api.hostname)
+}
 
 db.setup(function(){
   server.listen(settings.api.listen_port)
@@ -101,7 +102,7 @@ function progress_report() {
   var rate = server.timer.hits / period
   var stats = {       type: "status_report",
                     server: settings.api.hostname,
-                   version: version,
+                   version: settings.api.version,
                       date: new Date(),
                   msg_rate: rate,
               client_count: server.clients.list.length}
