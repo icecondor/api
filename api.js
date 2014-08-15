@@ -53,7 +53,7 @@ function client_dispatch(me, msg) {
   switch(msg.method) {
     case 'auth.email': process_auth_email(me, msg); break;
     case 'auth.session': process_auth_session(me, msg); break;
-    case 'user.detail': user_detail(me, msg); break;
+    case 'user.detail': process_user_detail(me, msg); break;
     case 'location': process_location(me, msg); break;
     case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
@@ -252,15 +252,20 @@ function process_auth_session(client, msg) {
 
 function user_new(email, device_id){
   var user = {email:email, devices: {}}
-  user.devices[device_id] = {model: "phone"}
+  user.devices = [device_id]
   return user
 }
 
-function user_detail(client, msg) {
-  // default value is the authenticated user
-  var response = {id:"ab14", user:"bob"}
-  protocol.respond_success(client, msg.id, response)
+function process_user_detail(client, msg) {
   clog(client, "user_detail")
+  if(client.flags.authenticated){
+    // default value is the authenticated user
+    db.find_user_by(rethink.row('id').eq(client.flags.authenticated)).then(function(user){
+      protocol.respond_success(client, msg.id, user)
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
 }
 
 function build_token_email(email, device_id, token) {
