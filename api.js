@@ -241,8 +241,11 @@ function process_auth_email(client, msg) {
 function process_auth_session(client, msg) {
   server.find_session(msg.params.device_key).then(function(device_id){
     if(device_id) {
-      client.flags.authorized = device_id
-      protocol.respond_success(client, msg.id)
+      db.find_user_by(rethink.row('devices').contains(device_id)).then(function(user){
+        client.flags.authorized = user.id
+        protocol.respond_success(client, msg.id, {user:{id:user.id}})
+        clog(client, 'authenticated device '+device_id+' to user '+user.email);
+      })
     } else {
       protocol.respond_fail(client, msg.id, {code: "BK1", message: "bad device_key"})
     }
@@ -258,6 +261,7 @@ function user_new(email, device_id){
 
 function process_user_detail(client, msg) {
   clog(client, "user_detail")
+  console.dir(client)
   if(client.flags.authenticated){
     // default value is the authenticated user
     db.find_user_by(rethink.row('id').eq(client.flags.authenticated)).then(function(user){
