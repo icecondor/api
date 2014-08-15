@@ -3,8 +3,6 @@
 // nodejs
 var timers = require('timers')
 var crypto = require('crypto')
-var fs = require('fs')
-var os = require('os')
 
 // npm
 var moment = require('moment')
