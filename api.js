@@ -12,13 +12,15 @@ var emailer = require('nodemailer')
 var rethink = require('rethinkdb')
 
 // local
-var version="2"
+var minor_version
+try { minor_version = fs.readFileSync('version').toString().trim() } catch(e) {}
+var major_version="2"
+var version = major_version+"-"+minor_version
 var settings = require('./lib/settings')
-var protocol = require('./lib/protocol-v'+version)
+var protocol = require('./lib/protocol-v'+major_version)(minor_version)
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory(rethink)
 
-try { version += "-"+fs.readFileSync('version').toString().trim() } catch(e) {}
 
 if(!settings.api.hostname){settings.api.hostname = os.hostname()}
 console.log("v:"+version+" host:"+settings.api.hostname)
