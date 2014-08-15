@@ -325,8 +325,8 @@ function build_token_email(email, device_id, token) {
   var emailOpt = {
     from: 'IceCondor <system@icecondor.com>',
     to: email,
-    subject: 'Android Login Link',
-    text: 'Android Login link\n'+link+'\nfrom device id: '+device_id,
+    subject: 'Login Link',
+    text: 'IceCondor Login link for Android\n\n'+link+'\n',
     //html: '<b>Hello world </b>'
     }
   return emailOpt
