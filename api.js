@@ -266,7 +266,7 @@ function client_auth_check(client, msg, value) {
       db.find_user_by(rethink.row('devices').contains(value.device_id)).then(function(device_user){
         if(device_user) {
           protocol.respond_fail(client, msg.id, {})
-          clog(client, 'authfail for '+user.email+' device '+value.device_id+' exists on user '+device_user.email);
+          clog(client, 'authfail for '+value.email+': device '+value.device_id+' exists on user '+device_user.email);
         } else {
           db.ensure_user(user_new(value.email, value.device_id))
           client_auth_trusted(client, value.device_id).then(function(){
