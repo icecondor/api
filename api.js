@@ -226,9 +226,8 @@ function process_unfollow(me, msg) {
 
 function process_auth_email(client, msg) {
   var params = msg.params
-  console.log('request_token '+JSON.stringify(msg))
-  db.ensure_user(user_new(params.email, params.device_id))
-  server.create_token({device_id:params.device_id})
+  console.log('auth_email '+JSON.stringify(msg))
+  server.create_token_temp(params)
     .then(function(token){
       var email_opts = build_token_email(params.email, params.device_id, token)
       send_email(email_opts)
@@ -237,23 +236,59 @@ function process_auth_email(client, msg) {
 }
 
 function process_auth_session(client, msg) {
-  server.find_session(msg.params.device_key).then(function(device_id){
-    if(device_id) {
-      db.find_user_by(rethink.row('devices').contains(device_id)).then(function(user){
-        client.flags.authorized = user.id
-        protocol.respond_success(client, msg.id, {user:{id:user.id}})
-        clog(client, 'authenticated device '+device_id+' to user '+user.email);
-      })
+  server.find_session(msg.params.device_key).then(function(json_value){
+    if(json_value) {
+      //db.ensure_user(user_new(params.email, params.device_id))
+      var value = JSON.parse(json_value)
+      if(value.email) {
+        client_auth_check(msg, value)
+      } else {
+        client_auth_trusted(client, value.device_id).then(function(user){
+          protocol.respond_success(client, msg.id, {user:{id:user.id}})
+        })
+      }
     } else {
+      // device_key not found
       protocol.respond_fail(client, msg.id, {code: "BK1", message: "bad device_key"})
     }
   }).catch(function(err){console.log('Err! '+err)})
 }
 
+function client_auth_check(client, msg, value) {
+  db.find_user_by(rethink.row('email').eq(value.email)).then(function(user){
+    if(user.devices.indexOf(value.device_id) > -1) {
+      server.token_validate(msg.params.device_key, value.device_id)
+      client_auth_trusted(client, value.device_id).then(function(){
+        protocol.respond_success(client, msg.id, {user:{id:user.id}})
+        clog(client, 'authenticated existing device '+value.device_id+' to user '+user.email);
+      })
+    } else {
+      db.find_user_by(rethink.row('devices').contains(value.device_id)).then(function(device_user){
+        if(device_user) {
+          protocol.respond_fail(client, msg.id, {})
+          clog(client, 'authfail for '+user.email+' device '+value.device_id+' exists on user '+device_user.email);
+        } else {
+          db.ensure_user(user_new(value.email, value.device_id))
+          client_auth_trusted(client, value.device_id).then(function(){
+            protocol.respond_success(client, msg.id, {user:{id:user.id, username: user.username}})
+            clog(client, 'authenticated new unique device '+value.device_id+' to new user '+user.email);
+          })
+        }
+      })
+    }
+  })
+}
+
+function client_auth_trusted(client, device_id) {
+  // load trusted device_id
+  return db.find_user_by(rethink.row('devices').contains(device_id)).then(function(user){
+    client.flags.authorized = user.id
+    return user
+  })
+}
 
 function user_new(email, device_id){
-  var user = {email:email, devices: {}}
-  user.devices = [device_id]
+  var user = {email:email, devices: [device_id]}
   return user
 }
 
