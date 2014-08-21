@@ -268,10 +268,11 @@ function client_auth_check(client, msg, value) {
           protocol.respond_fail(client, msg.id, {})
           clog(client, 'authfail for '+value.email+': device '+value.device_id+' exists on user '+device_user.email);
         } else {
-          db.ensure_user(user_new(value.email, value.device_id))
-          client_auth_trusted(client, value.device_id).then(function(){
-            protocol.respond_success(client, msg.id, {user:{id:user.id, username: user.username}})
-            clog(client, 'authenticated new unique device '+value.device_id+' to new user '+user.email);
+          db.ensure_user(user_new(value.email, value.device_id)).then(function(){
+            client_auth_trusted(client, value.device_id).then(function(){
+              protocol.respond_success(client, msg.id, {user:{id:user.id, username: user.username}})
+              clog(client, 'authenticated new unique device '+value.device_id+' to new user '+value.email);
+            })
           })
         }
       })
