@@ -241,7 +241,7 @@ function process_auth_session(client, msg) {
       //db.ensure_user(user_new(params.email, params.device_id))
       var value = JSON.parse(json_value)
       if(value.email) {
-        client_auth_check(msg, value)
+        client_auth_check(client, msg, value)
       } else {
         client_auth_trusted(client, value.device_id).then(function(user){
           protocol.respond_success(client, msg.id, {user:{id:user.id}})
@@ -268,15 +268,24 @@ function client_auth_check(client, msg, value) {
           protocol.respond_fail(client, msg.id, {})
           clog(client, 'authfail for '+value.email+': device '+value.device_id+' exists on user '+device_user.email);
         } else {
-          db.ensure_user(user_new(value.email, value.device_id)).then(function(){
-            client_auth_trusted(client, value.device_id).then(function(){
-              protocol.respond_success(client, msg.id, {user:{id:user.id, username: user.username}})
-              clog(client, 'authenticated new unique device '+value.device_id+' to new user '+value.email);
-            })
-          })
         }
       })
     }
+  }, function(){
+    console.log('user not found')
+    db.find_user_by(rethink.row('devices').contains(value.device_id)).then(
+      function(user){
+        console.log('device found on '+user.email) // do nothing
+      }, function(){
+        console.log('device not found')
+        var new_user = user_new(value.email, value.device_id)
+        db.ensure_user(new_user).then(function(user){
+          client_auth_trusted(client, value.device_id).then(function(){
+            protocol.respond_success(client, msg.id, {user:{id:user.id, username: user.username}})
+            clog(client, 'authenticated new unique device '+value.device_id+' to new user '+user.email);
+          })
+        })
+      })
   })
 }
 
