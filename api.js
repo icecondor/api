@@ -127,14 +127,12 @@ function pump_status(status) {
 
 function process_location(me, msg) {
   if(me.flags.authorized) {
-    couch_write(me, msg)
   } else {
     var msg = {id:msg.id,
                type: 'location',
                status: 'ERR',
                message: 'not authorized'};
     clog(me,"-> "+JSON.stringify(msg))
-    client_write(me, msg)
   }
 }
 
