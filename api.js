@@ -125,14 +125,12 @@ function pump_status(status) {
   })
 }
 
-function process_location(me, msg) {
-  if(me.flags.authorized) {
+function process_location(client, msg) {
+  if(client.flags.authenticated){
+    protocol.respond_success(client, msg.id, {message: "saved"})
   } else {
-    var msg = {id:msg.id,
-               type: 'location',
-               status: 'ERR',
-               message: 'not authorized'};
-    clog(me,"-> "+JSON.stringify(msg))
+    var fail = {message: 'not authorized'};
+    protocol.respond_fail(client, msg.id, fail)
   }
 }
 
