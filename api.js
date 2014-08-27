@@ -266,6 +266,7 @@ function client_auth_check(client, msg, value) {
         db.user_add_device(user.id, value.device_id).then(function(){
           client_auth_trusted(client, value.device_id).then(function(){
             protocol.respond_success(client, msg.id, {user:{id:user.id}})
+            clog(client, 'authenticated and added device to '+value.email);
           })
         })
       })
@@ -291,9 +292,11 @@ function client_auth_check(client, msg, value) {
 }
 
 function client_auth_trusted(client, device_id) {
+  clog(client, "auth by trusted device "+device_id)
   // load trusted device_id
   return db.find_user_by(rethink.row('devices').contains(device_id)).then(function(user){
     client.flags.authorized = user.id
+    clog(client, "client flag set to trusted user "+user.id)
     return user
   })
 }
