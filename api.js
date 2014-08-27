@@ -295,7 +295,7 @@ function client_auth_trusted(client, device_id) {
   clog(client, "auth by trusted device "+device_id)
   // load trusted device_id
   return db.find_user_by(rethink.row('devices').contains(device_id)).then(function(user){
-    client.flags.authorized = user.id
+    client.flags.authenticated = user.id
     clog(client, "client flag set to trusted user "+user.id)
     return user
   })
