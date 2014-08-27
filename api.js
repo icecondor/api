@@ -260,23 +260,29 @@ function client_auth_check(client, msg, value) {
       })
     } else {
       db.find_user_by(rethink.row('devices').contains(value.device_id)).then(function(device_user){
-        protocol.respond_fail(client, msg.id, {})
+        protocol.respond_fail(client, msg.id, {reason: "device in use"})
         clog(client, 'authfail for '+value.email+': device '+value.device_id+' exists on user '+device_user.email);
       }, function(){
-        db.user_add_device(user.id, value.device_id)
+        db.user_add_device(user.id, value.device_id).then(function(){
+          client_auth_trusted(client, value.device_id).then(function(){
+            protocol.respond_success(client, msg.id, {user:{id:user.id}})
+          })
+        })
       })
     }
   }, function(){
-    console.log('user not found')
+    console.log('user not found by '+value.email)
     db.find_user_by(rethink.row('devices').contains(value.device_id)).then(
       function(user){
-        console.log('device found on '+user.email) // do nothing
+        console.log('device already in use by '+user.email) // do nothing
+        protocol.respond_fail(client, msg.id, {reason: "device in use"})
       }, function(){
         console.log('device not found')
         var new_user = user_new(value.email, value.device_id)
         db.ensure_user(new_user).then(function(user){
 -         client_auth_trusted(client, value.device_id).then(function(){
             protocol.respond_success(client, msg.id, {user:{id:user.id, username: user.username}})
+
             clog(client, 'authenticated new unique device '+value.device_id+' to new user '+user.email);
           })
         })
@@ -299,7 +305,6 @@ function user_new(email, device_id){
 
 function process_user_detail(client, msg) {
   clog(client, "user_detail")
-  console.dir(client)
   if(client.flags.authenticated){
     // default value is the authenticated user
     db.find_user_by(rethink.row('id').eq(client.flags.authenticated)).then(function(user){
