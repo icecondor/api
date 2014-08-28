@@ -1,5 +1,5 @@
-var rethink_mock = require('../spec/rethink_mock')
-var db = require('../lib/dblib').factory(rethink_mock)
+var rethink_mock = require('../rethink_mock')
+var db = require('../../lib/dblib').factory(rethink_mock)
 
 describe("existing users", function(){
   // call before db.setup
