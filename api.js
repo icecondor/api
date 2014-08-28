@@ -52,6 +52,7 @@ function client_dispatch(me, msg) {
     case 'auth.email': process_auth_email(me, msg); break;
     case 'auth.session': process_auth_session(me, msg); break;
     case 'user.detail': process_user_detail(me, msg); break;
+    case 'user.update': process_user_update(me, msg); break;
     case 'activity.add': process_location(me, msg); break;
     case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
@@ -305,11 +306,23 @@ function user_new(email, device_id){
 }
 
 function process_user_detail(client, msg) {
-  clog(client, "user_detail")
   if(client.flags.authenticated){
     // default value is the authenticated user
     db.find_user_by(rethink.row('id').eq(client.flags.authenticated)).then(function(user){
       protocol.respond_success(client, msg.id, user)
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_user_update(client, msg) {
+  if(client.flags.authenticated){
+    // default value is the authenticated user
+    db.update_user_by(client.flags.authenticated, msg.params).then(function(result){
+      clog(client, "user updated")
+      console.dir(result)
+      protocol.respond_success(client, msg.id, result)
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
