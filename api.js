@@ -261,7 +261,6 @@ function client_auth_check(client, msg, session) {
   }, function(){
     console.log('user not found by '+session.email)
     var new_user = user_new(session.email, session.device_id)
-    clog(client, 'authenticated new unique device '+session.device_id+' to new user '+user.email);
     return db.ensure_user(new_user)
   }).then(function(user){
     clog(client, 'token validate '+JSON.stringify(user))
