@@ -285,7 +285,7 @@ function user_new(email, device_id){
 function process_user_detail(client, msg) {
   if(client.flags.authenticated){
     // default value is the authenticated user
-    db.find_user_by(rethink.row('id').eq(client.flags.authenticated)).then(function(user){
+    db.find_user_by(rethink.row('id').eq(client.flags.authenticated.user_id)).then(function(user){
       protocol.respond_success(client, msg.id, user)
     })
   } else {
@@ -296,7 +296,7 @@ function process_user_detail(client, msg) {
 function process_user_update(client, msg) {
   if(client.flags.authenticated){
     // default value is the authenticated user
-    db.update_user_by(client.flags.authenticated, msg.params).then(function(result){
+    db.update_user_by(client.flags.authenticated.user_id, msg.params).then(function(result){
       clog(client, "user updated")
       console.dir(result)
       protocol.respond_success(client, msg.id, result)
