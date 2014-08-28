@@ -238,9 +238,8 @@ function process_auth_session(client, msg) {
       if(session.email) {
         client_auth_check(client, msg, session)
       } else {
-        client_auth_trusted(client, session.device_id).then(function(user){
-          protocol.respond_success(client, msg.id, {user:{id:user.id}})
-        })
+        client_auth_trusted(client, session)
+        protocol.respond_success(client, msg.id, {user:{id:session.user_id}})
       }
     } else {
       // device_key not found
@@ -249,55 +248,34 @@ function process_auth_session(client, msg) {
   }).catch(function(err){console.log('Err! '+err)})
 }
 
-function client_auth_check(client, msg, value) {
-  db.find_user_by(rethink.row('email').eq(value.email)).then(function(user){
-    if(user.devices.indexOf(value.device_id) > -1) {
-      server.token_validate(msg.params.device_key, value.device_id)
-      client_auth_trusted(client, value.device_id).then(function(){
-        protocol.respond_success(client, msg.id, {user:{id:user.id}})
-        clog(client, 'authenticated existing device '+value.device_id+' to user '+user.email);
-      })
+function client_auth_check(client, msg, session) {
+  db.find_user_by(rethink.row('email').eq(session.email)).then(function(user){
+    clog(client, 'authenticating session for '+session.email)
+    if(user.devices.indexOf(session.device_id) > -1) {
+      clog(client, '* existing device '+session.device_id);
+      return user
     } else {
-      db.find_user_by(rethink.row('devices').contains(value.device_id)).then(function(device_user){
-        protocol.respond_fail(client, msg.id, {reason: "device in use"})
-        clog(client, 'authfail for '+value.email+': device '+value.device_id+' exists on user '+device_user.email);
-      }, function(){
-        db.user_add_device(user.id, value.device_id).then(function(){
-          client_auth_trusted(client, value.device_id).then(function(){
-            protocol.respond_success(client, msg.id, {user:{id:user.id}})
-            clog(client, 'authenticated and added device to '+value.email);
-          })
-        })
-      })
+      clog(client, '* adding device '+session.device_id);
+      return db.user_add_device(user.id, session.device_id).then(function(){return user})
     }
   }, function(){
-    console.log('user not found by '+value.email)
-    db.find_user_by(rethink.row('devices').contains(value.device_id)).then(
-      function(user){
-        console.log('device already in use by '+user.email) // do nothing
-        protocol.respond_fail(client, msg.id, {reason: "device in use"})
-      }, function(){
-        console.log('device not found')
-        var new_user = user_new(value.email, value.device_id)
-        db.ensure_user(new_user).then(function(user){
--         client_auth_trusted(client, value.device_id).then(function(){
-            protocol.respond_success(client, msg.id, {user:{id:user.id, username: user.username}})
-
-            clog(client, 'authenticated new unique device '+value.device_id+' to new user '+user.email);
-          })
-        })
-      })
+    console.log('user not found by '+session.email)
+    var new_user = user_new(session.email, session.device_id)
+    clog(client, 'authenticated new unique device '+session.device_id+' to new user '+user.email);
+    return db.ensure_user(new_user)
+  }).then(function(user){
+    clog(client, 'token validate '+JSON.stringify(user))
+    server.token_validate(msg.params.device_key, user.id, session.device_id).then(function(session){
+      clog(client, "post token validate w/ "+JSON.stringify(session))
+      client_auth_trusted(client, session)
+      protocol.respond_success(client, msg.id, {user:{id:session.user_id}})
+    })
   })
 }
 
-function client_auth_trusted(client, device_id) {
-  clog(client, "auth by trusted device "+device_id)
-  // load trusted device_id
-  return db.find_user_by(rethink.row('devices').contains(device_id)).then(function(user){
-    client.flags.authenticated = user.id
-    clog(client, "client flag set to trusted user "+user.id)
-    return user
-  })
+function client_auth_trusted(client, session) {
+  client.flags.authenticated = session
+  clog(client, "client flag set to trusted user "+session.user_id)
 }
 
 function user_new(email, device_id){
