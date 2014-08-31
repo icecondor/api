@@ -53,7 +53,7 @@ function client_dispatch(me, msg) {
     case 'auth.session': process_auth_session(me, msg); break;
     case 'user.detail': process_user_detail(me, msg); break;
     case 'user.update': process_user_update(me, msg); break;
-    case 'activity.add': process_location(me, msg); break;
+    case 'activity.add': process_activity_add(me, msg); break;
     case 'status': me.flags.stats = true; break;
     case 'follow': process_follow(me, msg); break;
     case 'unfollow': process_unfollow(me, msg); break;
@@ -99,7 +99,7 @@ function progress_report() {
                       date: new Date(),
                   msg_rate: rate,
               client_count: server.clients.list.length}
-  db.insert(stats)
+  db.activity_add(stats)
 }
 
 function clog(client, msg) {
@@ -126,16 +126,17 @@ function pump_status(status) {
   })
 }
 
-function process_location(client, msg) {
+/* API calls */
+
+function process_activity_add(client, msg) {
   if(client.flags.authenticated){
+    db.activity_add(msg.params)
     protocol.respond_success(client, msg.id, {message: "saved"})
   } else {
     var fail = {message: 'not authorized'};
     protocol.respond_fail(client, msg.id, fail)
   }
 }
-
-/* API calls */
 
 function process_follow(me, msg) {
   var res = couch.db.view('User','by_username', {key: msg.username},
