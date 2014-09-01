@@ -130,8 +130,9 @@ function pump_status(status) {
 
 function process_activity_add(client, msg) {
   if(client.flags.authenticated){
-    db.activity_add(msg.params)
-    protocol.respond_success(client, msg.id, {message: "saved"})
+    db.activity_add(msg.params).then(function(){
+      protocol.respond_success(client, msg.id, {message: "saved", id: msg.params.id})
+    })
   } else {
     var fail = {message: 'not authorized'};
     protocol.respond_fail(client, msg.id, fail)
