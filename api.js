@@ -96,7 +96,7 @@ function progress_report() {
   var stats = {       type: "status_report",
                     server: settings.api.hostname,
                    version: settings.api.version,
-                      date: new Date(),
+                      date: now.toISOString(),
                   msg_rate: rate,
               client_count: server.clients.list.length}
   db.activity_add(stats)
