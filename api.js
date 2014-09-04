@@ -72,7 +72,7 @@ function activity_added(activity_chg){
 function pump_location(location) {
   server.clients.list.forEach(function(client) {
     if(client.following.indexOf(location.user_id) >= 0) {
-      client.socket.write(JSON.stringify(location)+"\n")
+      protocol.api(client, location.type, location)
     }
   })
 }
