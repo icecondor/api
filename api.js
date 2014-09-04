@@ -79,7 +79,7 @@ function pump_location(location) {
   })
 }
 
-function pump_last_location(me, username) {
+function pump_last_location(client, user_id) {
   var now = (new Date()).toISOString()
   var res = couch.db.view('Location','by_username_and_date',
                           {startkey: [username, now],
@@ -151,61 +151,16 @@ function process_activity_add(client, msg) {
 }
 
 function process_stream_follow(client, msg) {
-  db.find_user_by({username: msg.username}).then(function(user){
+  db.find_user_by({username: msg.params.username}).then(function(user){
     client.following.push(user.id)
     protocol.respond_success(client, msg.id, {following:{id:user.username}})
+    //pump_last_location(client, user.id)
+  }, function() {
+      protocol.respond_fail(client, msg.id, {code: "UNF",
+                                             message: "username "+msg.params.username+" not found"})
   })
 }
 
-function process_follow_with_user(_, me, result) {
-  if (!result.error && result.rows.length > 0) {
-    couch.db.get(result.rows[0].id, function(_, user) {
-      if(user.friends) {
-        if (user.friends.indexOf('frontpage') >= 0) {
-          follow_finish(me, user, "following public profile")
-          return
-        }
-        if (me.user) {
-          if (user.friends.indexOf(me.user.username) >= 0) {
-            follow_finish(me, user, "existing friendship")
-          } else {
-            var msg = {type: "follow",
-                       status: "ERR",
-                       username: user.username,
-                       message: "not friends"}
-            clog(me,"-> "+JSON.stringify(msg))
-            client_write(me, msg)
-          }
-        }
-      } else {
-        var msg = {type: "follow",
-                   username: user.username,
-                   status: "ERR",
-                   message: "profile is not public and not logged in"}
-        clog(me,"-> "+JSON.stringify(msg))
-        client_write(me, msg)
-      }
-    })
-  }
-}
-
-function follow_finish(me, user, message) {
-        me.following.push(user.username)
-        var msg = {type: "follow",
-                   username: user.username,
-                   status: "OK",
-                   message: message}
-        if(user.mobile_avatar_url) {
-          msg.mobile_avatar_url = user.mobile_avatar_url
-        } else {
-          if(user.email) {
-            msg.mobile_avatar_url = gravatar_url(user.email)
-          }
-        }
-        clog(me,"-> "+JSON.stringify(msg))
-        client_write(me, msg)
-        pump_last_location(me, user.username)
-}
 
 function gravatar_url(email) {
   var md5sum = crypto.createHash('md5')
