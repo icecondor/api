@@ -20,6 +20,9 @@ console.log("v:"+settings.api.version+" host:"+settings.api.hostname)
 
 db.setup(function(){
   server.listen(settings.api.listen_port)
+  db.changes().then(function(cursor){
+    cursor.on("data", activity_added)
+  })
 })
 
 server.on('listening', function() {
@@ -54,18 +57,23 @@ function client_dispatch(me, msg) {
     case 'user.detail': process_user_detail(me, msg); break;
     case 'user.update': process_user_update(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
+    case 'stream.follow': process_stream_follow(me, msg); break;
+    case 'stream.unfollow': process_stream_unfollow(me, msg); break;
     case 'status': me.flags.stats = true; break;
-    case 'follow': process_follow(me, msg); break;
-    case 'unfollow': process_unfollow(me, msg); break;
+  }
+}
+
+function activity_added(activity){
+  if(activity.new_val.type == "gps_point") {
+    pump_location(activity)
   }
 }
 
 function pump_location(location) {
+  console.log('pumping')
+  console.dir(location)
   server.clients.list.forEach(function(client) {
-    if(client.following.indexOf(location.username) >= 0) {
-      location.id = location._id;
-      delete location._id;
-      delete location._rev;
+    if(client.following.indexOf(location.user_id) >= 0) {
       client.socket.write(JSON.stringify(location)+"\n")
     }
   })
@@ -100,6 +108,7 @@ function progress_report() {
                   msg_rate: rate,
               client_count: server.clients.list.length}
   db.activity_add(stats)
+  console.log('status report - '+rate+' hits/sec. '+server.clients.list.length+' clients.')
 }
 
 function clog(client, msg) {
@@ -130,6 +139,8 @@ function pump_status(status) {
 
 function process_activity_add(client, msg) {
   if(client.flags.authenticated){
+    msg.params.user_id = client.flags.authenticated.user_id
+    msg.params.device_id = client.flags.authenticated.device_id
     db.activity_add(msg.params).then(function(){
       protocol.respond_success(client, msg.id, {message: "saved", id: msg.params.id})
     })
@@ -139,11 +150,11 @@ function process_activity_add(client, msg) {
   }
 }
 
-function process_follow(me, msg) {
-  var res = couch.db.view('User','by_username', {key: msg.username},
-                          function(_, result){
-                            process_follow_with_user(_,me,result)
-                          });
+function process_stream_follow(client, msg) {
+  db.find_user_by({username: msg.username}).then(function(user){
+    client.following.push(user.id)
+    protocol.respond_success(client, msg.id, {following:{id:user.username}})
+  })
 }
 
 function process_follow_with_user(_, me, result) {
@@ -237,6 +248,7 @@ function process_auth_email(client, msg) {
 function process_auth_session(client, msg) {
   server.find_session(msg.params.device_key).then(function(session){
     if(session) {
+      console.log("session loaded: "+JSON.stringify(session))
       if(session.email) {
         client_auth_check(client, msg, session)
       } else {
@@ -269,7 +281,7 @@ function client_auth_check(client, msg, session) {
     server.token_validate(msg.params.device_key, user.id, session.device_id).then(function(session){
       clog(client, "post token validate w/ "+JSON.stringify(session))
       client_auth_trusted(client, session)
-      protocol.respond_success(client, msg.id, {user:{id:session.user_id}})
+      protocol.respond_success(client, msg.id, {user:{id:user.id}})
     })
   })
 }
