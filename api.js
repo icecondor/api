@@ -63,15 +63,13 @@ function client_dispatch(me, msg) {
   }
 }
 
-function activity_added(activity){
-  if(activity.new_val.type == "gps_point") {
-    pump_location(activity)
+function activity_added(activity_chg){
+  if(activity_chg.new_val.type == "gps_point") {
+    pump_location(activity_chg.new_val)
   }
 }
 
 function pump_location(location) {
-  console.log('pumping')
-  console.dir(location)
   server.clients.list.forEach(function(client) {
     if(client.following.indexOf(location.user_id) >= 0) {
       client.socket.write(JSON.stringify(location)+"\n")
@@ -160,7 +158,6 @@ function process_stream_follow(client, msg) {
                                              message: "username "+msg.params.username+" not found"})
   })
 }
-
 
 function gravatar_url(email) {
   var md5sum = crypto.createHash('md5')
