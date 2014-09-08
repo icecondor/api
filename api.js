@@ -77,22 +77,13 @@ function pump_location(location) {
   })
 }
 
-function pump_last_location(client, user_id) {
+function pump_last_location(client, user_id, count) {
   var now = (new Date()).toISOString()
-  var res = couch.db.view('Location','by_username_and_date',
-                          {startkey: [username, now],
-                           endkey: [username, ""],
-                           limit: 1, descending: true, reduce: false},
-                          function(_, result){
-                            if (!result.error && result.rows.length > 0) {
-                              couch.db.get(result.rows[result.rows.length-1].id, function(_, location) {
-                                location.id = location._id
-                                delete location._id
-                                delete location._rev
-                                client_write(me, location)
-                              })
-                            }
-                          });
+  db.find_locations_for(user_id, count).then(function(locations){
+    console.log('locations '+locatons.count+' returned')
+    console.dir(locations)
+  })
+
 }
 
 function progress_report() {
@@ -152,7 +143,7 @@ function process_stream_follow(client, msg) {
   db.find_user_by({username: msg.params.username}).then(function(user){
     client.following.push(user.id)
     protocol.respond_success(client, msg.id, {following:{id:user.username}})
-    //pump_last_location(client, user.id)
+    pump_last_location(client, user.id, 2)
   }, function() {
       protocol.respond_fail(client, msg.id, {code: "UNF",
                                              message: "username "+msg.params.username+" not found"})
