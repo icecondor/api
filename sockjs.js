@@ -24,9 +24,8 @@ echo.on('connection', function(client) {
         apiBuffer = ds
       } else {
          if (ds.length > 0) {
-           var msg = JSON.parse(ds)
            console.log("-> "+ds)
-           client.emit('dispatch',msg)
+           client.write(ds)
          }
       }
     })
