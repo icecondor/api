@@ -9,7 +9,9 @@
                      "bluebird": "2.2.*",
                      "then-redis": "0.3.*",
                      "node-uuid": "1.4.*",
-                     "forever": "0.11.*"
+                     "forever": "0.11.*",
+                     "express": "4.9.*",
+                     "socket.io": "1.1.*"
                    },
   "devDependencies": {
     "jasmine-node": "1.14.x"
