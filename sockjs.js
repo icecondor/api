@@ -41,7 +41,8 @@ echo.on('connection', function(client) {
 
   client.on('data', function (str) {
     console.log("<-s "+str)
-    apiSocket.write(str+"\n")
+    var written = apiSocket.write(str+"\n")
+    console.log('written '+written)
   });
 
   client.on('close', function(client) {
