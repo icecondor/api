@@ -13,8 +13,12 @@ console.log("socket.io listening on "+settings.socket_io.listen_port)
 
 echo.on('connection', function(client) {
   console.log(client.id+" connecting to API")
-  var apiSocket = net.connect(settings.api.listen_port, "localhost")
+  var apiSocket = net.createConnection(settings.api.listen_port, "localhost")
   var apiBuffer = "";
+
+  apiSocket.on('connect', function() {
+    console.log('api connected')
+  })
 
   apiSocket.on('data', function(data) {
     var dstr = data.toString('utf8')
@@ -40,7 +44,7 @@ echo.on('connection', function(client) {
     apiSocket.write(str+"\n")
   });
 
-  client.on('clone', function(client) {
+  client.on('close', function(client) {
     apiSocket.end()
     console.log('disconnnect!')
   })
