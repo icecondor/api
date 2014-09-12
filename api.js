@@ -265,9 +265,7 @@ function process_user_update(client, msg) {
 }
 
 function build_token_email(email, device_id, token) {
-  var auth_url = "icecondor://android/v2/auth?access_token="+token
-  var link = "https://icecondor.com/oauth2/authorize?client_id=icecondor-nest"+
-             "&response_type=token&redirect_uri="+encodeURIComponent(auth_url)
+  var link = "https://staging.icecondor.com/auth/"+encodeURIComponent(token)
   var emailOpt = {
     from: 'IceCondor <system@icecondor.com>',
     to: email,
