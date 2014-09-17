@@ -64,7 +64,7 @@ function client_dispatch(me, msg) {
 }
 
 function activity_added(activity_chg){
-  if(activity_chg.new_val.type == "gps_point") {
+  if(activity_chg.new_val.type == "location") {
     pump_location(activity_chg.new_val)
   }
 }
