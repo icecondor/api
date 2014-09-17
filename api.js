@@ -104,8 +104,10 @@ function progress_report() {
 function clog(client, msg) {
   var parts = []
   parts.push(moment().format())
-  if(client.socket) {
-    parts.push(client.socket.remoteAddress+':'+client.socket.remotePort);
+  if(client.flags.authenticated){
+    parts.push(client.flags.authenticated.device_id+':'+client.flags.authenticated.user_id)
+  } else if(client.socket) {
+    parts.push(client.socket.remoteAddress+':'+client.socket.remotePort)
   }
   if (typeof msg !== "string") {
     parts.push(JSON.stringify(msg))
