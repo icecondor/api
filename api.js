@@ -78,11 +78,11 @@ function pump_location(location) {
   })
 }
 
-function pump_last_locations(client, user_id, count) {
+function send_last_locations(client, user_id, count) {
   var now = (new Date()).toISOString()
   db.find_locations_for(user_id, count).then(function(locations_cursor){
     locations_cursor.each(function(err, location){
-      pump_location(location)
+      protocol.api(client, location.type, location)
     })
   })
 }
@@ -146,7 +146,7 @@ function process_stream_follow(client, msg) {
   db.find_user_by({username: msg.params.username}).then(function(user){
     client.following.push(user.id)
     protocol.respond_success(client, msg.id, {following:{id:user.username}})
-    pump_last_locations(client, user.id, 2)
+    send_last_locations(client, user.id, 2)
   }, function() {
       protocol.respond_fail(client, msg.id, {code: "UNF",
                                              message: "username "+msg.params.username+" not found"})
