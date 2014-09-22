@@ -3,6 +3,7 @@
 // nodejs
 var timers = require('timers')
 var crypto = require('crypto')
+var uuid = require('node-uuid');
 
 // npm
 var moment = require('moment')
@@ -72,9 +73,12 @@ function activity_added(activity_chg){
 function pump_location(location) {
   console.log('pump_location for device '+location.device_id)
   server.clients.list.forEach(function(client) {
-    if(client.following.indexOf(location.user_id) >= 0) {
-      protocol.api(client, location.type, location)
-    }
+    client.following.forEach(function(search){
+      var stream_id = search(location)
+      if(stream_id){
+        protocol.respond_success(client, stream_id, location)
+      }
+    })
   })
 }
 
@@ -144,8 +148,14 @@ function process_activity_add(client, msg) {
 
 function process_stream_follow(client, msg) {
   db.find_user_by({username: msg.params.username}).then(function(user){
-    client.following.push(user.id)
-    protocol.respond_success(client, msg.id, {following:{id:user.username}})
+    var stream_id = uuid.v4().substr(0,8)
+
+    client.following.push(function(location){
+      if(location.user_id == user.id){
+        return stream_id
+      }
+    })
+    protocol.respond_success(client, msg.id, {stream_id: stream_id})
     send_last_locations(client, user.id, 2)
   }, function() {
       protocol.respond_fail(client, msg.id, {code: "UNF",
