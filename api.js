@@ -205,21 +205,26 @@ function process_auth_email(client, msg) {
 }
 
 function process_auth_session(client, msg) {
-  console.log("session lookup device_key: "+msg.params.device_key)
-  server.find_session(msg.params.device_key).then(function(session){
-    if(session) {
-      console.log("session loaded: "+JSON.stringify(session))
-      if(session.email) {
-        client_auth_check(client, msg, session)
+  if(client.flags.authenticated){
+    protocol.respond_fail(client, msg.id, {code: "AF1", message: "already authenticated",
+                                           user_id: client.flags.authenticated.user_id})
+  } else {
+    console.log("session lookup device_key: "+msg.params.device_key)
+    server.find_session(msg.params.device_key).then(function(session){
+      if(session) {
+        console.log("session loaded: "+JSON.stringify(session))
+        if(session.email) {
+          client_auth_check(client, msg, session)
+        } else {
+          client_auth_trusted(client, session)
+          protocol.respond_success(client, msg.id, {user:{id:session.user_id}})
+        }
       } else {
-        client_auth_trusted(client, session)
-        protocol.respond_success(client, msg.id, {user:{id:session.user_id}})
+        // device_key not found
+        protocol.respond_fail(client, msg.id, {code: "BK1", message: "bad device_key"})
       }
-    } else {
-      // device_key not found
-      protocol.respond_fail(client, msg.id, {code: "BK1", message: "bad device_key"})
-    }
-  }).catch(function(err){console.log('Err! '+err)})
+    }).catch(function(err){console.log('Err! '+err)})
+  }
 }
 
 function client_auth_check(client, msg, session) {
