@@ -48,6 +48,7 @@ function handleConnection(socket) {
 
 function end_of_connection(client) {
   server.clients.remove(client)
+  clog(client, 'disconnected '+JSON.stringify(client.flags.authenticated))
   progress_report()
 }
 

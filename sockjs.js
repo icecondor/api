@@ -39,6 +39,10 @@ echo.on('connection', function(client) {
     console.log("apiSocket err: "+err)
   })
 
+  apiSocket.on('close', function() {
+    console.log("apiSocket closed")
+  })
+
   client.on('data', function (str) {
     console.log("<-s "+str)
     var written = apiSocket.write(str+"\n")
