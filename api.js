@@ -205,6 +205,7 @@ function process_auth_email(client, msg) {
 }
 
 function process_auth_session(client, msg) {
+  console.log("session lookup device_key: "+msg.params.device_key)
   server.find_session(msg.params.device_key).then(function(session){
     if(session) {
       console.log("session loaded: "+JSON.stringify(session))
