@@ -9,7 +9,7 @@ var server = http.createServer();
 echo.installHandlers(server, {prefix:'/sockjs'});
 server.listen(settings.socket_io.listen_port, '0.0.0.0');
 
-console.log("socket.io listening on "+settings.socket_io.listen_port)
+console.log("sockjs listening on "+settings.socket_io.listen_port)
 
 echo.on('connection', function(client) {
   console.log(client.id+" connecting to API")
@@ -44,7 +44,7 @@ echo.on('connection', function(client) {
   })
 
   client.on('data', function (str) {
-    console.log("<-s "+str)
+    console.log("<- "+str)
     var written = apiSocket.write(str+"\n")
     console.log('written '+written)
   });
