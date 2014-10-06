@@ -61,7 +61,7 @@ function client_dispatch(me, msg) {
     case 'activity.add': process_activity_add(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
-    case 'status': me.flags.stats = true; break;
+    case 'stream.stats': me.flags.stats = true; break;
   }
 }
 
@@ -156,6 +156,7 @@ function process_stream_follow(client, msg) {
         return stream_id
       }
     })
+
     protocol.respond_success(client, msg.id, {stream_id: stream_id})
     var count = msg.params.count > 0 ? msg.params.count : 2
     var start = msg.params.start && (new Date(msg.params.start))
