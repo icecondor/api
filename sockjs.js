@@ -46,7 +46,9 @@ echo.on('connection', function(client) {
   client.on('data', function (str) {
     console.log("<- "+str)
     var written = apiSocket.write(str+"\n")
-    console.log('written '+written)
+    if(!written) {
+      console.log('sockjs write error')
+    }
   });
 
   client.on('close', function(client) {
