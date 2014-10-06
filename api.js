@@ -4,6 +4,7 @@
 var timers = require('timers')
 var crypto = require('crypto')
 var uuid = require('node-uuid');
+var os = require('os')
 
 // npm
 var moment = require('moment')
@@ -61,7 +62,7 @@ function client_dispatch(me, msg) {
     case 'activity.add': process_activity_add(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
-    case 'stream.stats': me.flags.stats = true; break;
+    case 'stream.stats': me.flags.stats = msg.id; break;
   }
 }
 
@@ -101,9 +102,12 @@ function progress_report() {
                    version: settings.api.version,
                       date: now.toISOString(),
                   msg_rate: rate,
-              client_count: server.clients.list.length}
+              client_count: server.clients.list.length,
+                   freemem: os.freemem()
+              }
   db.activity_add(stats)
   console.log('status report - '+rate+' hits/sec. '+server.clients.list.length+' clients.')
+  pump(stats)
 }
 
 function clog(client, msg) {
@@ -122,12 +126,12 @@ function clog(client, msg) {
   console.log(parts.join(' '))
 }
 
-function pump_status(status) {
+function pump(status) {
   server.clients.list.forEach(function(client) {
-    if(client.flags.stats == true) {
+    if(client.flags.stats) {
       var stats_str = JSON.stringify(status)
       clog(client, stats_str)
-      client_write(client, stats_str+"\n")
+      protocol.respond_success(client, client.flags.stats, status)
     }
   })
 }
