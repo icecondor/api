@@ -292,6 +292,8 @@ function process_user_update(client, msg) {
       clog(client, "user updated")
       console.dir(result)
       protocol.respond_success(client, msg.id, result)
+    }, function(err){
+      protocol.respond_fail(client, msg.id, err)
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
