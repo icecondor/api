@@ -155,17 +155,24 @@ function process_stream_follow(client, msg) {
   db.find_user_by({username: msg.params.username}).then(function(user){
     var stream_id = uuid.v4().substr(0,8)
 
-    client.following.push(function(location){
-      if(location.user_id == user.id){
-        return stream_id
-      }
-    })
+    if(user.id == client.flags.authenticated.user_id ||
+       user.friends.indexOf(client.flags.authenticated.user_id) >= 0){
+      client.following.push(function(location){
+        if(location.user_id == user.id){
+          return stream_id
+        }
+      })
 
-    protocol.respond_success(client, msg.id, {stream_id: stream_id})
-    var count = msg.params.count > 0 ? msg.params.count : 2
-    var start = msg.params.start && (new Date(msg.params.start))
-    var stop = msg.params.stop && (new Date(msg.params.stop))
-    send_last_locations(client, stream_id, user.id, start, stop, count)
+      protocol.respond_success(client, msg.id, {stream_id: stream_id})
+      var count = msg.params.count > 0 ? msg.params.count : 2
+      var start = msg.params.start && (new Date(msg.params.start))
+      var stop = msg.params.stop && (new Date(msg.params.stop))
+      send_last_locations(client, stream_id, user.id, start, stop, count)
+    } else {
+      protocol.respond_fail(client, msg.id, {code: "NOACCESS",
+                                             message: msg.params.username+" is not sharing location data with you."})
+    }
+
   }, function() {
       protocol.respond_fail(client, msg.id, {code: "UNF",
                                              message: "username "+msg.params.username+" not found"})
@@ -263,7 +270,7 @@ function client_auth_trusted(client, session) {
 }
 
 function user_new(email, device_id){
-  var user = {email:email, devices: [device_id]}
+  var user = {email:email, devices: [device_id], friends: []}
   return user
 }
 
