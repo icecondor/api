@@ -270,15 +270,39 @@ function client_auth_trusted(client, session) {
 }
 
 function user_new(email, device_id){
-  var user = {email:email, devices: [device_id], friends: []}
+  var user = {email:email,
+              devices: [device_id],
+              friends: [],
+              friend_requests: []
+             }
   return user
 }
 
 function process_user_detail(client, msg) {
-  if(client.flags.authenticated){
+  if(client.flags.authenticated) {
+    var filter
+
     // default value is the authenticated user
-    db.find_user_by(rethink.row('id').eq(client.flags.authenticated.user_id)).then(function(user){
-      protocol.respond_success(client, msg.id, user)
+    filter = {id: client.flags.authenticated.user_id}
+
+    if(msg.params && msg.params.username) {
+      filter = {username: msg.params.username}
+    }
+
+    db.find_user_by(filter).then(function(user){
+      var safe_user = {id: user.id,
+                       username: user.username}
+      if(user.id == client.flags.authenticated.user_id)  {
+        safe_user.email = user.email
+        safe_user.friends = user.friends
+        safe_user.friend_requests = user.friend_requests
+      } else {
+        //
+      }
+
+      protocol.respond_success(client, msg.id, safe_user)
+    }, function(err){
+      protocol.respond_fail(client, msg.id, err)
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
