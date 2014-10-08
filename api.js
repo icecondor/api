@@ -281,9 +281,9 @@ function user_new(email, device_id){
 function process_user_detail(client, msg) {
   if(client.flags.authenticated) {
     var filter
-
+    var client_user_id = client.flags.authenticated.user_id
     // default value is the authenticated user
-    filter = {id: client.flags.authenticated.user_id}
+    filter = {id: client_user_id}
 
     if(msg.params && msg.params.username) {
       filter = {username: msg.params.username}
@@ -292,12 +292,14 @@ function process_user_detail(client, msg) {
     db.find_user_by(filter).then(function(user){
       var safe_user = {id: user.id,
                        username: user.username}
-      if(user.id == client.flags.authenticated.user_id)  {
+      if(user.id == client_user_id)  {
         safe_user.email = user.email
         safe_user.friends = user.friends
         safe_user.friend_requests = user.friend_requests
       } else {
-        //
+        if(user.friend_requests.indexOf(client_user_id) > -1) {
+          safe_user.friend_requests = [client_user_id]
+        }
       }
 
       protocol.respond_success(client, msg.id, safe_user)
