@@ -59,6 +59,7 @@ function client_dispatch(me, msg) {
     case 'auth.session': process_auth_session(me, msg); break;
     case 'user.detail': process_user_detail(me, msg); break;
     case 'user.update': process_user_update(me, msg); break;
+    case 'user.friend': process_user_friend(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
@@ -316,11 +317,35 @@ function process_user_update(client, msg) {
   if(client.flags.authenticated){
     // default value is the authenticated user
     db.update_user_by(client.flags.authenticated.user_id, msg.params).then(function(result){
-      clog(client, "user updated")
-      console.dir(result)
       protocol.respond_success(client, msg.id, result)
     }, function(err){
       protocol.respond_fail(client, msg.id, err)
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_user_friend(client, msg) {
+  if(client.flags.authenticated){
+    var client_user_id = client.flags.authenticated.user_id
+    db.get_user(client_user_id).then(function(user){
+      db.find_user_by({username:msg.params.username}).then(function(friend){
+        var valid = false
+        if(user.friend_requests.indexOf(friend.id) > -1){
+          protocol.respond_fail(client, msg.id, {message: "Already requested friends with "+msg.params.username})
+        } else {
+          if(friend.friends.indexOf(client_user_id) > -1){
+            protocol.respond_fail(client, msg.id, {message: "Already friends with "+msg.params.username})
+          } else {
+            db.user_add_friend_request(client_user_id, friend.id).then(function(result){
+              protocol.respond_success(client, msg.id, result)
+            }, function(err){
+              protocol.respond_fail(client, msg.id, err)
+            })
+          }
+        }
+      })
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
