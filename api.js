@@ -359,7 +359,7 @@ function build_token_email(email, device_id, token) {
     to: email,
     //html: '<b>Hello world </b>'
     }
-  if(token == 'browser') {
+  if(device_id == 'browser') {
     emailOpt.subject = 'Web Login Link',
     emailOpt.text = 'Web Browser Login link.\n\n'+link+'\n'
   } else {
