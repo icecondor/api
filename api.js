@@ -302,6 +302,9 @@ function process_user_detail(client, msg) {
         if(user.friend_requests.indexOf(client_user_id) > -1) {
           safe_user.friend_requests.push(client_user_id)
         }
+        if(user.friends.indexOf(client_user_id) > -1) {
+          safe_user.friends.push(client_user_id)
+        }
       }
 
       protocol.respond_success(client, msg.id, safe_user)
