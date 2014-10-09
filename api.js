@@ -338,11 +338,19 @@ function process_user_friend(client, msg) {
           if(friend.friends.indexOf(client_user_id) > -1){
             protocol.respond_fail(client, msg.id, {message: "Already friends with "+msg.params.username})
           } else {
-            db.user_add_friend_request(client_user_id, friend.id).then(function(result){
-              protocol.respond_success(client, msg.id, result)
-            }, function(err){
-              protocol.respond_fail(client, msg.id, err)
-            })
+            if(friend.friend_requests.indexOf(client_user_id) > -1){
+              db.user_add_friend(client_user_id, friend.id).then(function(result){
+                protocol.respond_success(client, msg.id, result)
+              }, function(err){
+                protocol.respond_fail(client, msg.id, err)
+              })
+            } else {
+              db.user_add_friend_request(client_user_id, friend.id).then(function(result){
+                protocol.respond_success(client, msg.id, result)
+              }, function(err){
+                protocol.respond_fail(client, msg.id, err)
+              })
+            }
           }
         }
       })
