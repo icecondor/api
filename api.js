@@ -347,10 +347,10 @@ function build_token_email(email, device_id, token) {
     //html: '<b>Hello world </b>'
     }
   if(device_id == 'browser') {
-    emailOpt.subject = 'Web Login Link',
+    emailOpt.subject = 'IceCondor Web Login for '+email,
     emailOpt.text = 'Web Browser Login link.\n\n'+link+'\n'
   } else {
-    emailOpt.subject = 'Phone Activation Link',
+    emailOpt.subject = 'IceCondor Phone Activation Link',
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
   }
   return emailOpt
