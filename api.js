@@ -332,10 +332,12 @@ function process_user_update(client, msg) {
 function process_user_friend(client, msg) {
   if(client.flags.authenticated){
     var client_user_id = client.flags.authenticated.user_id
-    db.user_add_friend(client_user_id, friend.id).then(function(result){
-      protocol.respond_success(client, msg.id, result)
-    }, function(err){
-      protocol.respond_fail(client, msg.id, err)
+    db.find_user_by({username:msg.params.username}).then(function(friend){
+      db.user_add_friend(client_user_id, friend.id).then(function(result){
+        protocol.respond_success(client, msg.id, result)
+      }, function(err){
+        protocol.respond_fail(client, msg.id, err)
+      })
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
