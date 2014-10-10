@@ -332,31 +332,10 @@ function process_user_update(client, msg) {
 function process_user_friend(client, msg) {
   if(client.flags.authenticated){
     var client_user_id = client.flags.authenticated.user_id
-    db.get_user(client_user_id).then(function(user){
-      db.find_user_by({username:msg.params.username}).then(function(friend){
-        var valid = false
-        if(user.friend_requests.indexOf(friend.id) > -1){
-          protocol.respond_fail(client, msg.id, {message: "Already requested friends with "+msg.params.username})
-        } else {
-          if(friend.friends.indexOf(client_user_id) > -1){
-            protocol.respond_fail(client, msg.id, {message: "Already friends with "+msg.params.username})
-          } else {
-            if(friend.friend_requests.indexOf(client_user_id) > -1){
-              db.user_add_friend(client_user_id, friend.id).then(function(result){
-                protocol.respond_success(client, msg.id, result)
-              }, function(err){
-                protocol.respond_fail(client, msg.id, err)
-              })
-            } else {
-              db.user_add_friend_request(client_user_id, friend.id).then(function(result){
-                protocol.respond_success(client, msg.id, result)
-              }, function(err){
-                protocol.respond_fail(client, msg.id, err)
-              })
-            }
-          }
-        }
-      })
+    db.user_add_friend(client_user_id, friend.id).then(function(result){
+      protocol.respond_success(client, msg.id, result)
+    }, function(err){
+      protocol.respond_fail(client, msg.id, err)
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
