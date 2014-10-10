@@ -273,8 +273,7 @@ function client_auth_trusted(client, session) {
 function user_new(email, device_id){
   var user = {email:email,
               devices: [device_id],
-              friends: [],
-              friend_requests: []
+              friends: []
              }
   return user
 }
@@ -290,20 +289,16 @@ function process_user_detail(client, msg) {
       filter = {username: msg.params.username}
     }
 
+    console.log('process_user_detail', filter)
     db.find_user_by(filter).then(function(user){
       var safe_user = {id: user.id,
-                       username: user.username,
-                       friend_requests: []}
+                       username: user.username}
       if(user.id == client_user_id)  {
         safe_user.email = user.email
         safe_user.friends = user.friends
-        safe_user.friend_requests = user.friend_requests
       } else {
-        if(user.friend_requests.indexOf(client_user_id) > -1) {
-          safe_user.friend_requests.push(client_user_id)
-        }
         if(user.friends.indexOf(client_user_id) > -1) {
-          safe_user.friends.push(client_user_id)
+          safe_user.friends = [client_user_id]
         }
       }
 
