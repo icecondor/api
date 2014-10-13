@@ -351,7 +351,7 @@ function build_friend_email(email, friended_by) {
     to: email,
     subject: friended_by+' is sharing their location with you',
     text: friended_by+' is now sharing their location with you.'
-    }
+  }
 }
 
 function build_token_email(email, device_id, token) {
