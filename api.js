@@ -292,13 +292,14 @@ function process_user_detail(client, msg) {
     console.log('process_user_detail', filter)
     db.find_user_by(filter).then(function(user){
       var safe_user = {id: user.id,
-                       username: user.username}
+                       username: user.username,
+                       friends: []}
       if(user.id == client_user_id)  {
         safe_user.email = user.email
         safe_user.friends = user.friends
       } else {
         if(user.friends.indexOf(client_user_id) > -1) {
-          safe_user.friends = [client_user_id]
+          safe_user.friends.push(client_user_id)
         }
       }
 
