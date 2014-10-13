@@ -346,12 +346,13 @@ function process_user_friend(client, msg) {
 }
 
 function build_friend_email(email, friended_by) {
-  var emailOpt = {
+  var opts = {
     from: 'IceCondor <system@icecondor.com>',
     to: email,
     subject: friended_by+' is sharing their location with you',
     text: friended_by+' is now sharing their location with you.'
   }
+  return opts
 }
 
 function build_token_email(email, device_id, token) {
