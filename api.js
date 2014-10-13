@@ -333,7 +333,7 @@ function process_user_friend(client, msg) {
         protocol.respond_success(client, msg.id, result)
         // inefficient
         db.get_user(client_user_id).then(function(user){
-          var email = build_friend_email(user.email, friend.username)
+          var email = build_friend_email(friend.email, user.username)
           send_email(email)
         })
       }, function(err){
