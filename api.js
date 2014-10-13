@@ -212,9 +212,9 @@ function process_auth_email(client, msg) {
   console.log('auth_email '+JSON.stringify(msg))
   server.create_token_temp(params)
     .then(function(token){
+      protocol.respond_success(client, msg.id, {status: "OK"})
       var email_opts = build_token_email(params.email, params.device_id, token)
       send_email(email_opts)
-      protocol.respond_success(client, msg.id, {status: "OK"})
     })
 }
 
@@ -331,6 +331,11 @@ function process_user_friend(client, msg) {
     db.find_user_by({username:msg.params.username}).then(function(friend){
       db.user_add_friend(client_user_id, friend.id).then(function(result){
         protocol.respond_success(client, msg.id, result)
+        // inefficient
+        db.get_user(client_user_id).then(function(user){
+          var email = build_friend_email(user.email, friend.username)
+          send_email(email)
+        })
       }, function(err){
         protocol.respond_fail(client, msg.id, err)
       })
@@ -338,6 +343,15 @@ function process_user_friend(client, msg) {
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
   }
+}
+
+function build_friend_email(email, friended_by) {
+  var emailOpt = {
+    from: 'IceCondor <system@icecondor.com>',
+    to: email,
+    subject: friended_by+' is sharing their location with you',
+    text: friended_by+' is now sharing their location with you.'
+    }
 }
 
 function build_token_email(email, device_id, token) {
