@@ -290,10 +290,8 @@ function user_new(email, device_id){
 }
 
 function process_user_detail(client, msg) {
-  var filter
-  var client_user_id = client.flags.authenticated.user_id
   // default value is the authenticated user
-  filter = {id: client_user_id}
+  var filter = {id: client_user_id}
 
   if(msg.params && msg.params.username) {
     filter = {username: msg.params.username}
@@ -306,6 +304,7 @@ function process_user_detail(client, msg) {
                      friends: [],
                      access: {}}
     if(client.flags.authenticated) {
+      var client_user_id = client.flags.authenticated.user_id
       if(user.id == client_user_id)  {
         safe_user.email = user.email
         safe_user.photo = gravatar_url(user.email)
