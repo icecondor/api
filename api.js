@@ -155,15 +155,25 @@ function process_activity_add(client, msg) {
 function process_stream_follow(client, msg) {
   db.find_user_by({username: msg.params.username}).then(function(user){
     var stream_id = uuid.v4().substr(0,8)
+    var auth = false
 
-    if(user.id == client.flags.authenticated.user_id ||
-       user.friends.indexOf(client.flags.authenticated.user_id) >= 0){
+    if(client.flags.authenticated){
+      if(user.id == client.flags.authenticated.user_id ||
+         user.friends.indexOf(client.flags.authenticated.user_id) >= 0){
+        auth = true
+      }
+    } else {
+      if(user.access.public){
+        auth = true
+      }
+    }
+
+    if(auth) {
       client.following.push(function(location){
         if(location.user_id == user.id){
           return stream_id
         }
       })
-
       protocol.respond_success(client, msg.id, {stream_id: stream_id})
       var count = msg.params.count > 0 ? msg.params.count : 2
       var start = msg.params.start && (new Date(msg.params.start))
@@ -273,7 +283,8 @@ function client_auth_trusted(client, session) {
 function user_new(email, device_id){
   var user = {email:email,
               devices: [device_id],
-              friends: []
+              friends: [],
+              access: {}
              }
   return user
 }
