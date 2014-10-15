@@ -193,7 +193,7 @@ function process_stream_follow(client, msg) {
 function gravatar_url(email, size) {
   var md5sum = crypto.createHash('md5')
   md5sum.update(email)
-  var url = "http://www.gravatar.com/avatar/"+md5sum.digest('hex')+"?s="+size
+  var url = "http://www.gravatar.com/avatar/"+md5sum.digest('hex')
   return url
 }
 
