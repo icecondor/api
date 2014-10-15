@@ -190,10 +190,10 @@ function process_stream_follow(client, msg) {
   })
 }
 
-function gravatar_url(email) {
+function gravatar_url(email, size) {
   var md5sum = crypto.createHash('md5')
   md5sum.update(email)
-  var url = "http://www.gravatar.com/avatar/"+md5sum.digest('hex')+"?s=20"
+  var url = "http://www.gravatar.com/avatar/"+md5sum.digest('hex')+"?s="+size
   return url
 }
 
@@ -290,37 +290,46 @@ function user_new(email, device_id){
 }
 
 function process_user_detail(client, msg) {
-  if(client.flags.authenticated) {
-    var filter
-    var client_user_id = client.flags.authenticated.user_id
-    // default value is the authenticated user
-    filter = {id: client_user_id}
+  var filter
+  var client_user_id = client.flags.authenticated.user_id
+  // default value is the authenticated user
+  filter = {id: client_user_id}
 
-    if(msg.params && msg.params.username) {
-      filter = {username: msg.params.username}
-    }
+  if(msg.params && msg.params.username) {
+    filter = {username: msg.params.username}
+  }
 
-    console.log('process_user_detail', filter)
-    db.find_user_by(filter).then(function(user){
-      var safe_user = {id: user.id,
-                       username: user.username,
-                       friends: []}
+  console.log('process_user_detail', filter)
+  db.find_user_by(filter).then(function(user){
+    var safe_user = {id: user.id,
+                     username: user.username,
+                     friends: [],
+                     access: {}}
+    if(client.flags.authenticated) {
       if(user.id == client_user_id)  {
         safe_user.email = user.email
+        safe_user.photo = gravatar_url(user.email)
         safe_user.friends = user.friends
+        safe_user.access = user.access
       } else {
         if(user.friends.indexOf(client_user_id) > -1) {
+          safe_user.photo = gravatar_url(user.email)
           safe_user.friends.push(client_user_id)
         }
       }
+    } else {
+      if(user.access.public){
+        safe_user.photo = gravatar_url(user.email)
+      } else {
+        protocol.respond_fail(client, msg.id, {message:"Profile is private"})
+        return
+      }
+    }
 
-      protocol.respond_success(client, msg.id, safe_user)
-    }, function(err){
-      protocol.respond_fail(client, msg.id, err)
-    })
-  } else {
-    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
-  }
+    protocol.respond_success(client, msg.id, safe_user)
+  }, function(err){
+    protocol.respond_fail(client, msg.id, err)
+  })
 }
 
 function process_user_update(client, msg) {
