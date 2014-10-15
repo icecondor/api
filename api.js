@@ -309,9 +309,7 @@ function process_user_detail(client, msg) {
   console.log('process_user_detail', filter)
   db.find_user_by(filter).then(function(user){
     var safe_user = {id: user.id,
-                     username: user.username,
-                     friends: [],
-                     access: {}}
+                     username: user.username}
     if(client.flags.authenticated) {
       var client_user_id = client.flags.authenticated.user_id
       if(user.id == client_user_id)  {
@@ -322,7 +320,7 @@ function process_user_detail(client, msg) {
       } else {
         if(user.friends.indexOf(client_user_id) > -1) {
           safe_user.photo = gravatar_url(user.email)
-          safe_user.friends.push(client_user_id)
+          safe_user.friends = [client_user_id]
         }
       }
     } else {
