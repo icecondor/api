@@ -299,7 +299,7 @@ function process_user_detail(client, msg) {
     }
   } else {
     if(client.flags.authenticated) {
-      filter = {id: client_user_id}
+      filter = {id: client.flags.authenticated.user_id}
     } else {
       protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
       return
