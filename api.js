@@ -291,10 +291,19 @@ function user_new(email, device_id){
 
 function process_user_detail(client, msg) {
   // default value is the authenticated user
-  var filter = {id: client_user_id}
+  var filter = {}
 
-  if(msg.params && msg.params.username) {
-    filter = {username: msg.params.username}
+  if(msg.params){
+    if(msg.params.username) {
+      filter = {username: msg.params.username}
+    }
+  } else {
+    if(client.flags.authenticated) {
+      filter = {id: client_user_id}
+    } else {
+      protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+      return
+    }
   }
 
   console.log('process_user_detail', filter)
