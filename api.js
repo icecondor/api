@@ -282,6 +282,7 @@ function client_auth_trusted(client, session) {
 
 function user_new(email, device_id){
   var user = {email:email,
+              created_at: new Date().toISOString(),
               devices: [device_id],
               friends: [],
               access: {}
