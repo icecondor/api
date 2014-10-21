@@ -15,10 +15,11 @@ function transform(loc){
 r.connect({db:'icecondor'}).then(function(conn){
   echoStream._write = function (chunk, encoding, done) {
     transform(chunk)
-    console.log(chunk);
 
-    r.table('activities').insert(chunk).run(conn, function(doc, result){
-      console.dir(result)
+    r.table('load').insert(chunk).run(conn, function(doc, result){
+      if(result.errors > 0) {
+        console.log(chunk.type, result.errors)
+      }
       done()
     })
   };
