@@ -11,7 +11,7 @@ console.log('users', user_docs.length)
 var users = {}
 
 
-function transform_user(user) {
+function translate_user(user) {
   var new_user = {
           id: user._id,
           email: user.email,
@@ -37,19 +37,18 @@ function transform(loc){
 
 r.connect({db:'icecondor'}).then(function(conn){
   for(var idx in user_docs) {
-    var user = transform_user(user_docs[idx].doc)
+    var user = translate_user(user_docs[idx].doc)
     console.log('transform_user wtf1', idx, user.username)
     r.table('users').filter({username: user.username}).run(conn,
-      (function(user){
+      (function(user) {
         return function(err, cursor){
           console.log('transform_user wtf2', idx, user)
-          cursor.toArray(function(err, ary){
-            console.log('users filter cursor', ary)
-            if(ary.length > 0) {
-              console.log("user exists", ary[0].username)
-              users[ary[0].username] = ary[0]
+          cursor.next(function(err, found){
+            if(found) {
+              console.log("user exists", user.username)
+              users[user.username] = user
             } else {
-              console.log('transform_user insert', user)
+              console.log('transform_user insert', user.username)
               r.table('users').insert(user).run(conn, function(err, result){
                 console.log("user saved!", result)
                 users[user.username] = user
@@ -68,6 +67,7 @@ r.connect({db:'icecondor'}).then(function(conn){
       if(result.errors > 0) {
         console.log(chunk.type, result.errors)
       }
+      console.log(chunk)
       done()
     })
   };
