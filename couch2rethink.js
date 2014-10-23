@@ -27,11 +27,21 @@ function translate_user(user) {
 function transform(loc){
   var user = users[loc.username]
   if (user) {
-    loc.id = loc._id
-    delete loc._id
-    delete loc._rev
+    var new_loc = {
+        id: loc._id,
+        type: loc.type,
+        date: loc.date,
+        provider: loc.provider,
+        latitude: loc.position.latitude,
+        longitude: loc.position.longitude,
+        accuracy: loc.position.accuracy,
+        altitude: loc.position.altitude,
+        velocity: loc.velocity,
+        heading: loc.heading
+      }
+    return new_loc
   } else {
-    console.log('location user unknown!', loc.username)
+    console.log('location user unknown!', loc.username, loc.id)
   }
 }
 
@@ -61,13 +71,14 @@ r.connect({db:'icecondor'}).then(function(conn){
   }
 
   echoStream._write = function (chunk, encoding, done) {
-    transform(chunk)
+    var new_chunk = transform(chunk)
 
-    r.table('activities').insert(chunk).run(conn, function(doc, result){
+    r.table('activities').insert(new_chunk).run(conn, function(doc, result){
       if(result.errors > 0) {
         console.log(chunk.type, result.errors)
+      } else {
+        console.log("SAVED", new_chunk)
       }
-      console.log(chunk)
       done()
     })
   };
