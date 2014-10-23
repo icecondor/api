@@ -16,7 +16,7 @@ var major_version = 2
 var settings = require('./lib/settings')(major_version)
 var protocol = require('./lib/protocol-v'+major_version)(settings.api)
 var server = require('./lib/server').factory()
-var db = require('./lib/dblib').factory(rethink)
+var db = require('./lib/dblib').factory(rethink, rethink.connect(settings.rethinkdb))
 
 console.log("v:"+settings.api.version+" host:"+settings.api.hostname)
 
