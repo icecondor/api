@@ -294,7 +294,7 @@ function process_user_detail(client, msg) {
   // default value is the authenticated user
   var filter = {}
 
-  if(msg.params){
+  if(msg.params && Object.keys(msg.params).length > 0){
     if(msg.params.username) {
       filter = {username: msg.params.username}
     }
