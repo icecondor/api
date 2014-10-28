@@ -380,13 +380,13 @@ function build_friend_email(email, friended_by) {
     subject: friended_by+' is sharing their location with you',
     text: friended_by+' is now sharing their location with you.\n\n'+
           'View their map at\n'+
-          'https://staging.icecondor.com/'+friended_by
+          'https://icecondor.com/'+friended_by
   }
   return opts
 }
 
 function build_token_email(email, device_id, token) {
-  var link = "https://staging.icecondor.com/auth/"+encodeURIComponent(token)
+  var link = "https://icecondor.com/auth/"+encodeURIComponent(token)
   var emailOpt = {
     from: 'IceCondor <system@icecondor.com>',
     to: email,
