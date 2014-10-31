@@ -86,6 +86,7 @@ function pump_location(location) {
 }
 
 function send_last_locations(client, stream_id, user_id, start, stop, count) {
+  console.log('send_last_locations',user_id,stream_id,start,stop,count)
   var now = (new Date()).toISOString()
   db.find_locations_for(user_id, start, stop, count).then(function(locations_cursor){
     locations_cursor.each(function(err, location){
@@ -169,15 +170,20 @@ function process_stream_follow(client, msg) {
     }
 
     if(auth) {
-      client.following.push(function(location){
-        if(location.user_id == user.id){
-          return stream_id
-        }
-      })
       protocol.respond_success(client, msg.id, {stream_id: stream_id})
       var count = msg.params.count > 0 ? msg.params.count : 2
       var start = msg.params.start && (new Date(msg.params.start))
       var stop = msg.params.stop && (new Date(msg.params.stop))
+
+      if(stop) {
+        // track new positions if stop time unspecified
+        client.following.push(function(location){
+          if(location.user_id == user.id){
+            return stream_id
+          }
+        })
+      }
+
       send_last_locations(client, stream_id, user.id, start, stop, count)
     } else {
       protocol.respond_fail(client, msg.id, {code: "NOACCESS",
