@@ -54,6 +54,7 @@ function end_of_connection(client) {
 }
 
 function client_dispatch(me, msg) {
+  server.timer.hits += 1
   switch(msg.method) {
     case 'auth.email': process_auth_email(me, msg); break;
     case 'auth.session': process_auth_session(me, msg); break;
