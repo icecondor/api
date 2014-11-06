@@ -176,8 +176,8 @@ function process_stream_follow(client, msg) {
       var start = msg.params.start && (new Date(msg.params.start))
       var stop = msg.params.stop && (new Date(msg.params.stop))
 
-      if(!stop) {
-        // track new positions if stop time unspecified
+      if(!start && !stop) {
+        // a running query if no stop/start specified
         client.following.push(function(location){
           if(location.user_id == user.id){
             return stream_id
