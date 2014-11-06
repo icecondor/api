@@ -172,6 +172,7 @@ function process_stream_follow(client, msg) {
 
     if(auth) {
       protocol.respond_success(client, msg.id, {stream_id: stream_id})
+      if(!msg.params.count){ msg.params.count = 2 }
       var count = msg.params.count < 2000 ? msg.params.count : 2000
       var start = msg.params.start && (new Date(msg.params.start))
       var stop = msg.params.stop && (new Date(msg.params.stop))
