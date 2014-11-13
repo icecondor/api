@@ -370,6 +370,22 @@ function process_user_payment(client, msg) {
     var client_user_id = client.flags.authenticated.user_id
     db.find_user_by({id: client.flags.authenticated.user_id}).then(function(user){
       // user loaded, process payment
+      stripe.customers.create({
+        email: user.email
+      }).then(function(customer) {
+        console.log('process_user_payment', 'existing stripe customer', customer)
+        return stripe.charges.create({
+          amount: 1600, // comes from token??
+          currency: 'usd',
+          customer: customer.id
+        });
+      }).then(function(charge) {
+        // New charge created on a new customer
+        console.log('process_user_payment', 'new stripe customer charged', charge)
+      }, function(err) {
+        // Deal with an error
+        console.log('process_user_payment', 'error', err)
+      });
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
