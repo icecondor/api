@@ -18,6 +18,9 @@ var protocol = require('./lib/protocol-v'+major_version)(settings.api)
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory(rethink, rethink.connect(settings.rethinkdb))
 
+// config-dependent
+var stripe = require('stripe')(settings.stripe.key);
+
 console.log("v:"+settings.api.version+" host:"+settings.api.hostname)
 
 db.setup(function(){
@@ -61,6 +64,7 @@ function client_dispatch(me, msg) {
     case 'user.detail': process_user_detail(me, msg); break;
     case 'user.update': process_user_update(me, msg); break;
     case 'user.friend': process_user_friend(me, msg); break;
+    case 'user.payment': process_user_payment(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
@@ -355,6 +359,17 @@ function process_user_update(client, msg) {
       protocol.respond_success(client, msg.id, result)
     }, function(err){
       protocol.respond_fail(client, msg.id, err)
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_user_payment(client, msg) {
+  if(client.flags.authenticated){
+    var client_user_id = client.flags.authenticated.user_id
+    db.find_user_by({id: client.flags.authenticated.user_id}).then(function(user){
+      // user loaded, process payment
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
