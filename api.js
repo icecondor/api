@@ -370,6 +370,7 @@ function process_user_payment(client, msg) {
     var client_user_id = client.flags.authenticated.user_id
     db.find_user_by({id: client.flags.authenticated.user_id}).then(function(user){
       // user loaded, process payment
+      console.log('process_user_payment', 'stripe.customers.create', user.email)
       stripe.customers.create({
         email: user.email
       }).then(function(customer) {
