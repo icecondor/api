@@ -372,20 +372,24 @@ function process_user_payment(client, msg) {
       // user loaded, process payment
       console.log('process_user_payment', 'stripe.customers.create', user.email)
       stripe.customers.create({
-        email: user.email
+        email: user.email,
+        card: msg.token,
+        metadata: { user_id: client_user_id }
       }).then(function(customer) {
-        console.log('process_user_payment', 'existing stripe customer', customer)
+        console.log('process_user_payment', 'stripe customer', customer)
         return stripe.charges.create({
-          amount: 1600, // comes from token??
+          amount: 301, // comes from token??
           currency: 'usd',
           customer: customer.id
         });
       }).then(function(charge) {
         // New charge created on a new customer
-        console.log('process_user_payment', 'new stripe customer charged', charge)
+        console.log('process_user_payment', 'stripe charge', charge)
+        protocol.respond_success(client, msg.id, {amount: 0.02})
       }, function(err) {
         // Deal with an error
         console.log('process_user_payment', 'error', err)
+        protocol.respond_fail(client, msg.id, {message: err.message})
       });
     })
   } else {
