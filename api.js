@@ -377,15 +377,25 @@ function process_user_payment(client, msg) {
         metadata: { user_id: client_user_id }
       }).then(function(customer) {
         console.log('process_user_payment', 'stripe customer', customer)
-        return stripe.charges.create({
-          amount: 301, // comes from token??
-          currency: 'usd',
-          customer: customer.id
-        });
+        var amount
+        if(msg.params.product == "ex1mo") { amount = 300}
+        if(msg.params.product == "ex6mo") { amount = 1500}
+        if(amount) {
+          return stripe.charges.create({
+            amount: amount,
+            currency: 'usd',
+            customer: customer.id
+          });
+        } else {
+          return new Promise(function(resolve, reject) {
+            reject({code:'noproduct', message:"No product found"})
+          })
+        }
       }).then(function(charge) {
         // New charge created on a new customer
         console.log('process_user_payment', 'stripe charge', charge)
         protocol.respond_success(client, msg.id, {amount: 0.02})
+        build_payment_email(user.email, msg.params.product)
       }, function(err) {
         // Deal with an error
         console.log('process_user_payment', 'error', err)
@@ -415,6 +425,17 @@ function process_user_friend(client, msg) {
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
   }
+}
+
+function build_payment_email(email, product) {
+  var opts = {
+    from: 'IceCondor <system@icecondor.com>',
+    to: email,
+    subject: 'Purchase complete: '+product,
+    text: 'Thank you for your purchase of '+product+'.\n\n'+
+          'Your card has been charged.\n'
+  }
+  return opts
 }
 
 function build_friend_email(email, friended_by) {
