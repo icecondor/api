@@ -395,8 +395,9 @@ function process_user_payment(client, msg) {
         // New charge created on a new customer
         console.log('process_user_payment', 'stripe charge', charge)
         protocol.respond_success(client, msg.id, {amount: 0.02})
-        var email = build_payment_email(user.email, msg.params.product)
+        var email = build_payment_email(user.email, msg.params.product, charge.amount)
         send_email(email)
+        user_add_time(user, msg.params.product)
       }, function(err) {
         // Deal with an error
         console.log('process_user_payment', 'error', err)
@@ -405,6 +406,21 @@ function process_user_payment(client, msg) {
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function user_add_time(user, product){
+  var endTime
+  if(user.level.premium) {
+    endTime = new Date(user.level.premium)
+  } else {
+    endTime = new Date()
+  }
+  var days = 24*60*60*1000
+  if(product == "ex1mo") { newEndTime = new Date(endTime.valueOf() + (30*days)) }
+  if(product == "ex6mo") { newEndTime = new Date(endTime.valueOf() + (6*30*days))}
+  if(newEndTime) {
+    db.update_user_by(user.id, {level: {"premium": newEndTime}})
   }
 }
 
@@ -428,13 +444,13 @@ function process_user_friend(client, msg) {
   }
 }
 
-function build_payment_email(email, product) {
+function build_payment_email(email, product, amount) {
   var opts = {
     from: 'IceCondor <system@icecondor.com>',
     to: email,
     subject: 'Purchase complete: '+product,
     text: 'Thank you for your purchase of '+product+'.\n\n'+
-          'Your card has been charged.\n'
+          'Your card has been charged $'+(amount/100).toFixed(2)+'.\n'
   }
   return opts
 }
