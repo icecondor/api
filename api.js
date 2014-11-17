@@ -395,7 +395,8 @@ function process_user_payment(client, msg) {
         // New charge created on a new customer
         console.log('process_user_payment', 'stripe charge', charge)
         protocol.respond_success(client, msg.id, {amount: 0.02})
-        build_payment_email(user.email, msg.params.product)
+        var email = build_payment_email(user.email, msg.params.product)
+        send_email(email)
       }, function(err) {
         // Deal with an error
         console.log('process_user_payment', 'error', err)
