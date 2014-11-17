@@ -417,11 +417,14 @@ function user_add_time(user, product){
   } else {
     endTime = new Date()
   }
+  console.log('user_add_time', user.username, 'endTime', endTime)
   var days = 24*60*60*1000
-  if(product == "ex1mo") { newEndTime = new Date(endTime.valueOf() + (30*days)) }
-  if(product == "ex6mo") { newEndTime = new Date(endTime.valueOf() + (6*30*days))}
-  console.log('user_add_time', user.username, 'newEndTime', newEndTime)
-  if(newEndTime) {
+  var duration
+  if(product == "ex1mo") { duration = 1*30*days }
+  if(product == "ex6mo") { duration = 6*30*days }
+  console.log('user_add_time', user.username, 'duration', duration)
+  if(duration) {
+    var newEndTime = new Date(endTime.valueOf() + duration)
     db.update_user_by(user.id, {level: {"premium": newEndTime}})
   }
 }
