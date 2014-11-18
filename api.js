@@ -425,6 +425,7 @@ function user_add_time(user, product){
   console.log('user_add_time', user.username, 'duration', duration)
   if(duration) {
     var newEndTime = new Date(endTime.valueOf() + duration)
+    console.log('user_add_time', user.username, 'newEndTime', newEndTime)
     db.update_user_by(user.id, {level: {"premium": newEndTime.toISOString()}})
   }
 }
