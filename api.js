@@ -412,8 +412,8 @@ function process_user_payment(client, msg) {
 function user_add_time(user, product){
   var endTime
   console.log('user_add_time', user.username, user.level)
-  if(user.level && user.level.premium) {
-    endTime = new Date(user.level.premium)
+  if(user.level && user.level.extra) {
+    endTime = new Date(user.level.extra)
   } else {
     endTime = new Date()
   }
@@ -426,7 +426,7 @@ function user_add_time(user, product){
   if(duration) {
     var newEndTime = new Date(endTime.valueOf() + duration)
     console.log('user_add_time', user.username, 'newEndTime', newEndTime)
-    db.update_user_premium(user.id, newEndTime.toISOString())
+    db.update_user_level(user.id, {extra: newEndTime.toISOString()} )
   }
 }
 
