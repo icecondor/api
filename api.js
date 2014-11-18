@@ -331,6 +331,7 @@ function process_user_detail(client, msg) {
         safe_user.photo = gravatar_url(user.email)
         safe_user.friends = user.friends
         safe_user.access = user.access
+        safe_user.level = user.level
       } else {
         if(user.friends.indexOf(client_user_id) > -1) {
           safe_user.photo = gravatar_url(user.email)
