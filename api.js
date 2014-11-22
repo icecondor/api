@@ -66,6 +66,7 @@ function client_dispatch(me, msg) {
     case 'user.friend': process_user_friend(me, msg); break;
     case 'user.payment': process_user_payment(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
+    case 'activity.stats': process_activity_stats(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
     case 'stream.stats': me.flags.stats = msg.id; break;
@@ -156,6 +157,27 @@ function process_activity_add(client, msg) {
     var fail = {message: 'not authorized'};
     protocol.respond_fail(client, msg.id, fail)
   }
+}
+
+function process_activity_stats(client, msg) {
+    var stats = {}
+    db.activity_count().then(function(count){
+      stats.total = count
+      // 24 hour counts
+      var today = new Date()
+      var yesterday = new Date(today - 1000*60*24)
+      db.activity_count(yesterday, today).then(function (c24){
+        stats.day = {total: c24}
+        if(msg.params && msg.params.type) {
+          db.activity_count(yesterday, today, msg.params.type).then(function (ct24){
+            stats.day[msg.params.type] = ct24
+            protocol.respond_success(client, msg.id, stats)
+          })
+        } else {
+          protocol.respond_success(client, msg.id, stats)
+        }
+      })
+    })
 }
 
 function process_stream_follow(client, msg) {
