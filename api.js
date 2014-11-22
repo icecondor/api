@@ -165,9 +165,11 @@ function process_activity_stats(client, msg) {
       stats.total = count
       // 24 hour counts
       var today = new Date()
-      var yesterday = new Date(today - 1000*60*24)
+      var yesterday = new Date(today - 1000*60*60*24)
       db.activity_count(yesterday, today).then(function (c24){
-        stats.day = {total: c24}
+        stats.day = {total: c24,
+                     start: yesterday.toISOString(),
+                     stop: today.toISOString()}
         if(msg.params && msg.params.type) {
           db.activity_count(yesterday, today, msg.params.type).then(function (ct24){
             stats.day[msg.params.type] = ct24
