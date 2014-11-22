@@ -173,7 +173,10 @@ function process_activity_stats(client, msg) {
         if(msg.params && msg.params.type) {
           db.activity_count(yesterday, today, msg.params.type).then(function (ct24){
             stats.day[msg.params.type] = ct24
-            protocol.respond_success(client, msg.id, stats)
+            db.activity_count(yesterday, today, msg.params.type, true).then(function (uct24){
+              stats.day[msg.params.type+"_users"] = uct24
+              protocol.respond_success(client, msg.id, stats)
+            })
           })
         } else {
           protocol.respond_success(client, msg.id, stats)
