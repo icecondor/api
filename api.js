@@ -21,7 +21,8 @@ var db = require('./lib/dblib').factory(rethink, rethink.connect(settings.rethin
 // config-dependent
 var stripe = require('stripe')(settings.stripe.key);
 
-console.log("v:"+settings.api.version+" host:"+settings.api.hostname)
+console.log("api", "version:"+settings.api.version+" server:"+settings.api.hostname)
+console.log("rethinkdb", "host:", settings.rethinkdb.host)
 
 db.setup(function(){
   server.listen(settings.api.listen_port)
@@ -160,29 +161,44 @@ function process_activity_add(client, msg) {
 }
 
 function process_activity_stats(client, msg) {
-    var stats = {}
-    db.activity_count().then(function(count){
-      stats.total = count
-      // 24 hour counts
-      var today = new Date()
-      var yesterday = new Date(today - 1000*60*60*24)
-      db.activity_count(yesterday, today).then(function (c24){
-        stats.day = {total: c24,
-                     start: yesterday.toISOString(),
-                     stop: today.toISOString()}
-        if(msg.params && msg.params.type) {
-          db.activity_count(yesterday, today, msg.params.type).then(function (ct24){
-            stats.day[msg.params.type] = ct24
-            db.activity_count(yesterday, today, msg.params.type, true).then(function (uct24){
+  var stats = {}
+  var user_id;
+  if(client.flags.authenticated){
+    user_id = client.flags.authenticated.user_id
+  }
+  var allfilter = {user_id: user_id}
+  db.activity_count({user_id:user_id}).then(function(count){
+    stats.total = count
+    // 24 hour count
+    var today = new Date()
+    allfilter.start = today
+    var yesterday = new Date(today - 1000*60*60*24)
+    allfilter.stop = yesterday
+    db.activity_count(allfilter).then(function (c24){
+      stats.day = {total: c24,
+                   start: yesterday.toISOString(),
+                   stop: today.toISOString()}
+      if(msg.params && msg.params.type) {
+        allfilter.type = type
+        db.activity_count(allfilter).then(function (ct24){
+          stats.day[msg.params.type] = ct24
+          if(user_id){
+            db.get_user(user_id).then(function(user){
+              stats.username = user.username
+              protocol.respond_success(client, msg.id, stats)
+            })
+          } else {
+            db.activity_count(allfilter).then(function (uct24){
               stats.day[msg.params.type+"_users"] = uct24
               protocol.respond_success(client, msg.id, stats)
             })
-          })
-        } else {
-          protocol.respond_success(client, msg.id, stats)
-        }
-      })
+          }
+        })
+      } else {
+        protocol.respond_success(client, msg.id, stats)
+      }
     })
+  })
 }
 
 function process_stream_follow(client, msg) {
