@@ -163,31 +163,36 @@ function process_activity_add(client, msg) {
 function process_activity_stats(client, msg) {
   var stats = {}
   var user_id;
+  var allfilter = {}
   if(client.flags.authenticated){
-    user_id = client.flags.authenticated.user_id
+    allfilter.user_id = client.flags.authenticated.user_id
   }
-  var allfilter = {user_id: user_id}
-  db.activity_count({user_id:user_id}).then(function(count){
+  console.log('process_activity_stats', '1 allfilter', allfilter)
+  db.activity_count(allfilter).then(function(count){
     stats.total = count
     // 24 hour count
     var today = new Date()
     allfilter.start = today
     var yesterday = new Date(today - 1000*60*60*24)
     allfilter.stop = yesterday
+    console.log('process_activity_stats', '2 allfilter', allfilter)
     db.activity_count(allfilter).then(function (c24){
+      console.log('process_activity_stats', '2 allfilter result', c24)
       stats.day = {total: c24,
                    start: yesterday.toISOString(),
                    stop: today.toISOString()}
       if(msg.params && msg.params.type) {
         allfilter.type = type
+        console.log('process_activity_stats', '3 allfilter', allfilter)
         db.activity_count(allfilter).then(function (ct24){
           stats.day[msg.params.type] = ct24
-          if(user_id){
-            db.get_user(user_id).then(function(user){
+          if(allfilter.user_id){
+            db.get_user(allfilter.user_id).then(function(user){
               stats.username = user.username
               protocol.respond_success(client, msg.id, stats)
             })
           } else {
+            console.log('process_activity_stats', '4 allfilter', allfilter)
             db.activity_count(allfilter).then(function (uct24){
               stats.day[msg.params.type+"_users"] = uct24
               protocol.respond_success(client, msg.id, stats)
