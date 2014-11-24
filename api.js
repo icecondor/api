@@ -182,7 +182,7 @@ function process_activity_stats(client, msg) {
                    start: yesterday.toISOString(),
                    stop: today.toISOString()}
       if(msg.params && msg.params.type) {
-        allfilter.type = type
+        allfilter.type = msg.params.type
         console.log('process_activity_stats', '3 allfilter', allfilter)
         db.activity_count(allfilter).then(function (ct24){
           stats.day[msg.params.type] = ct24
