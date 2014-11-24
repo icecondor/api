@@ -172,9 +172,9 @@ function process_activity_stats(client, msg) {
     stats.total = count
     // 24 hour count
     var today = new Date()
-    allfilter.start = today
     var yesterday = new Date(today - 1000*60*60*24)
-    allfilter.stop = yesterday
+    allfilter.start = yesterday
+    allfilter.stop = today
     console.log('process_activity_stats', '2 allfilter', allfilter)
     db.activity_count(allfilter).then(function (c24){
       console.log('process_activity_stats', '2 allfilter result', c24)
