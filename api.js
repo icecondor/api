@@ -324,6 +324,8 @@ function client_auth_check(client, msg, session) {
   }, function(){
     console.log('user not found by '+session.email)
     var new_user = user_new(session.email, session.device_id)
+    var email = build_admin_email('New user '+session.email)
+    send_email(email)
     return db.ensure_user(new_user)
   }).then(function(user){
     clog(client, 'token validate '+JSON.stringify(user))
@@ -447,10 +449,14 @@ function process_user_payment(client, msg) {
         var email = build_payment_email(user.email, msg.params.product, charge.amount)
         send_email(email)
         user_add_time(user, msg.params.product)
+        var email = build_admin_email('User payment '+user.email+' '+msg.params.product)
+        send_email(email)
       }, function(err) {
         // Deal with an error
         console.log('process_user_payment', 'error', err)
         protocol.respond_fail(client, msg.id, {message: err.message})
+        var email = build_admin_email('User payment error '+err.message)
+        send_email(email)
       });
     })
   } else {
