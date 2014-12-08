@@ -423,7 +423,7 @@ function process_user_payment(client, msg) {
       stripe.customers.create({
         email: user.email,
         card: msg.params.token,
-        metadata: { user_id: client_user_id }
+        metadata: { user_id: client_user_id, email: user.email, level: user.level }
       }).then(function(customer) {
         console.log('process_user_payment', 'stripe customer', customer)
         var amount
