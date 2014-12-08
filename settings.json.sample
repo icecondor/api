@@ -4,6 +4,10 @@
     "progress_report_timer":3000,
     "hostname":"server1"
    },
+  "email":{
+    "from":"System <system@example.com>",
+    "alert":"System <system@example.com>"
+  },
   "bouncy":{"listen_port":9340},
   "web":{"listen_port":9350},
   "socket_io":{"listen_port":9360},

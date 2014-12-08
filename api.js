@@ -501,7 +501,7 @@ function process_user_friend(client, msg) {
 
 function build_payment_email(email, product, amount) {
   var opts = {
-    from: 'IceCondor <system@icecondor.com>',
+    from: settings.email.from,
     to: email,
     subject: 'Purchase complete: '+product,
     text: 'Thank you for your purchase of '+product+'.\n\n'+
@@ -512,7 +512,7 @@ function build_payment_email(email, product, amount) {
 
 function build_friend_email(email, friended_by) {
   var opts = {
-    from: 'IceCondor <system@icecondor.com>',
+    from: settings.email.from,
     to: email,
     subject: friended_by+' is sharing their location with you',
     text: friended_by+' is now sharing their location with you.\n\n'+
@@ -525,7 +525,7 @@ function build_friend_email(email, friended_by) {
 function build_token_email(email, device_id, token) {
   var link = "https://icecondor.com/auth/"+encodeURIComponent(token)
   var emailOpt = {
-    from: 'IceCondor <system@icecondor.com>',
+    from: settings.email.from,
     to: email,
     //html: '<b>Hello world </b>'
     }
@@ -537,6 +537,16 @@ function build_token_email(email, device_id, token) {
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
   }
   return emailOpt
+}
+
+function build_admin_email(email, msg) {
+  var opts = {
+    from: settings.email.from,
+    to: settings.email.alert,
+    subject: msg,
+    text: msg
+  }
+  return opts
 }
 
 function send_email(params) {
