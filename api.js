@@ -557,6 +557,7 @@ function build_admin_email(email, msg) {
 
 function send_email(params) {
   var transporter = emailer.createTransport()
+  console.log("email delivery attempt to "+params.to)
   transporter.sendMail(params, function(error, info){
     if(error){
         console.log("email error: "+error);
