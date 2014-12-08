@@ -545,7 +545,7 @@ function build_token_email(email, device_id, token) {
   return emailOpt
 }
 
-function build_admin_email(email, msg) {
+function build_admin_email(msg) {
   var opts = {
     from: settings.email.from,
     to: settings.email.alert,
