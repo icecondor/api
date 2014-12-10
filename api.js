@@ -321,14 +321,14 @@ function client_auth_check(client, msg, session) {
       clog(client, '* adding device '+session.device_id);
       return db.user_add_device(user.id, session.device_id).then(function(){return user})
     }
-  }, function(){
-    console.log('user not found by '+session.email)
+  }, function(err){
+    clog(client, '* user not found by '+session.email+' '+JSON.stringify(err))
     var new_user = user_new(session.email, session.device_id)
     var email = build_admin_email('New user '+session.email)
     send_email(email)
     return db.ensure_user(new_user)
   }).then(function(user){
-    clog(client, 'token validate '+JSON.stringify(user))
+    clog(client, '* token validate '+JSON.stringify(user))
     server.token_validate(msg.params.device_key, user.id, session.device_id).then(function(session){
       clog(client, "post token validate w/ "+JSON.stringify(session))
       client_auth_trusted(client, session)
