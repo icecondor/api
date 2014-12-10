@@ -114,7 +114,7 @@ function progress_report() {
                    freemem: os.freemem()
               }
   db.activity_add(stats)
-  console.log('status report - '+rate+' hits/sec. '+server.clients.list.length+' clients.')
+  console.log('status report - '+rate.toFixed(1)+' hits/sec. '+server.clients.list.length+' clients.')
   pump(stats)
 }
 
