@@ -94,7 +94,7 @@ function pump_location(location) {
 
 function send_last_locations(client, stream_id, user_id, start, stop, count, type, order) {
   console.log('send_last_locations',user_id,stream_id,start,stop,count,type, order)
-  db.find_locations_for(user_id, start, stop, count, type).then(function(locations_cursor){
+  db.find_locations_for(user_id, start, stop, count, type, order).then(function(locations_cursor){
     locations_cursor.each(function(err, location){
       protocol.respond_success(client, stream_id, location)
     })
