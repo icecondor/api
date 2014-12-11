@@ -113,7 +113,7 @@ function clog(client, msg) {
   var parts = []
   parts.push(moment().format())
   if(client.flags.authenticated){
-    parts.push(client.flags.authenticated.device_id+':'+client.flags.authenticated.user_id)
+    parts.push(client.flags.authenticated.device_id.substr(0,8)+':'+client.flags.authenticated.user_id.substr(0,8))
   } else if(client.socket) {
     parts.push(client.socket.remoteAddress+':'+client.socket.remotePort)
   }
@@ -342,7 +342,7 @@ function client_auth_check(client, msg, session) {
 
 function client_auth_trusted(client, session) {
   client.flags.authenticated = session
-  clog(client, "client flag set to trusted user "+session.user_id)
+  clog(client, "Trusted user id "+session.user_id.substr(0,8))
 }
 
 function user_new(email, device_id){
