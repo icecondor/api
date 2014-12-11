@@ -92,15 +92,6 @@ function pump_location(location) {
   })
 }
 
-function send_last_locations(client, stream_id, user_id, start, stop, count, type, order) {
-  console.log('send_last_locations',user_id,stream_id,start,stop,count,type, order)
-  db.find_locations_for(user_id, start, stop, count, type, order).then(function(locations_cursor){
-    locations_cursor.each(function(err, location){
-      protocol.respond_success(client, stream_id, location)
-    })
-  })
-}
-
 function progress_report() {
   var now = new Date();
   var period = (now - server.timer.mark) / 1000
@@ -222,14 +213,13 @@ function process_stream_follow(client, msg) {
     }
 
     if(auth) {
-      protocol.respond_success(client, msg.id, {stream_id: stream_id})
       if(!msg.params.count){ msg.params.count = 2 }
       var count = msg.params.count < 2000 ? msg.params.count : 2000
       var start = msg.params.start && (new Date(msg.params.start))
       var stop = msg.params.stop && (new Date(msg.params.stop))
       var type = msg.params.type
       var order = msg.params.order
-      if(!start && !stop) {
+      if(msg.params.follow) {
         // a running query if no stop/start specified
         client.following.push(function(location){
           if(location.user_id == user.id){
@@ -238,7 +228,8 @@ function process_stream_follow(client, msg) {
         })
       }
 
-      send_last_locations(client, stream_id, user.id, start, stop, count, type, order)
+      send_last_locations(client, msg.id, stream_id, user.id, start, stop, count, type, order)
+
     } else {
       protocol.respond_fail(client, msg.id, {code: "NOACCESS",
                                              message: msg.params.username+" is not sharing location data with you."})
@@ -247,6 +238,18 @@ function process_stream_follow(client, msg) {
   }, function() {
       protocol.respond_fail(client, msg.id, {code: "UNF",
                                              message: "username "+msg.params.username+" not found"})
+  })
+}
+
+function send_last_locations(client, msg_id, stream_id, user_id, start, stop, count, type, order) {
+  console.log('send_last_locations',user_id, msg_id, stream_id, start, stop, count, type, order)
+  db.count_locations_for(user_id, start, stop, count, type, order).then(function(qcount){
+    protocol.respond_success(client, msg_id, {stream_id: stream_id, count: qcount})
+    db.find_locations_for(user_id, start, stop, count, type, order).then(function(cursor){
+      cursor.each(function(err, location){
+        protocol.respond_success(client, stream_id, location)
+      })
+    })
   })
 }
 
