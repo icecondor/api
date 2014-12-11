@@ -228,7 +228,8 @@ function process_stream_follow(client, msg) {
         })
       }
 
-      send_last_locations(client, msg.id, stream_id, user.id, start, stop, count, type, order)
+      protocol.respond_success(client, msg.id, {stream_id: stream_id})
+      send_last_locations(client, stream_id, user.id, start, stop, count, type, order)
 
     } else {
       protocol.respond_fail(client, msg.id, {code: "NOACCESS",
@@ -241,16 +242,15 @@ function process_stream_follow(client, msg) {
   })
 }
 
-function send_last_locations(client, msg_id, stream_id, user_id, start, stop, count, type, order) {
-  console.log('send_last_locations',user_id, msg_id, stream_id, start, stop, count, type, order)
-  db.count_locations_for(user_id, start, stop, count, type, order).then(function(qcount){
-    protocol.respond_success(client, msg_id, {stream_id: stream_id, count: qcount})
+function send_last_locations(client, stream_id, user_id, start, stop, count, type, order) {
+  console.log('send_last_locations',user_id, stream_id, start, stop, count, type, order)
+  //db.count_locations_for(user_id, start, stop, count, type, order).then(function(qcount){
     db.find_locations_for(user_id, start, stop, count, type, order).then(function(cursor){
       cursor.each(function(err, location){
         protocol.respond_success(client, stream_id, location)
       })
     })
-  })
+  //})
 }
 
 function gravatar_url(email, size) {
