@@ -92,8 +92,8 @@ function pump_location(location) {
   })
 }
 
-function send_last_locations(client, stream_id, user_id, start, stop, count, type) {
-  console.log('send_last_locations',user_id,stream_id,start,stop,count)
+function send_last_locations(client, stream_id, user_id, start, stop, count, type, order) {
+  console.log('send_last_locations',user_id,stream_id,start,stop,count,type, order)
   db.find_locations_for(user_id, start, stop, count, type).then(function(locations_cursor){
     locations_cursor.each(function(err, location){
       protocol.respond_success(client, stream_id, location)
@@ -228,7 +228,7 @@ function process_stream_follow(client, msg) {
       var start = msg.params.start && (new Date(msg.params.start))
       var stop = msg.params.stop && (new Date(msg.params.stop))
       var type = msg.params.type
-
+      var order = msg.params.order
       if(!start && !stop) {
         // a running query if no stop/start specified
         client.following.push(function(location){
@@ -238,7 +238,7 @@ function process_stream_follow(client, msg) {
         })
       }
 
-      send_last_locations(client, stream_id, user.id, start, stop, count, type)
+      send_last_locations(client, stream_id, user.id, start, stop, count, type, order)
     } else {
       protocol.respond_fail(client, msg.id, {code: "NOACCESS",
                                              message: msg.params.username+" is not sharing location data with you."})
