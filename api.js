@@ -183,6 +183,7 @@ function process_activity_stats(client, msg) {
             })
           } else {
             console.log('process_activity_stats', '4 allfilter', allfilter)
+            allfilter.distinct_user = true
             db.activity_count(allfilter).then(function (uct24){
               stats.day[msg.params.type+"_users"] = uct24
               protocol.respond_success(client, msg.id, stats)
