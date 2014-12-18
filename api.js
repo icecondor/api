@@ -141,6 +141,8 @@ function process_activity_add(client, msg) {
   if(client.flags.authenticated){
     msg.params.user_id = client.flags.authenticated.user_id
     msg.params.device_id = client.flags.authenticated.device_id
+    var now = new Date()
+    msg.params.received_at = now.toISOString()
     db.activity_add(msg.params).then(function(){
       protocol.respond_success(client, msg.id, {message: "saved", id: msg.params.id})
     })
