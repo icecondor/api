@@ -562,7 +562,7 @@ function build_admin_email(msg) {
 }
 
 function send_email(params) {
-  var transporter = emailer.createTransport()
+  var transporter = emailer.createTransport({host:'localhost', ignoreTLS: true})
   console.log("email delivery attempt to "+params.to)
   transporter.sendMail(params, function(error, info){
     if(error){
