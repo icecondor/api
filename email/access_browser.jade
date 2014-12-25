@@ -3,22 +3,12 @@ html(xmlns="http://www.w3.org/1999/xhtml")
   head
     meta(http-equiv="Content-Type" content="text/html; charset=UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    style.
-      .btn {
-        background: red;
-        color: white;
-        padding: 1em 3em;
-        border-radius: 0.1em;
-        text-decoration: none;
-        outline: 0.1em solid;
-      }
-      p { padding: 1em 0; }
 
   body(style="margin: 0; padding: 0;")
     h2 IceCondor Login Button
 
-    p.
+    p(style='padding: 1em 0;').
       The button below gives access to your account on IceCondor.
 
-    a.btn(target="_blank" href='#{link}') Login
+    a.btn(target="_blank" href='#{link}' style='background: red; color: white; padding: 1em 3em; border-radius: 0.1em; text-decoration: none; outline: 0.1em solid;') Login
 
