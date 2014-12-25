@@ -11,6 +11,7 @@
                      "node-uuid": "1.4.*",
                      "forever": "0.11.*",
                      "sockjs": "0.3.*",
+                     "jade": "*",
                      "stripe": "2.9.*"
                    },
   "devDependencies": {
