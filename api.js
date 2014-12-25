@@ -10,6 +10,7 @@ var os = require('os')
 var moment = require('moment')
 var emailer = require('nodemailer')
 var rethink = require('rethinkdb')
+var jade = require('jade');
 
 // local
 var major_version = 2
@@ -544,9 +545,11 @@ function build_token_email(email, device_id, token) {
   if(device_id == 'browser') {
     emailOpt.subject = 'IceCondor Web Login for '+email,
     emailOpt.text = 'Web Browser Login link.\n\n'+link+'\n'
+    emailOpt.html = jade.compileFile('email/access_browser.jade', {pretty: true})({link: link})
   } else {
     emailOpt.subject = 'IceCondor Phone Activation Link',
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
+    emailOpt.html = jade.compileFile('email/access_phone.jade', {pretty: true})({link: link})
   }
   return emailOpt
 }
