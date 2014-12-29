@@ -67,6 +67,7 @@ function client_dispatch(me, msg) {
     case 'user.update': process_user_update(me, msg); break;
     case 'user.friend': process_user_friend(me, msg); break;
     case 'user.payment': process_user_payment(me, msg); break;
+    case 'user.stats': process_user_stats(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
     case 'activity.stats': process_activity_stats(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
@@ -153,9 +154,22 @@ function process_activity_add(client, msg) {
   }
 }
 
+function process_user_stats(client, msg) {
+  var stats = {}
+  db.users_link_count().then(function(link_count){
+    stats.link_count = link_count
+    console.log('stats', link_count)
+  }).then(function(){
+    db.users_count().then(function(count){
+      stats.count = count
+      protocol.respond_success(client, msg.id, stats)
+      return stats
+    })
+  })
+}
+
 function process_activity_stats(client, msg) {
   var stats = {}
-  var user_id;
   var allfilter = {}
   if(client.flags.authenticated){
     allfilter.user_id = client.flags.authenticated.user_id
