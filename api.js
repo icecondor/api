@@ -306,6 +306,8 @@ function process_auth_email(client, msg) {
       protocol.respond_success(client, msg.id, {status: "OK"})
       var email_opts = build_token_email(params.email, params.device_id, token)
       send_email(email_opts)
+    }, function(err) {
+      console.log('auth_email error '+err);
     })
 }
 
