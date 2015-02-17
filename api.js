@@ -316,10 +316,9 @@ function process_auth_session(client, msg) {
     protocol.respond_fail(client, msg.id, {code: "AF1", message: "already authenticated",
                                            user_id: client.flags.authenticated.user_id})
   } else {
-    console.log("session lookup device_key: "+msg.params.device_key)
     server.find_session(msg.params.device_key).then(function(session){
       if(session) {
-        console.log("session loaded: "+JSON.stringify(session))
+        console.log("session loaded:", session)
         if(session.email) {
           client_auth_check(client, msg, session)
         } else {
