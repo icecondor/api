@@ -222,8 +222,8 @@ function process_stream_follow(client, msg) {
     var auth = false
 
     console.log('process_stream_follow key check')
-    if(msg.key) {
-      var rule = user.access[msg.key]
+    if(msg.params.key) {
+      var rule = user.access[msg.params.key]
       if(typeof(rule) == 'object') {
         console.log('user', user.username, 'access rule', rule)
         if(rule.scopes.indexOf('read') > -1) {
