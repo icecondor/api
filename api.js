@@ -69,6 +69,7 @@ function client_dispatch(me, msg) {
     case 'user.payment': process_user_payment(me, msg); break;
     case 'user.stats': process_user_stats(me, msg); break;
     case 'user.access.add': process_user_access_add(me, msg); break;
+    case 'user.access.del': process_user_access_add(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
     case 'activity.stats': process_activity_stats(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
@@ -457,6 +458,22 @@ function process_user_access_add(client, msg) {
       }, function(err){
         protocol.respond_fail(client, msg.id, err)
       })
+    })
+  }
+}
+
+function process_user_access_del(client, msg) {
+  if(client.flags.authenticated){
+    db.find_user_by({id: client.flags.authenticated.user_id}).then(function(user){
+      if(user.access[msg.params.key]){
+        delete user.access[msg.params.key]
+        db.update_user_access(client.flags.authenticated.user_id, user.access)
+          .then(function(result){
+          protocol.respond_success(client, msg.id, result)
+        }, function(err){
+          protocol.respond_fail(client, msg.id, err)
+        })
+      }
     })
   }
 }
