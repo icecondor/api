@@ -226,6 +226,12 @@ function process_stream_follow(client, msg) {
         auth = true
       }
     } else {
+      if(msg.key && Object.keys(user.access).indexOf(msg.key) > -1){
+        var rule = user.access[msg.key]
+        if(rule.scopes.indexOf('read') > -1) {
+          auth = true
+        }
+      }
       if(user.access.public){
         auth = true
       }
