@@ -228,6 +228,7 @@ function process_stream_follow(client, msg) {
     } else {
       if(msg.key && Object.keys(user.access).indexOf(msg.key) > -1){
         var rule = user.access[msg.key]
+        console.log('user', user.username, 'access rule', rule)
         if(rule.scopes.indexOf('read') > -1) {
           auth = true
         }
