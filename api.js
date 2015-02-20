@@ -216,26 +216,28 @@ function process_activity_stats(client, msg) {
 }
 
 function process_stream_follow(client, msg) {
+  console.log('process_stream_follow', msg.username)
   db.find_user_by({username: msg.params.username}).then(function(user){
     var stream_id = uuid.v4().substr(0,8)
     var auth = false
 
-    if(client.flags.authenticated){
-      if(user.id == client.flags.authenticated.user_id ||
-         user.friends.indexOf(client.flags.authenticated.user_id) >= 0){
-        auth = true
-      }
-    } else {
-      if(msg.key && Object.keys(user.access).indexOf(msg.key) > -1){
-        var rule = user.access[msg.key]
+    if(msg.key) {
+      var rule = user.access[msg.key]
+      if(typeof(rule) == 'object') {
         console.log('user', user.username, 'access rule', rule)
         if(rule.scopes.indexOf('read') > -1) {
           auth = true
         }
       }
-      if(user.access.public){
+    }
+    if(client.flags.authenticated){
+      if(user.id == client.flags.authenticated.user_id ||
+         user.friends.indexOf(client.flags.authenticated.user_id) >= 0){
         auth = true
       }
+    }
+    if(user.access.public){
+      auth = true
     }
 
     if(auth) {
