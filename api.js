@@ -216,12 +216,10 @@ function process_activity_stats(client, msg) {
 }
 
 function process_stream_follow(client, msg) {
-  console.log('process_stream_follow', msg.params)
   db.find_user_by({username: msg.params.username}).then(function(user){
     var stream_id = uuid.v4().substr(0,8)
     var auth = false
 
-    console.log('process_stream_follow key check')
     if(msg.params.key) {
       var rule = user.access[msg.params.key]
       if(typeof(rule) == 'object') {
@@ -231,14 +229,12 @@ function process_stream_follow(client, msg) {
         }
       }
     }
-    console.log('process_stream_follow auth check')
     if(client.flags.authenticated){
       if(user.id == client.flags.authenticated.user_id ||
          user.friends.indexOf(client.flags.authenticated.user_id) >= 0){
         auth = true
       }
     }
-    console.log('process_stream_follow public check')
     if(user.access.public){
       auth = true
     }
