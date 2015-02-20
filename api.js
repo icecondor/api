@@ -452,7 +452,7 @@ function process_user_access_add(client, msg) {
   if(client.flags.authenticated){
     db.find_user_by({id: client.flags.authenticated.user_id}).then(function(user){
       var key = uuid.v4().substr(0,18)
-      user.access[key] = {created_at: Time.now, scopes: ["read"]}
+      user.access[key] = {created_at: new Date(), scopes: ["read"]}
       db.update_user_access(client.flags.authenticated.user_id, user.access).then(function(result){
         protocol.respond_success(client, msg.id, result)
       }, function(err){
