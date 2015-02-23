@@ -224,8 +224,7 @@ function process_stream_follow(client, msg) {
     if(msg.params.key) {
       var rule = user.access[msg.params.key]
       if(typeof(rule) == 'object') {
-        console.log('user', user.username, 'access rule', rule)
-        if(rule.scopes.indexOf('read') > -1) {
+        if(rule_check(rule)) {
           auth = true
         }
       }
@@ -268,6 +267,24 @@ function process_stream_follow(client, msg) {
       protocol.respond_fail(client, msg.id, {code: "UNF",
                                              message: "username "+msg.params.username+" not found"})
   })
+}
+
+function rule_check(rule){
+  // read
+  if(rule.scopes.indexOf('read') > -1) {
+    // time
+    if(rule.expires_at) {
+      var now = new Date()
+      var expire = (new Date(rule.expires_at))
+      if(expire > now){
+        console.log('time compare success')
+        return true
+      }
+    } else {
+      return true
+    }
+  }
+  return false
 }
 
 function send_last_locations(client, stream_id, user_id, start, stop, count, type, order) {
