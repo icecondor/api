@@ -452,7 +452,12 @@ function process_user_access_add(client, msg) {
   if(client.flags.authenticated){
     db.find_user_by({id: client.flags.authenticated.user_id}).then(function(user){
       var key = uuid.v4().substr(0,18)
-      user.access[key] = {created_at: new Date(), scopes: ["read"]}
+      var rule = {created_at: new Date(),
+                  scopes: ["read"]}
+      if(msg.params.expires_at){
+        rule.expires_at = msg.params.expires_at
+      }
+      user.access[key] = rule
       db.update_user_access(client.flags.authenticated.user_id, user.access).then(function(result){
         protocol.respond_success(client, msg.id, result)
       }, function(err){
