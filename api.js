@@ -73,6 +73,7 @@ function client_dispatch(me, msg) {
     case 'activity.add': process_activity_add(me, msg); break;
     case 'activity.stats': process_activity_stats(me, msg); break;
     case 'fence.add': process_fence_add(me, msg); break;
+    case 'fence.list': process_fence_list(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
     case 'stream.stats': me.flags.stats = msg.id; break;
@@ -593,6 +594,27 @@ function process_user_friend(client, msg) {
 function process_fence_add(client,msg){
   if(client.flags.authenticated){
     console.log('fence_add', msg)
+    var fence = {}
+    fence.created_at = new Date()
+    fence.name = msg.params.name
+    fence.user_id = client.flags.authenticated.user_id
+    db.fence_add(fence).then(function(result){
+      protocol.respond_success(client, msg.id, result)
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_fence_list(client,msg){
+  if(client.flags.authenticated){
+    console.log('fence_list', msg)
+    db.fence_list(client.flags.authenticated.user_id).then(function(cursor){
+      cursor.toArray().then(function(fences){
+        console.log('fence list', fences)
+        protocol.respond_success(client, msg.id, fences)
+      })
+    })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
   }
