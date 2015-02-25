@@ -72,6 +72,7 @@ function client_dispatch(me, msg) {
     case 'user.access.del': process_user_access_del(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
     case 'activity.stats': process_activity_stats(me, msg); break;
+    case 'fence.add': process_fence_add(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
     case 'stream.stats': me.flags.stats = msg.id; break;
@@ -584,6 +585,14 @@ function process_user_friend(client, msg) {
         protocol.respond_fail(client, msg.id, err)
       })
     })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_fence_add(client,msg){
+  if(client.flags.authenticated){
+    console.log('fence_add', msg)
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
   }
