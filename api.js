@@ -76,6 +76,7 @@ function client_dispatch(me, msg) {
     case 'fence.list': process_fence_list(me, msg); break;
     case 'fence.get': process_fence_get(me, msg); break;
     case 'fence.update': process_fence_update(me, msg); break;
+    case 'fence.del': process_fence_del(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
     case 'stream.stats': me.flags.stats = msg.id; break;
@@ -635,11 +636,27 @@ function process_fence_get(client,msg){
   }
 }
 
+function process_fence_del(client,msg){
+  if(client.flags.authenticated){
+    db.fence_get(msg.params.id).then(function(fence){
+      if(fence.user_id == client.flags.authenticated.user_id) {
+        db.fence_del(msg.params.id).then(function(result){
+          protocol.respond_success(client, msg.id, fence)
+        })
+      }
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
 function process_fence_update(client,msg){
   if(client.flags.authenticated){
-    db.fence_get(msg.params.fence.id).then(function(fence){
+    db.fence_get(msg.params.id).then(function(fence){
       if(fence.user_id == client.flags.authenticated.user_id) {
-        db.fence_update(msg.params.fence).then(function(result){
+        if(msg.params.name) { fence.name = msg.params.name }
+        if(msg.params.geojson) { fence.geojson = msg.params.geojson }
+        db.fence_update(fence).then(function(result){
           if(fence.user_id == client.flags.authenticated.user_id) {
             protocol.respond_success(client, msg.id, fence)
           }
