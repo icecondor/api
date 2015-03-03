@@ -695,7 +695,12 @@ function process_fence_update(client,msg){
     db.fence_get(msg.params.id).then(function(fence){
       if(fence.user_id == client.flags.authenticated.user_id) {
         if(msg.params.name) { fence.name = msg.params.name }
-        if(msg.params.geojson) { fence.geojson = rethink.geojson(msg.params.geojson) }
+        if(msg.params.geojson) {
+          fence.geojson = {}
+          fence.geojson["$reql_type$"] = "GEOMETRY"
+          fence.geojson.type = "Polygon"
+          fence.geojson.coordinates = msg.params.geojson.geometry.coordinates
+        }
         db.fence_update(fence).then(function(result){
           if(fence.user_id == client.flags.authenticated.user_id) {
             protocol.respond_success(client, msg.id, fence)
