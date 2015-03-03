@@ -99,11 +99,11 @@ function freshen_location(location) {
       resolve(location)
     }).then(function(newer_location){
       console.log('freshen_location newer_location', newer_location.date)
-      var latest = { location_id: newer_location.id,
-                     fences: fences_for(user.user_id, newer_location)}
-      return db.update_user_latest(user.id, latest)
-    }, function(err){
-      console.log('freshen_location err', err)
+      fences_for(user.user_id, newer_location).then(function(fences){
+        var latest = { location_id: newer_location.id,
+                       fences: fences }
+        return db.update_user_latest(user.id, latest)
+      })
     })
   })
 }
