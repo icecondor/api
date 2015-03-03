@@ -11,6 +11,7 @@ var moment = require('moment')
 var emailer = require('nodemailer')
 var rethink = require('rethinkdb')
 var jade = require('jade');
+var Promise = require('bluebird');
 
 // local
 var major_version = 2
