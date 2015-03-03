@@ -95,13 +95,13 @@ function freshen_location(location) {
   console.log('freshen_location user_id', location.user_id)
   db.get_user(location.user_id).then(function(user){
     return new Promise(function(resolve, reject) {
-      console.log('freshen_location', 'user.username', 'user.username',
-                                      'user.location', user.location)
+      console.log('freshen_location', 'user.username', user.username,
+                                      'user.latest', user.latest)
       if(user.latest){
-        db.activity_get(user.latest.location_id).then(function(location){
+        db.activity_get(user.latest.location_id).then(function(last_location){
           console.log('freshen_location', 'location.date', location.date,
-                                          'user.location.date', user.location.date)
-          if(location.date < user.location.date){
+                                          'last_location.date', last_location.date)
+          if(location.date < last_location.date){
             console.log('freshen_location NEWER')
             resolve(location)
           }
