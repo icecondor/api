@@ -96,11 +96,6 @@ function freshen_location(location) {
     console.log('freshen_location username', user.username)
     return new Promise(function(resolve, reject) {
       resolve(location)
-    }).then(function(newer_location){
-      console.log('freshen_location newer_location', newer_location)
-      var latest = { location_id: newer_location.id,
-                     fences: fences_for(user.user_id, newer_location)}
-      return db.update_user_latest(user.id, latest)
     })
   })
 }
