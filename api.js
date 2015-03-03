@@ -705,6 +705,8 @@ function process_fence_update(client,msg){
           if(fence.user_id == client.flags.authenticated.user_id) {
             protocol.respond_success(client, msg.id, fence)
           }
+        }, function(err){
+          console.log('process_fence_update', err)
         })
       }
     })
