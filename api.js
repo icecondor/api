@@ -650,10 +650,8 @@ function process_fence_add(client,msg){
 
 function process_fence_list(client,msg){
   if(client.flags.authenticated){
-    console.log('fence_list', msg)
     db.fence_list(client.flags.authenticated.user_id).then(function(cursor){
       cursor.toArray().then(function(fences){
-        console.log('fence list', fences)
         protocol.respond_success(client, msg.id, fences)
       })
     })
