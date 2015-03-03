@@ -98,7 +98,7 @@ function freshen_location(location) {
       console.log('freshen_location', 'user.username', 'user.username',
                                       'user.location', user.location)
       if(user.latest){
-        db.get_location(user.latest.location_id).then(function(location){
+        db.activity_get(user.latest.location_id).then(function(location){
           console.log('freshen_location', 'location.date', location.date,
                                           'user.location.date', user.location.date)
           if(location.date < user.location.date){
