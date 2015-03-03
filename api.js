@@ -93,7 +93,7 @@ function activity_added(activity_chg){
 
 function freshen_location(location) {
   db.get_user(location.user_id).then(function(user){
-    new Promise(function(resolve, reject) {
+    return new Promise(function(resolve, reject) {
       if(user.latest){
         return db.get_location(user.latest.location_id).then(function(location){
           if(location.date < user.location.date){
