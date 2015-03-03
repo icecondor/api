@@ -85,8 +85,36 @@ function client_dispatch(me, msg) {
 
 function activity_added(activity_chg){
   if(activity_chg.new_val.type == "location") {
+    freshen_location(activity_chg.new_val)
     pump_location(activity_chg.new_val)
   }
+}
+
+function freshen_location(location) {
+  db.get_user(location.user_id).then(function(user){
+    new Promise(function(resolve, reject) {
+      if(user.latest){
+        db.get_location(user.latest.location_id).then(function(location){
+          if(location.date < user.location.date){
+            resolve(location)
+          }
+        })
+      } else {
+        resolve(location)
+      }
+    }).then(function(newer_location){
+      var latest = { location_id: newer_location.id,
+                     fences: fences_for(user.user_id, newer_location)}
+      db.update_user_latest(user.user_id, latest).then(function(ok){
+      })
+    })
+  })
+}
+
+function fences_for(user_id, location) {
+  return db.get_user(location.user_id).then(function(user){
+    return []
+  })
 }
 
 function pump_location(location) {
