@@ -116,12 +116,13 @@ function freshen_location(location) {
 }
 
 function fences_for(location) {
-  return db.fences_intersect(location.geojson).then(function(fences){
-    console.log('fence count', fences.length)
-    fences.forEach(function(fence){
-
-    })
-    return []
+  console.log('fences_for', location)
+  return db.fences_intersect(rethink.point(location.longitude, location.latitude))
+    .then(function(fences){
+      console.log('fence count', fences.length)
+      fences.forEach(function(fence){
+      })
+      return []
   })
 }
 
