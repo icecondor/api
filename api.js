@@ -106,7 +106,7 @@ function freshen_location(location) {
     }).then(function(newer_location){
       var latest = { location_id: newer_location.id,
                      fences: fences_for(user.user_id, newer_location)}
-      db.update_user_latest(user.user_id, latest).then(function(ok){
+      db.update_user_latest(user.id, latest).then(function(ok){
       })
     })
   })
