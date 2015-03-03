@@ -93,8 +93,10 @@ function activity_added(activity_chg){
 
 function freshen_location(location) {
   db.get_user(location.user_id).then(function(user){
+    console.log('freshen_location username', user.username)
     return new Promise(function(resolve, reject) {
       if(user.latest){
+        console.log('freshen_location user.latest', user.latest)
         return db.get_location(user.latest.location_id).then(function(location){
           if(location.date < user.location.date){
             resolve(location)
@@ -104,6 +106,7 @@ function freshen_location(location) {
         resolve(location)
       }
     }).then(function(newer_location){
+      console.log('freshen_location newer_location', newer_location)
       var latest = { location_id: newer_location.id,
                      fences: fences_for(user.user_id, newer_location)}
       return db.update_user_latest(user.id, latest)
