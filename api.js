@@ -105,7 +105,7 @@ function freshen_location(location) {
         resolve(location)
       }
     }).then(function(newer_location){
-      fences_for(user.user_id, newer_location).then(function(fences){
+      fences_for(newer_location).then(function(fences){
         console.log('freshen_location', user.username, newer_location.date, fences)
         var latest = { location_id: newer_location.id,
                        fences: fences }
@@ -115,15 +115,13 @@ function freshen_location(location) {
   })
 }
 
-function fences_for(user_id, location) {
-  return db.get_user(location.user_id).then(function(user){
-    return db.fence_list(user_id).then(function(fences){
-      console.log('fence count', fences.length)
-      fences.forEach(function(fence){
+function fences_for(location) {
+  return db.fences_intersect(location.geojson).then(function(fences){
+    console.log('fence count', fences.length)
+    fences.forEach(function(fence){
 
-      })
-      return []
     })
+    return []
   })
 }
 
