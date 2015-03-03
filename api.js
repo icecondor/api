@@ -115,7 +115,8 @@ function freshen_location(location) {
 }
 
 function fences_for(location) {
-  return db.fences_intersect(rethink.point(location.longitude, location.latitude))
+  return db.fences_intersect(location.user_id,
+                             rethink.point(location.longitude, location.latitude))
     .then(function(cursor){
       return cursor.toArray().then(function(fences){
         return fences.map(function(fence){return fence.id})
