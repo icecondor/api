@@ -86,7 +86,6 @@ function client_dispatch(me, msg) {
 
 function activity_added(activity_chg){
   if(activity_chg.new_val.type == "location") {
-    freshen_location(activity_chg.new_val)
     pump_location(activity_chg.new_val)
   }
 }
@@ -192,6 +191,9 @@ function process_activity_add(client, msg) {
     msg.params.received_at = now.toISOString()
     db.activity_add(msg.params).then(function(){
       protocol.respond_success(client, msg.id, {message: "saved", id: msg.params.id})
+      if(msg.params.type == 'location') {
+        freshen_location(msg.params)
+      }
     })
   } else {
     var fail = {message: 'not authorized'};
