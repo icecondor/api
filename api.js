@@ -117,7 +117,13 @@ function freshen_location(location) {
 
 function fences_for(user_id, location) {
   return db.get_user(location.user_id).then(function(user){
-    return []
+    return db.fence_list(user_id).then(function(fences){
+      console.log('fence count', fences.length)
+      fences.forEach(function(fence){
+
+      })
+      return []
+    })
   })
 }
 
