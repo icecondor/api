@@ -94,9 +94,21 @@ function activity_added(activity_chg){
 function freshen_location(location) {
   console.log('freshen_location user_id', location.user_id)
   db.get_user(location.user_id).then(function(user){
-    console.log('freshen_location username', user.username)
     return new Promise(function(resolve, reject) {
-      resolve(location)
+      console.log('freshen_location', 'user.username', 'user.username',
+                                      'user.location', user.location)
+      if(user.latest){
+        db.get_location(user.latest.location_id).then(function(location){
+          console.log('freshen_location', 'location.date', location.date,
+                                          'user.location.date', user.location.date)
+          if(location.date < user.location.date){
+            console.log('freshen_location NEWER')
+            resolve(location)
+          }
+        })
+      } else {
+        resolve(location)
+      }
     }).then(function(newer_location){
       console.log('freshen_location newer_location', newer_location.date)
       fences_for(user.user_id, newer_location).then(function(fences){
