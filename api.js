@@ -119,8 +119,9 @@ function fences_for(location) {
   return db.fences_intersect(rethink.point(location.longitude, location.latitude))
     .then(function(cursor){
       return cursor.toArray().then(function(fences){
-        console.log('fence hit count', fences.length)
+        console.log('fence hit count', fences.length, fences)
         fences.forEach(function(fence){
+
         })
         return []
       })
