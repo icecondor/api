@@ -95,7 +95,7 @@ function freshen_location(location) {
   db.get_user(location.user_id).then(function(user){
     new Promise(function(resolve, reject) {
       if(user.latest){
-        db.get_location(user.latest.location_id).then(function(location){
+        return db.get_location(user.latest.location_id).then(function(location){
           if(location.date < user.location.date){
             resolve(location)
           }
