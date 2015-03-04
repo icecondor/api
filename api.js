@@ -738,9 +738,9 @@ function build_token_email(email, device_id, token) {
     //html: '<b>Hello world </b>'
     }
   if(device_id == 'browser') {
-    emailOpt.subject = 'IceCondor Web Login for '+email,
-    emailOpt.text = 'Web Browser Login link.\n\n'+link+'\n'
-    emailOpt.html = jade.compileFile('email/access_browser.jade', {pretty: true})({link: link})
+    emailOpt.subject = 'IceCondor web login button',
+    emailOpt.text = 'Web Browser Login link for '+email+'.\n\n'+link+'\n'
+    emailOpt.html = jade.compileFile('email/access_browser.jade', {pretty: true})({link: link, email:email})
   } else {
     emailOpt.subject = 'IceCondor Phone Activation Link',
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
