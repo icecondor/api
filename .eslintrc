@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "semi": false,
+    "quotes": "single",
+    "no-console": false,
+    "no-use-before-define": [true, "nofunc"]
+  },
+  "globals" : {
+    "console": false,
+    "process": false,
+    "require": false
+  }
+}

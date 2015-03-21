@@ -15,7 +15,8 @@
                      "stripe": "2.9.*"
                    },
   "devDependencies": {
-    "jasmine-node": "1.14.x"
+    "jasmine-node": "1.14.x",
+    "eslint": "^0.17.0"
   },
   "repository" :{
     "type" : "git",
