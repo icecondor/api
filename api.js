@@ -14,14 +14,15 @@ var Promise = require('bluebird');
 // local
 var major_version = 2
 var settings = require('./lib/settings')(major_version)
-var protocol = require('./lib/protocol-v'+major_version)(settings.api)
+var protocol = require('./lib/protocol-v' + major_version)(settings.api)
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory(rethink, rethink.connect(settings.rethinkdb))
 
 // config-dependent
 var stripe = require('stripe')(settings.stripe.key);
 
-console.log("api", "version:"+settings.api.version+" server:"+settings.api.hostname)
+var motd = "version:" + settings.api.version + " server:" + settings.api.hostname
+console.log("api", motd)
 console.log("rethinkdb", "host:", settings.rethinkdb.host)
 
 db.setup(function(){
@@ -31,8 +32,8 @@ db.setup(function(){
   })
 })
 
-server.on('listening', function() {
-  console.log("api listening on *:"+settings.api.listen_port)
+server.on('listening', function () {
+  console.log("api listening on *:" + settings.api.listen_port)
   timers.setInterval(function() {
       progress_report();
       server.timer.reset();
@@ -47,7 +48,7 @@ function handleConnection(socket) {
   var client = server.build_client(socket)
   protocol.connection(client, client_dispatch, end_of_connection)
   server.clients.add(client)
-  clog(client, 'connected. '+server.clients.list.length+' clients.');
+  clog(client, 'connected. ' + server.clients.list.length + ' clients.');
   progress_report()
 }
 
@@ -83,7 +84,7 @@ function client_dispatch(me, msg) {
 }
 
 function activity_added(activity_chg){
-  if(activity_chg.new_val.type == "location") {
+  if(activity_chg.new_val.type === "location") {
     pump_location(activity_chg.new_val)
   }
 }
@@ -91,7 +92,7 @@ function activity_added(activity_chg){
 function freshen_location(location) {
   console.log('freshen_location user_id', location.user_id)
   db.get_user(location.user_id).then(function(user){
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve) {
       if(user.latest){
         db.activity_get(user.latest.location_id).then(function(last_location){
           if(location.date > last_location.date){
@@ -123,7 +124,7 @@ function fences_for(location) {
 }
 
 function pump_location(location) {
-  console.log('pump_location for device '+location.device_id)
+  console.log('pump_location for device ' + location.device_id)
   server.clients.list.forEach(function(client) {
     client.following.forEach(function(search){
       var stream_id = search(location)
@@ -138,16 +139,18 @@ function progress_report() {
   var now = new Date();
   var period = (now - server.timer.mark) / 1000
   var rate = server.timer.hits / period
-  var stats = {       type: "status_report",
-                    server: settings.api.hostname,
-                   version: settings.api.version,
-                      date: now.toISOString(),
-                  msg_rate: rate,
-              client_count: server.clients.list.length,
-                   freemem: os.freemem()
+  var stats = { type: "status_report",
+                server: settings.api.hostname,
+                version: settings.api.version,
+                date: now.toISOString(),
+                msg_rate: rate,
+                client_count: server.clients.list.length,
+                freemem: os.freemem()
               }
   db.activity_add(stats)
-  console.log('status report - '+rate.toFixed(1)+' hits/sec. '+server.clients.list.length+' clients.')
+  var srep = 'status report - ' + rate.toFixed(1) + ' hits/sec. ' +
+              server.clients.list.length + ' clients.'
+  console.log(srep)
   pump(stats)
 }
 
@@ -155,9 +158,11 @@ function clog(client, msg) {
   var parts = []
   parts.push(moment().format())
   if(client.flags.authenticated){
-    parts.push(client.flags.authenticated.device_id.substr(0,8)+':'+client.flags.authenticated.user_id.substr(0,8))
+    var id_id = client.flags.authenticated.device_id.substr(0, 8) + ':' +
+                client.flags.authenticated.user_id.substr(0, 8)
+    parts.push(id_id)
   } else if(client.socket) {
-    parts.push(client.socket.remoteAddress+':'+client.socket.remotePort)
+    parts.push(client.socket.remoteAddress + ':' + client.socket.remotePort)
   }
   if (typeof msg !== "string") {
     parts.push(JSON.stringify(msg))
@@ -187,7 +192,7 @@ function process_activity_add(client, msg) {
     msg.params.received_at = now.toISOString()
     db.activity_add(msg.params).then(function(){
       protocol.respond_success(client, msg.id, {message: "saved", id: msg.params.id})
-      if(msg.params.type == 'location') {
+      if(msg.params.type === 'location') {
         freshen_location(msg.params)
       }
     })
@@ -222,7 +227,7 @@ function process_activity_stats(client, msg) {
     stats.total = count
     // 24 hour count
     var today = new Date()
-    var yesterday = new Date(today - 1000*60*60*24)
+    var yesterday = new Date(today - 1000 * 60 * 60 * 24)
     allfilter.start = yesterday
     allfilter.stop = today
     console.log('process_activity_stats', '2 allfilter', allfilter)
@@ -245,7 +250,7 @@ function process_activity_stats(client, msg) {
             console.log('process_activity_stats', '4 allfilter', allfilter)
             allfilter.distinct_user = true
             db.activity_count(allfilter).then(function (uct24){
-              stats.day[msg.params.type+"_users"] = uct24
+              stats.day[msg.params.type + "_users"] = uct24
               protocol.respond_success(client, msg.id, stats)
             })
           }
@@ -259,19 +264,19 @@ function process_activity_stats(client, msg) {
 
 function process_stream_follow(client, msg) {
   db.find_user_by({username: msg.params.username}).then(function(user){
-    var stream_id = uuid.v4().substr(0,8)
+    var stream_id = uuid.v4().substr(0, 8)
     var auth = false
 
     if(msg.params.key) {
       var rule = user.access[msg.params.key]
-      if(typeof(rule) == 'object') {
+      if(typeof rule === 'object') {
         if(rule_check(rule)) {
           auth = true
         }
       }
     }
     if(client.flags.authenticated){
-      if(user.id == client.flags.authenticated.user_id ||
+      if(user.id === client.flags.authenticated.user_id ||
          user.friends.indexOf(client.flags.authenticated.user_id) >= 0){
         auth = true
       }
@@ -290,7 +295,7 @@ function process_stream_follow(client, msg) {
       if(msg.params.follow) {
         // a running query if no stop/start specified
         client.following.push(function(location){
-          if(location.user_id == user.id){
+          if(location.user_id === user.id){
             return stream_id
           }
         })
@@ -308,6 +313,9 @@ function process_stream_follow(client, msg) {
       protocol.respond_fail(client, msg.id, {code: "UNF",
                                              message: "username "+msg.params.username+" not found"})
   })
+}
+
+function process_stream_unfollow(client, msg) {
 }
 
 function rule_check(rule){
