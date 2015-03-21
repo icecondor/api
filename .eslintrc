@@ -3,11 +3,12 @@
     "semi": false,
     "quotes": "single",
     "no-console": false,
-    "no-use-before-define": [true, "nofunc"]
+    "no-use-before-define": [true, "nofunc"],
   },
   "globals" : {
     "console": false,
     "process": false,
-    "require": false
+    "require": false,
+    "Promise": {"variable": true}
   }
 }
