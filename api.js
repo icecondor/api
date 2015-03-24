@@ -748,11 +748,11 @@ function build_token_email(email, device_id, token) {
   }
   var templateFile
   if(device_id == 'browser') {
-    emailOpt.subject = 'IceCondor web login button',
+    emailOpt.subject = 'IceCondor web login button'
     emailOpt.text = 'Web Browser Login link for '+email+'.\n\n'+link+'\n'
     templateFile = 'email/access_browser.jade'
   } else {
-    emailOpt.subject = 'IceCondor Phone Activation Link',
+    emailOpt.subject = 'IceCondor Phone Activation Link'
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
     templateFile = 'email/access_phone.jade'
   }
