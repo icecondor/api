@@ -380,6 +380,7 @@ function process_auth_email(client, msg) {
   server.create_token_temp(params)
     .then(function(token){
       protocol.respond_success(client, msg.id, {status: "OK"})
+      console.log('auth_email build_token_email begin.')
       var email_opts = build_token_email(params.email, params.device_id, token)
       console.log('auth_email send_email begin.')
       send_email(email_opts)
@@ -753,6 +754,7 @@ function build_token_email(email, device_id, token) {
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
     emailOpt.html = jade.compileFile('email/access_phone.jade', {pretty: true})({link: link})
   }
+  console.log('email build', emailOpt.from, emailOpt.to)
   return emailOpt
 }
 
