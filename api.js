@@ -43,6 +43,7 @@ server.on('listening', function () {
 server.on('connection', handleConnection)
 
 server.on('close', function() {console.log('closed')})
+server.on('error', function(e) {console.log('net.sever err', e)})
 
 function handleConnection(socket) {
   var client = server.build_client(socket)
@@ -380,7 +381,7 @@ function process_auth_email(client, msg) {
   server.create_token_temp(params)
     .then(function(token){
       protocol.respond_success(client, msg.id, {status: "OK"})
-      console.log('auth_email build_token_email begin.')
+      console.log('auth_email build_token_email begin.', params, token)
       var email_opts = build_token_email(params.email, params.device_id, token)
       console.log('auth_email send_email begin.')
       send_email(email_opts)
@@ -739,7 +740,7 @@ function build_friend_email(email, friended_by) {
 }
 
 function build_token_email(email, device_id, token) {
-  consolel.log('build_token_email', email, device_id, token)
+  console.log('build_token_email', email, device_id, token)
   var link = "https://icecondor.com/auth/"+encodeURIComponent(token)
   var emailOpt = {
     from: settings.email.from,
