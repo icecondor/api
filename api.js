@@ -381,7 +381,6 @@ function process_auth_email(client, msg) {
   server.create_token_temp(params)
     .then(function(token){
       protocol.respond_success(client, msg.id, {status: "OK"})
-      console.log('auth_email build_token_email begin.', params, token)
       var email_opts = build_token_email(params.email, params.device_id, token)
       console.log('auth_email send_email begin.')
       send_email(email_opts)
@@ -740,7 +739,7 @@ function build_friend_email(email, friended_by) {
 }
 
 function build_token_email(email, device_id, token) {
-  console.log('build_token_email', email, device_id, token)
+  console.log('build_token_email for', email)
   var link = "https://icecondor.com/auth/"+encodeURIComponent(token)
   var emailOpt = {
     from: settings.email.from,
@@ -749,10 +748,12 @@ function build_token_email(email, device_id, token) {
   }
   var templateFile
   if(device_id == 'browser') {
+    console.log('build_token_email render browser')
     emailOpt.subject = 'IceCondor web login button'
     emailOpt.text = 'Web Browser Login link for '+email+'.\n\n'+link+'\n'
     templateFile = 'email/access_browser.jade'
   } else {
+    console.log('build_token_email render phone')
     emailOpt.subject = 'IceCondor Phone Activation Link'
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
     templateFile = 'email/access_phone.jade'
