@@ -739,22 +739,27 @@ function build_friend_email(email, friended_by) {
 }
 
 function build_token_email(email, device_id, token) {
+  consolel.log('build_token_email', email, device_id, token)
   var link = "https://icecondor.com/auth/"+encodeURIComponent(token)
   var emailOpt = {
     from: settings.email.from,
     to: email,
     //html: '<b>Hello world </b>'
-    }
+  }
+  var templateFile
   if(device_id == 'browser') {
     emailOpt.subject = 'IceCondor web login button',
     emailOpt.text = 'Web Browser Login link for '+email+'.\n\n'+link+'\n'
-    emailOpt.html = jade.compileFile('email/access_browser.jade', {pretty: true})({link: link, email:email})
+    templateFile = 'email/access_browser.jade'
   } else {
     emailOpt.subject = 'IceCondor Phone Activation Link',
     emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
-    emailOpt.html = jade.compileFile('email/access_phone.jade', {pretty: true})({link: link})
+    templateFile = 'email/access_phone.jade'
   }
-  console.log('email build', emailOpt.from, emailOpt.to)
+  var templateOpts = {link: link, email:email}
+  console.log('email template opts', templateFile, templateOpts)
+  emailOpt.html = jade.compileFile(templateFile, {pretty: true})(templateOpts)
+  console.log('email build done', emailOpt.from, emailOpt.to)
   return emailOpt
 }
 
