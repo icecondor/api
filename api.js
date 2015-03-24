@@ -381,6 +381,7 @@ function process_auth_email(client, msg) {
     .then(function(token){
       protocol.respond_success(client, msg.id, {status: "OK"})
       var email_opts = build_token_email(params.email, params.device_id, token)
+      console.log('auth_email send_email begin.')
       send_email(email_opts)
     }, function(err) {
       console.log('auth_email error '+err);
@@ -770,9 +771,10 @@ function send_email(params) {
   console.log("email delivery attempt to "+params.to)
   transporter.sendMail(params, function(error, info){
     if(error){
-        console.log("email error: "+error);
+        console.log("SMTP error: ", error);
     } else {
-        console.log('Message sent to '+ params.to);
+        console.log('Message sent to', params.to);
+        console.log('SMTP response', info);
     }
   });
 }
