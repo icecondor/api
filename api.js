@@ -384,10 +384,10 @@ function process_auth_email(client, msg) {
   console.log('auth_email '+JSON.stringify(msg))
   server.create_token_temp(params)
     .then(function(token){
-      protocol.respond_success(client, msg.id, {status: "OK"})
       var email_opts = build_token_email(params.email, params.device_id, token)
       console.log('auth_email send_email begin.')
       send_email(email_opts)
+      protocol.respond_success(client, msg.id, {status: "OK"})
     }, function(err) {
       console.log('auth_email error '+err);
     })
