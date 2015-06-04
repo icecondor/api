@@ -80,6 +80,10 @@ function client_dispatch(me, msg) {
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
     case 'stream.stats': me.flags.stats = msg.id; break;
+    case 'rule.list': process_rule_list(me, msg); break;
+    case 'rule.add': process_rule_add(me, msg); break;
+    case 'rule.del': process_rule_del(me, msg); break;
+    default: console.log('!!unknown method', msg.method)
   }
 }
 
@@ -705,6 +709,47 @@ function process_fence_update(client,msg){
           }
         }, function(err){
           console.log('process_fence_update', err)
+        })
+      }
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_rule_list(client,msg){
+  if(client.flags.authenticated){
+    db.rule_list(client.flags.authenticated.user_id).then(function(cursor){
+      cursor.toArray().then(function(rules){
+        protocol.respond_success(client, msg.id, rules)
+      })
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_rule_add(client,msg){
+  if(client.flags.authenticated){
+    console.log('rule_add', msg)
+    var rule = {}
+    rule.created_at = new Date()
+    rule.user_id = client.flags.authenticated.user_id
+    rule.fence_id = msg.params.fence_id
+    db.rule_add(rule).then(function(result){
+      protocol.respond_success(client, msg.id, result)
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_rule_del(client,msg){
+  if(client.flags.authenticated){
+    db.rule_get(msg.params.id).then(function(rule){
+      if(rule.user_id == client.flags.authenticated.user_id) {
+        db.rule_del(rule.id).then(function(result){
+          protocol.respond_success(client, msg.id, rule)
         })
       }
     })
