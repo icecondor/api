@@ -43,6 +43,7 @@ server.on('listening', function () {
 server.on('connection', handleConnection)
 
 server.on('close', function() {console.log('closed')})
+server.on('error', function(e) {console.log('net.sever err', e)})
 
 function handleConnection(socket) {
   var client = server.build_client(socket)
@@ -385,6 +386,7 @@ function process_auth_email(client, msg) {
     .then(function(token){
       protocol.respond_success(client, msg.id, {status: "OK"})
       var email_opts = build_token_email(params.email, params.device_id, token)
+      console.log('auth_email send_email begin.')
       send_email(email_opts)
     }, function(err) {
       console.log('auth_email error '+err);
@@ -782,21 +784,29 @@ function build_friend_email(email, friended_by) {
 }
 
 function build_token_email(email, device_id, token) {
+  console.log('build_token_email for', email)
   var link = "https://icecondor.com/auth/"+encodeURIComponent(token)
   var emailOpt = {
     from: settings.email.from,
     to: email,
     //html: '<b>Hello world </b>'
-    }
-  if(device_id == 'browser') {
-    emailOpt.subject = 'IceCondor web login button',
-    emailOpt.text = 'Web Browser Login link for '+email+'.\n\n'+link+'\n'
-    emailOpt.html = jade.compileFile('email/access_browser.jade', {pretty: true})({link: link, email:email})
-  } else {
-    emailOpt.subject = 'IceCondor Phone Activation Link',
-    emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
-    emailOpt.html = jade.compileFile('email/access_phone.jade', {pretty: true})({link: link})
   }
+  var templateFile
+  if(device_id == 'browser') {
+    console.log('build_token_email render browser')
+    emailOpt.subject = 'IceCondor web login button'
+    emailOpt.text = 'Web Browser Login link for '+email+'.\n\n'+link+'\n'
+    templateFile = 'email/access_browser.jade'
+  } else {
+    console.log('build_token_email render phone')
+    emailOpt.subject = 'IceCondor Phone Activation Link'
+    emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
+    templateFile = 'email/access_phone.jade'
+  }
+  var templateOpts = {link: link, email:email}
+  console.log('email template opts', templateFile, templateOpts)
+  emailOpt.html = jade.compileFile(templateFile, {pretty: true})(templateOpts)
+  console.log('email build done', emailOpt.from, emailOpt.to)
   return emailOpt
 }
 
@@ -815,9 +825,10 @@ function send_email(params) {
   console.log("email delivery attempt to "+params.to)
   transporter.sendMail(params, function(error, info){
     if(error){
-        console.log("email error: "+error);
+        console.log("SMTP error: ", error);
     } else {
-        console.log('Message sent to '+ params.to);
+        console.log('Message sent to', params.to);
+        console.log('SMTP response', info);
     }
   });
 }
