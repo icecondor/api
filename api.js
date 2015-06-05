@@ -89,7 +89,7 @@ function client_dispatch(me, msg) {
 }
 
 function activity_added(activity_chg){
-  if(activity_chg.new_val.type === "location") {
+  if(activity_chg.new_val && activity_chg.new_val.type === "location") {
     pump_location(activity_chg.new_val)
   }
 }
