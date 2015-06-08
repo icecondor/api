@@ -396,8 +396,9 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
             rules_add(location)
               .then(function(location){
                 if(location.rules) {
-                  delete location.longitude
-                  delete location.latitude
+                  console.log('rules triggered', location.rules)
+                  //delete location.longitude
+                  //delete location.latitude
                 }
                 protocol.respond_success(client, stream_id, location)
               })
