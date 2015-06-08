@@ -94,26 +94,23 @@ function activity_added(activity_chg){
   }
 }
 
-function freshen_location(location) {
-  console.log('freshen_location user_id', location.user_id)
-  db.get_user(location.user_id).then(function(user){
+function newer_user_location(location) {
+  return db.get_user(location.user_id).then(function(user){
     return new Promise(function(resolve) {
-      if(user.latest){
-        db.activity_get(user.latest.location_id).then(function(last_location){
-          if(location.date > last_location.date){
-            resolve(location)
-          }
-        })
+      console.log('user latest', user.latest)
+      if(user.latest && user.latest.location_id){
+        db.activity_get(user.latest.location_id)
+          .then(function(last_location){
+            if(last_location) {
+              console.log('last_location', last_location)
+              if(location.date > last_location.date){
+                resolve(location)
+              }
+            }
+          })
       } else {
         resolve(location)
       }
-    }).then(function(newer_location){
-      fences_for(newer_location).then(function(fences){
-        console.log('freshen_location', user.username, newer_location.date, fences)
-        var latest = { location_id: newer_location.id,
-                       fences: fences }
-        return db.update_user_latest(user.id, latest)
-      })
     })
   })
 }
@@ -122,9 +119,15 @@ function fences_for(location) {
   return db.fences_intersect(location.user_id,
                              rethink.point(location.longitude, location.latitude))
     .then(function(cursor){
-      return cursor.toArray().then(function(fences){
-        return fences.map(function(fence){return fence.id})
-      })
+      return cursor.toArray()
+  })
+}
+
+function rules_for(user_id, fence) {
+  return db.rule_list(user_id).then(function(cursor){
+    return cursor.toArray().filter(function(rule){
+      return rule.fence_id == fence.id
+    })
   })
 }
 
@@ -187,6 +190,30 @@ function pump(status) {
   })
 }
 
+function fences_add(location) {
+  fences_for(location).then(function(fences){
+    if(fences.length > 0) {
+      location.fences = fences.map(function(fence){return fence.id})
+    }
+  })
+//  console.log('fences and rules done', location)
+}
+
+function rules_add(location) {
+  location.fences.forEach(function(fence_id){
+    console.log('checking fence', fence_id)
+    rules_for(location.user_id, fence_id).then(function(rules){
+      console.log('applicable rules for fence ', fence_id,  rules)
+      if(rules.length > 0) {
+        if(!location.rules) { location.rules = []}
+        Array.prototype.push.apply(location.rules, rules.map(function(rule){
+          return {id: rule.id, cloaked: true}
+        }))
+      }
+    })
+  })
+}
+
 /* API calls */
 
 function process_activity_add(client, msg) {
@@ -195,12 +222,28 @@ function process_activity_add(client, msg) {
     msg.params.device_id = client.flags.authenticated.device_id
     var now = new Date()
     msg.params.received_at = now.toISOString()
-    db.activity_add(msg.params).then(function(){
-      protocol.respond_success(client, msg.id, {message: "saved", id: msg.params.id})
-      if(msg.params.type === 'location') {
-        freshen_location(msg.params)
-      }
-    })
+
+    if(msg.params.type === 'location') {
+      //fences_add(msg.params)
+      //rules_add(msg.params)
+    }
+
+    db.activity_add(msg.params).then(function() {
+        console.log('added location', msg.params)
+        protocol.respond_success(client, msg.id, {message: "saved",
+                                                  id: msg.params.id})
+        newer_user_location(msg.params)
+          .then(function(newer_location) {
+            fences_for(newer_location)
+              .then(function(fences){
+                var latest = { location_id: newer_location.id,
+                                fences: fences.map(function(fence){return fence.id}) }
+                console.log('updating user cached location', latest)
+                return db.update_user_latest(msg.params.user_id, latest)
+              })
+          })
+      })
+
   } else {
     var fail = {message: 'not authorized'};
     protocol.respond_fail(client, msg.id, fail)
