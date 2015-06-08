@@ -12,6 +12,7 @@
                      "forever": "0.11.*",
                      "sockjs": "0.3.*",
                      "jade": "*",
+                     "geojson-area": "*",
                      "stripe": "2.9.*"
                    },
   "devDependencies": {
