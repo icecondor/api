@@ -123,10 +123,10 @@ function fences_for(location) {
   })
 }
 
-function rules_for(user_id, fence) {
+function rules_for(user_id, fence_id) {
   return db.rule_list(user_id).then(function(cursor){
     return cursor.toArray().filter(function(rule){
-      return rule.fence_id == fence.id
+      return rule.fence_id == fence_id
     })
   })
 }
@@ -191,26 +191,27 @@ function pump(status) {
 }
 
 function fences_add(location) {
-  fences_for(location).then(function(fences){
+  return fences_for(location).then(function(fences){
     if(fences.length > 0) {
       location.fences = fences.map(function(fence){return fence.id})
     }
+    return location
   })
-//  console.log('fences and rules done', location)
 }
 
 function rules_add(location) {
-  location.fences.forEach(function(fence_id){
-    console.log('checking fence', fence_id)
-    rules_for(location.user_id, fence_id).then(function(rules){
-      console.log('applicable rules for fence ', fence_id,  rules)
-      if(rules.length > 0) {
-        if(!location.rules) { location.rules = []}
-        Array.prototype.push.apply(location.rules, rules.map(function(rule){
-          return {id: rule.id, cloaked: true}
-        }))
-      }
-    })
+  return Promise.all(location.fences.map(function(fence_id){
+    return rules_for(location.user_id, fence_id)
+      .then(function(rules){
+        if(rules.length > 0) {
+          if(!location.rules) { location.rules = []}
+          Array.prototype.push.apply(location.rules, rules.map(function(rule){
+            return {id: rule.id, cloaked: true}
+          }))
+        }
+      })
+  })).then(function(){
+    return location
   })
 }
 
@@ -386,13 +387,23 @@ function rule_check(rule){
 
 function send_last_locations(client, stream_id, user_id, start, stop, count, type, order) {
   console.log('send_last_locations',user_id, stream_id, start, stop, count, type, order)
-  //db.count_locations_for(user_id, start, stop, count, type, order).then(function(qcount){
+  //db.count_locations_for(user_id, start, stop, count, type, order)
+  //  .then(function(qcount){}) // stream helper
     db.find_locations_for(user_id, start, stop, count, type, order).then(function(cursor){
       cursor.each(function(err, location){
-        protocol.respond_success(client, stream_id, location)
+        fences_add(location)
+          .then(function(location){
+            rules_add(location)
+              .then(function(location){
+                if(location.rules) {
+                  delete location.longitude
+                  delete location.latitude
+                }
+                protocol.respond_success(client, stream_id, location)
+              })
+          })
       })
     })
-  //})
 }
 
 function gravatar_url(email, size) {
