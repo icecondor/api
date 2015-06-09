@@ -199,19 +199,23 @@ function fences_add(location) {
 }
 
 function rules_add(location) {
-  return Promise.all(location.fences.map(function(fence_id){
-    return rules_for(location.user_id, fence_id)
-      .then(function(rules){
-        if(rules.length > 0) {
-          if(!location.rules) { location.rules = []}
-          Array.prototype.push.apply(location.rules, rules.map(function(rule){
-            return {id: rule.id, cloaked: true}
-          }))
-        }
-      })
-  })).then(function(){
-    return location
-  })
+  if(location.fences) {
+    return Promise.all(location.fences.map(function(fence_id){
+      return rules_for(location.user_id, fence_id)
+        .then(function(rules){
+          if(rules.length > 0) {
+            if(!location.rules) { location.rules = []}
+            Array.prototype.push.apply(location.rules, rules.map(function(rule){
+              return {id: rule.id, cloaked: true}
+            }))
+          }
+        })
+    })).then(function(){
+      return location
+    })
+  } else {
+    return Promise.reject() // no fences
+  }
 }
 
 /* API calls */
