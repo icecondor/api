@@ -85,7 +85,7 @@ function client_dispatch(me, msg) {
     case 'rule.list': process_rule_list(me, msg); break;
     case 'rule.add': process_rule_add(me, msg); break;
     case 'rule.del': process_rule_del(me, msg); break;
-    default: console.log('!!unknown method', msg.method)
+    default: console.log('!!unknown method', msg)
   }
 }
 
@@ -230,26 +230,37 @@ function process_activity_add(client, msg) {
       //rules_add(msg.params)
     }
 
-    db.activity_add(msg.params).then(function() {
-        console.log('added location', msg.params)
-        protocol.respond_success(client, msg.id, {message: "saved",
-                                                  id: msg.params.id})
-        newer_user_location(msg.params)
-          .then(function(newer_location) {
-            fences_for(newer_location)
-              .then(function(fences){
-                var latest = { location_id: newer_location.id,
-                                fences: fences.map(function(fence){return fence.id}) }
-                console.log('updating user cached location', latest)
-                return db.update_user_latest(msg.params.user_id, latest)
-              })
-          })
+    db.activity_add(msg.params)
+      .then(function(result) {
+        if(result.errors == 0) {
+          protocol.respond_success(client, msg.id, {message: "saved",
+                                                    id: msg.params.id})
+          if(msg.params.type === 'location') {
+            user_latest(msg.params)
+          }
+        } else {
+          var fail = {message: result.first_error};
+          protocol.respond_fail(client, msg.id, fail)
+        }
       })
 
   } else {
     var fail = {message: 'not authorized'};
     protocol.respond_fail(client, msg.id, fail)
   }
+}
+
+function user_latest(location) {
+  newer_user_location(location)
+    .then(function(newer_location) {
+      fences_for(newer_location)
+        .then(function(fences){
+          var latest = { location_id: newer_location.id,
+                          fences: fences.map(function(fence){return fence.id}) }
+          console.log('updating user cached location', latest)
+          return db.update_user_latest(msg.params.user_id, latest)
+        })
+    })
 }
 
 function process_user_stats(client, msg) {
