@@ -98,12 +98,10 @@ function activity_added(activity_chg){
 function newer_user_location(location) {
   return db.get_user(location.user_id).then(function(user){
     return new Promise(function(resolve) {
-      console.log('user latest', user.latest)
       if(user.latest && user.latest.location_id){
         db.activity_get(user.latest.location_id)
           .then(function(last_location){
             if(last_location) {
-              console.log('last_location', last_location)
               if(location.date > last_location.date){
                 resolve(location)
               }
@@ -257,7 +255,7 @@ function user_latest(location) {
         .then(function(fences){
           var latest = { location_id: newer_location.id,
                           fences: fences.map(function(fence){return fence.id}) }
-          console.log('updating user cached location', latest)
+          console.log('updating user last location', latest)
           return db.update_user_latest(location.user_id, latest)
         })
     })
