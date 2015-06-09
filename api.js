@@ -258,7 +258,7 @@ function user_latest(location) {
           var latest = { location_id: newer_location.id,
                           fences: fences.map(function(fence){return fence.id}) }
           console.log('updating user cached location', latest)
-          return db.update_user_latest(msg.params.user_id, latest)
+          return db.update_user_latest(location.user_id, latest)
         })
     })
 }
