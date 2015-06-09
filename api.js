@@ -214,7 +214,7 @@ function rules_add(location) {
       return location
     })
   } else {
-    return Promise.reject() // no fences
+    return Promise.resolve(location) // no fences
   }
 }
 
