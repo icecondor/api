@@ -206,7 +206,7 @@ function rules_add(location) {
           if(rules.length > 0) {
             if(!location.rules) { location.rules = []}
             Array.prototype.push.apply(location.rules, rules.map(function(rule){
-              return {id: rule.id, cloaked: true}
+              return {id: rule.id, fence_id: rule.fence_id, kind: rule.kind}
             }))
           }
         })
@@ -810,6 +810,7 @@ function process_rule_add(client,msg){
     rule.created_at = new Date()
     rule.user_id = client.flags.authenticated.user_id
     rule.fence_id = msg.params.fence_id
+    rule.kind = 'cloaked'
     db.rule_add(rule).then(function(result){
       protocol.respond_success(client, msg.id, result)
     })
