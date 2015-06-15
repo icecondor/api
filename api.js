@@ -136,7 +136,9 @@ function pump_location(location) {
     client.following.forEach(function(search){
       var stream_id = search(location)
       if(stream_id){
-        protocol.respond_success(client, stream_id, location)
+        location_fences_load(location).then(function(location){
+          protocol.respond_success(client, stream_id, location)
+        })
       }
     })
   })
@@ -403,22 +405,27 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   console.log('send_last_locations',user_id, stream_id, start, stop, count, type, order)
   //db.count_locations_for(user_id, start, stop, count, type, order)
   //  .then(function(qcount){}) // stream helper
-    db.find_locations_for(user_id, start, stop, count, type, order).then(function(cursor){
-      cursor.each(function(err, location){
-        fences_add(location)
-          .then(function(location){
-            rules_add(location)
-              .then(function(location){
-                if(location.rules) {
-                  console.log('rules triggered', location.rules)
-                  //delete location.longitude
-                  //delete location.latitude
-                }
-                protocol.respond_success(client, stream_id, location)
-              })
+    db.find_locations_for(user_id, start, stop, count, type, order)
+      .then(function(cursor){
+        cursor.each(function(err, location){
+          location_fences_load(location).then(function(location){
+            protocol.respond_success(client, stream_id, location)
           })
+        })
       })
-    })
+}
+
+function location_fences_load(location) {
+  return fences_add(location)
+    .then(rules_add)
+      .then(function(location){
+        if(location.rules) {
+          console.log('rules triggered', location.rules)
+          //delete location.longitude
+          //delete location.latitude
+        }
+        return location
+      })
 }
 
 function gravatar_url(email, size) {
