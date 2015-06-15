@@ -411,8 +411,8 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
               .then(function(location){
                 if(location.rules) {
                   console.log('rules triggered', location.rules)
-                  //delete location.longitude
-                  //delete location.latitude
+                  delete location.longitude
+                  delete location.latitude
                 }
                 protocol.respond_success(client, stream_id, location)
               })
@@ -747,6 +747,12 @@ function process_fence_get(client,msg){
     db.fence_get(msg.params.id).then(function(fence){
       if(fence.user_id == client.flags.authenticated.user_id) {
         protocol.respond_success(client, msg.id, fence)
+      } else {
+        db.get_user(fence.user_id).then(function(owner){
+          if(owner.friends.indexOf(client.flags.authenticated.user_id) >= 0) {
+            protocol.respond_success(client, msg.id, fence)
+          }
+        })
       }
     })
   } else {
