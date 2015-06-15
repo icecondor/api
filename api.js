@@ -421,8 +421,8 @@ function location_fences_load(location) {
       .then(function(location){
         if(location.rules) {
           console.log('rules triggered', location.rules)
-          //delete location.longitude
-          //delete location.latitude
+          delete location.longitude
+          delete location.latitude
         }
         return location
       })
