@@ -428,7 +428,7 @@ function location_fences_load(location) {
           return location
         })
   } else {
-    return location
+    return Promise.resolve(location)
   }
 }
 
