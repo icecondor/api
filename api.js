@@ -416,16 +416,20 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
 }
 
 function location_fences_load(location) {
-  return fences_add(location)
-    .then(rules_add)
-      .then(function(location){
-        if(location.rules) {
-          console.log('rules triggered', location.rules)
-          delete location.longitude
-          delete location.latitude
-        }
-        return location
-      })
+  if(location.type == 'location') {
+    return fences_add(location)
+      .then(rules_add)
+        .then(function(location){
+          if(location.rules) {
+            console.log('rules triggered', location.rules)
+            delete location.longitude
+            delete location.latitude
+          }
+          return location
+        })
+  } else {
+    return location
+  }
 }
 
 function gravatar_url(email, size) {
