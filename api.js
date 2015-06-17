@@ -407,15 +407,17 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   //  .then(function(qcount){}) // stream helper
     db.find_locations_for(user_id, start, stop, count, type, order)
       .then(function(cursor){
-        // send back in synchronous fasion to keep ordering
         cursor.toArray(function(err, locations){
-          locations.forEach(function(location){
-            location_fences_load(location).then(function(location){
-              protocol.respond_success(client, stream_id, location)
-            })
-          })
+          Promise.all(locations.map(location_fences_load))
+            .then(function(locations){
+                locations.forEach(function(location){
+                  protocol.respond_success(client, stream_id, location)
+                })
+              })
+
         })
       })
+
 }
 
 function location_fences_load(location) {
