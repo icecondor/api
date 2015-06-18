@@ -32,11 +32,6 @@ function cleanUp() {
             list[idx] = null
           }
         })
-        list.forEach(function(entry, idx) {
-          if(entry.status == 'finished') {
-            // date check
-          }
-        })
 
         list = list.filter(function(e){return e})
         redis.hset('zipq', user_id, JSON.stringify(list))
@@ -89,24 +84,34 @@ function doZip(user_id) {
               var url_path = web_dir + '/' + filename
               console.log(fs_path, url_path)
               var gpx = fs.createWriteStream(fs_path)
-              gpx.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-              gpx.write('<gpx version="1.0">\n')
-              gpx.write(' <name>IceCondor export for '+user.username+'</name>\n')
-              gpx.write(' <trk><name>History</name><number>1</number>\n')
-              gpx.write('  <trkseg>\n')
-              var count = 0
-              cursor.each(function(err, act){
-                gpx.write('   <trkpt lat="'+act.latitude+'" lon="'+act.longitude+'">'+
-                          '<time>'+act.date+'</time></trkpt>\n')
-                count = count + 1
-              })
-              gpx.write('  </trkseg>\n')
-              gpx.write(' </trk>\n')
-              gpx.write('</gpx>\n')
-              gpx.end()
-              return {url: '/'+url_path, count: count}
+              return doWrite(user, gpx, cursor)
+                .then(function(count){
+                  return {url: '/'+url_path, count: count}
+                })
             })
           })
       })
+  })
+}
+
+function doWrite(user, gpx, cursor) {
+  return new Promise(function(resolve, reject){
+    gpx.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+    gpx.write('<gpx version="1.0">\n')
+    gpx.write(' <name>IceCondor export for '+user.username+'</name>\n')
+    gpx.write(' <trk><name>History</name><number>1</number>\n')
+    gpx.write('  <trkseg>\n')
+    var count = 0
+    cursor.each(function(err, act){
+      gpx.write('   <trkpt lat="'+act.latitude+'" lon="'+act.longitude+'">'+
+                '<time>'+act.date+'</time></trkpt>\n')
+      count = count + 1
+    }, function(){
+      gpx.write('  </trkseg>\n')
+      gpx.write(' </trk>\n')
+      gpx.write('</gpx>\n')
+      gpx.end()
+      resolve(count)
+    })
   })
 }
