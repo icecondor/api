@@ -81,6 +81,8 @@ function client_dispatch(me, msg) {
     case 'fence.del': process_fence_del(me, msg); break;
     case 'stream.follow': process_stream_follow(me, msg); break;
     case 'stream.unfollow': process_stream_unfollow(me, msg); break;
+    case 'stream.zip': process_stream_zip(me, msg); break;
+    case 'stream.ziplist': process_stream_ziplist(me, msg); break;
     case 'stream.stats': me.flags.stats = msg.id; break;
     case 'rule.list': process_rule_list(me, msg); break;
     case 'rule.add': process_rule_add(me, msg); break;
@@ -845,6 +847,30 @@ function process_rule_del(client,msg){
         })
       }
     })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_stream_zip(client, msg) {
+  if(client.flags.authenticated){
+    var user_id = client.flags.authenticated.user_id
+    server.zipq_add(user_id)
+      .then(function(){
+        protocol.respond_success(client, msg.id, {status: 'OK'})
+      })
+  } else {
+    protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
+  }
+}
+
+function process_stream_ziplist(client, msg) {
+  if(client.flags.authenticated){
+    var user_id = client.flags.authenticated.user_id
+    server.zipq_get(user_id)
+      .then(function(list){
+        protocol.respond_success(client, msg.id, list)
+      })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
   }
