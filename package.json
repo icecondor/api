@@ -13,7 +13,8 @@
                      "sockjs": "0.3.*",
                      "jade": "*",
                      "geojson-area": "*",
-                     "stripe": "2.9.*"
+                     "stripe": "2.9.*",
+                     "mkdirp": "*"
                    },
   "devDependencies": {
     "jasmine-node": "1.14.x",
