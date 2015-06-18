@@ -103,9 +103,11 @@ function doWrite(user, gpx, cursor) {
     gpx.write('  <trkseg>\n')
     var count = 0
     cursor.each(function(err, act){
-      gpx.write('   <trkpt lat="'+act.latitude+'" lon="'+act.longitude+'">'+
-                '<time>'+act.date+'</time></trkpt>\n')
-      count = count + 1
+      if(act.type === 'location') {
+        gpx.write('   <trkpt lat="'+act.latitude+'" lon="'+act.longitude+'">'+
+                  '<time>'+act.date+'</time></trkpt>\n')
+        count = count + 1
+      }
     }, function(){
       gpx.write('  </trkseg>\n')
       gpx.write(' </trk>\n')
