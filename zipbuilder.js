@@ -14,15 +14,42 @@ var r = rethink.connect(settings.rethinkdb)
 var redis = then_redis.createClient();
 
 var lock = false
+cleanUp()
 downloadCheck()
-setTimeout(downloadCheck, 30*1000)
+setInterval(downloadCheck, 30*1000)
+
+function cleanUp() {
+
+  redis.hgetall('zipq')
+    .then(function(zipq){
+      var keys = Object.keys(zipq)
+      keys.forEach(function(user_id){
+        var list = JSON.parse(zipq[user_id])
+        list.forEach(function(entry, idx) {
+          if(entry.status == 'processing') {
+            // broken
+            console.log('clean', entry, idx)
+            list[idx] = null
+          }
+        })
+        list.forEach(function(entry, idx) {
+          if(entry.status == 'finished') {
+            // date check
+          }
+        })
+
+        list = list.filter(function(e){return e})
+        redis.hset('zipq', user_id, JSON.stringify(list))
+      })
+    })
+}
 
 function downloadCheck() {
+  console.log('## downloadCheck', new Date())
   if(lock) { console.log('abort! lock held.'); return }
   lock = true
   redis.hgetall('zipq')
     .then(function(zipq){
-      console.log(zipq)
       var keys = Object.keys(zipq)
       keys.forEach(function(user_id){
         var list = JSON.parse(zipq[user_id])
@@ -32,9 +59,10 @@ function downloadCheck() {
             entry.status = 'processing'
             redis.hset('zipq', user_id, JSON.stringify(list))
             doZip(user_id)
-              .then(function(url){
+              .then(function(out){
                 entry.status = 'finished'
-                entry.url = url
+                entry.url = out.url
+                entry.count = out.count
                 console.log(entry)
                 redis.hset('zipq', user_id, JSON.stringify(list))
               })
@@ -66,15 +94,17 @@ function doZip(user_id) {
               gpx.write(' <name>IceCondor export for '+user.username+'</name>\n')
               gpx.write(' <trk><name>History</name><number>1</number>\n')
               gpx.write('  <trkseg>\n')
+              var count = 0
               cursor.each(function(err, act){
                 gpx.write('   <trkpt lat="'+act.latitude+'" lon="'+act.longitude+'">'+
                           '<time>'+act.date+'</time></trkpt>\n')
+                count = count + 1
               })
               gpx.write('  </trkseg>\n')
               gpx.write(' </trk>\n')
               gpx.write('</gpx>\n')
               gpx.end()
-              return url_path
+              return {url: '/'+url_path, count: count}
             })
           })
       })
