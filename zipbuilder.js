@@ -52,10 +52,10 @@ function downloadCheck() {
         var list = JSON.parse(zipq[user_id])
         list.forEach(function(entry) {
           if(entry.status == 'waiting') {
-            console.log(user_id, entry)
             entry.status = 'building'
+            console.log(user_id, entry)
             redis.hset('zipq', user_id, JSON.stringify(list))
-            doZip(user_id)
+            doZip(user_id, new Date('2008-01-01'), new Date())
               .then(function(out){
                 entry.status = 'finished'
                 entry.url = out.url
@@ -71,13 +71,17 @@ function downloadCheck() {
     })
 }
 
-function doZip(user_id) {
+function doZip(user_id, start, stop) {
   return r.then(function(conn){
     conn.use('icecondor')
     return rethink.table('users').get(user_id).run(conn)
       .then(function(user){
         return rethink.table('activities')
-          .filter({user_id: user_id})
+          .between([user_id, start.toISOString()],
+                   [user_id, stop.toISOString()],
+                             {index: 'user_id_date',
+                              left_bound:'open',
+                              right_bound:'closed'})
           .orderBy(rethink.asc('user_id_date'))
           .run(conn)
           .then(function(cursor){
