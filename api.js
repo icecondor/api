@@ -6,7 +6,6 @@ var os = require('os')
 
 // npm
 var moment = require('moment')
-var emailer = require('nodemailer')
 var rethink = require('rethinkdb')
 var jade = require('jade');
 var Promise = require('bluebird');
@@ -18,6 +17,7 @@ var settings = require('./lib/settings')(major_version)
 var protocol = require('./lib/protocol-v' + major_version)(settings.api)
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory(rethink, rethink.connect(settings.rethinkdb))
+var emailer = require('./lib/email')(settings.email)
 
 // config-dependent
 var stripe = require('stripe')(settings.stripe.key);
@@ -466,9 +466,9 @@ function process_auth_email(client, msg) {
   console.log('auth_email '+JSON.stringify(msg))
   server.create_token_temp(params)
     .then(function(token){
-      var email_opts = build_token_email(params.email, params.device_id, token)
+      var email_opts = emailer.build_token_email(params.email, params.device_id, token)
       console.log('auth_email send_email begin.')
-      send_email(email_opts)
+      emailer.send_email(email_opts)
       protocol.respond_success(client, msg.id, {status: "OK"})
     }, function(err) {
       console.log('auth_email error '+err);
@@ -510,8 +510,8 @@ function client_auth_check(client, msg, session) {
   }, function(err){
     clog(client, '* user not found by '+session.email+' '+JSON.stringify(err))
     var new_user = user_new(session.email, session.device_id)
-    var email = build_admin_email('New user '+session.email)
-    send_email(email)
+    var email = emailer.build_admin_email('New user '+session.email)
+    emailer.send_email(email)
     return db.ensure_user(new_user)
   }).then(function(user){
     clog(client, '* token validate '+JSON.stringify(user))
@@ -668,17 +668,17 @@ function process_user_payment(client, msg) {
         // New charge created on a new customer
         console.log('process_user_payment', 'stripe charge', charge)
         protocol.respond_success(client, msg.id, {amount: 0.02})
-        var email = build_payment_email(user.email, msg.params.product, charge.amount)
-        send_email(email)
+        var email = emailer.build_payment_email(user.email, msg.params.product, charge.amount)
+        emailer.send_email(email)
         user_add_time(user, msg.params.product)
-        var email = build_admin_email('User payment '+user.email+' '+msg.params.product)
-        send_email(email)
+        var email = emailer.build_admin_email('User payment '+user.email+' '+msg.params.product)
+        emailer.send_email(email)
       }, function(err) {
         // Deal with an error
         console.log('process_user_payment', 'error', err)
         protocol.respond_fail(client, msg.id, {message: err.message})
-        var email = build_admin_email('User payment error '+err.message)
-        send_email(email)
+        var email = emailer.build_admin_email('User payment error '+err.message)
+        emailer.send_email(email)
       });
     })
   } else {
@@ -715,8 +715,8 @@ function process_user_friend(client, msg) {
         protocol.respond_success(client, msg.id, result)
         // inefficient
         db.get_user(client_user_id).then(function(user){
-          var email = build_friend_email(friend.email, user.username)
-          send_email(email)
+          var email = emailer.build_friend_email(friend.email, user.username)
+          emailer.send_email(email)
         })
       }, function(err){
         protocol.respond_fail(client, msg.id, err)
@@ -874,77 +874,4 @@ function process_stream_ziplist(client, msg) {
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
   }
-}
-
-function build_payment_email(email, product, amount) {
-  var opts = {
-    from: settings.email.from,
-    to: email,
-    subject: 'Purchase complete: '+product,
-    text: 'Thank you for your purchase of '+product+'.\n\n'+
-          'Your card has been charged $'+(amount/100).toFixed(2)+'.\n'
-  }
-  return opts
-}
-
-function build_friend_email(email, friended_by) {
-  var opts = {
-    from: settings.email.from,
-    to: email,
-    subject: friended_by+' is sharing their location with you',
-    text: friended_by+' is now sharing their location with you.\n\n'+
-          'View their map at\n'+
-          'https://icecondor.com/'+friended_by
-  }
-  return opts
-}
-
-function build_token_email(email, device_id, token) {
-  console.log('build_token_email for', email)
-  var link = "https://icecondor.com/auth/"+encodeURIComponent(token)
-  var emailOpt = {
-    from: settings.email.from,
-    to: email,
-    //html: '<b>Hello world </b>'
-  }
-  var templateFile
-  if(device_id == 'browser') {
-    console.log('build_token_email render browser')
-    emailOpt.subject = 'IceCondor web login button'
-    emailOpt.text = 'Web Browser Login link for '+email+'.\n\n'+link+'\n'
-    templateFile = 'email/access_browser.jade'
-  } else {
-    console.log('build_token_email render phone')
-    emailOpt.subject = 'IceCondor Phone Activation Link'
-    emailOpt.text = 'Cell Phone Activation link\n\n'+link+'\n'
-    templateFile = 'email/access_phone.jade'
-  }
-  var templateOpts = {link: link, email:email}
-  console.log('email template opts', templateFile, templateOpts)
-  emailOpt.html = jade.compileFile(templateFile, {pretty: true})(templateOpts)
-  console.log('email build done', emailOpt.from, emailOpt.to)
-  return emailOpt
-}
-
-function build_admin_email(msg) {
-  var opts = {
-    from: settings.email.from,
-    to: settings.email.alert,
-    subject: msg,
-    text: msg
-  }
-  return opts
-}
-
-function send_email(params) {
-  var transporter = emailer.createTransport({host:'localhost', ignoreTLS: true})
-  console.log("email delivery attempt to "+params.to)
-  transporter.sendMail(params, function(error, info){
-    if(error){
-        console.log("SMTP error: ", error);
-    } else {
-        console.log('Message sent to', params.to);
-        console.log('SMTP response', info);
-    }
-  });
 }
