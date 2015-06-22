@@ -91,9 +91,11 @@ function doZip(user_id) {
               var gpx = fs.createWriteStream(fs_path)
               return doWrite(user, gpx, cursor)
                 .then(function(count){
-                  var email = emailer.build_dump_email(user.email, url_path, count)
+                  var stat = fs.statSync(fs_path)
+                  var mb_size = stat.size/1024/1024
+                  var email = emailer.build_dump_email(user.email, url_path, count, mb_size)
                   emailer.send_email(email)
-                  return {url: '/'+url_path, count: count}
+                  return {url: '/'+url_path, count: count, size: stat.size}
                 })
             })
           })
