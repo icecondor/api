@@ -75,7 +75,7 @@ function doZip(user_id) {
       .then(function(user){
         return rethink.table('activities').filter({user_id: user_id}).run(conn)
           .then(function(cursor){
-            var nonce = 'abc'
+            var nonce = newId(36,5)
             var web_dir = 'gpx/'+nonce
             var fs_dir = settings.web.root + '/' + web_dir
             return mkdirp(fs_dir).then(function() {
@@ -116,4 +116,11 @@ function doWrite(user, gpx, cursor) {
       resolve(count)
     })
   })
+}
+
+function newId(base, length) {
+  var unit = Math.pow(base,length-1)
+  var add = Math.random()*unit*(base-1)
+  var idInt = unit + Math.floor(add) - 1
+  return idInt.toString(base)
 }
