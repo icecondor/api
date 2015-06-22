@@ -7,7 +7,6 @@ var os = require('os')
 // npm
 var moment = require('moment')
 var rethink = require('rethinkdb')
-var jade = require('jade');
 var Promise = require('bluebird');
 var geojsonArea = require('geojson-area')
 
@@ -17,7 +16,7 @@ var settings = require('./lib/settings')(major_version)
 var protocol = require('./lib/protocol-v' + major_version)(settings.api)
 var server = require('./lib/server').factory()
 var db = require('./lib/dblib').factory(rethink, rethink.connect(settings.rethinkdb))
-var emailer = require('./lib/email')(settings.email)
+var emailer = require('./lib/email').factory(settings.email)
 
 // config-dependent
 var stripe = require('stripe')(settings.stripe.key);
