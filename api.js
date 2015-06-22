@@ -126,7 +126,7 @@ function fences_for(location) {
 function rules_for(user_id, fence_id) {
   return db.rule_list(user_id).then(function(cursor){
     return cursor.toArray().filter(function(rule){
-      return rule.fence_id == fence_id
+      return rule.fence_id === fence_id
     })
   })
 }
@@ -137,8 +137,8 @@ function pump_location(location) {
     client.following.forEach(function(search){
       var stream_id = search(location)
       if(stream_id){
-        location_fences_load(location).then(function(location){
-          protocol.respond_success(client, stream_id, location)
+        location_fences_load(location).then(function(location_enhanced){
+          protocol.respond_success(client, stream_id, location_enhanced)
         })
       }
     })
@@ -230,14 +230,9 @@ function process_activity_add(client, msg) {
     var now = new Date()
     msg.params.received_at = now.toISOString()
 
-    if(msg.params.type === 'location') {
-      //fences_add(msg.params)
-      //rules_add(msg.params)
-    }
-
     db.activity_add(msg.params)
       .then(function(result) {
-        if(result.errors == 0) {
+        if(result.errors === 0) {
           protocol.respond_success(client, msg.id, {message: "saved",
                                                     id: msg.params.id})
           if(msg.params.type === 'location') {
@@ -250,8 +245,8 @@ function process_activity_add(client, msg) {
       })
 
   } else {
-    var fail = {message: 'not authorized'};
-    protocol.respond_fail(client, msg.id, fail)
+    var auth_fail = {message: 'not authorized'};
+    protocol.respond_fail(client, msg.id, auth_fail)
   }
 }
 
@@ -438,26 +433,6 @@ function gravatar_url(email, size) {
   md5sum.update(email)
   var url = "//www.gravatar.com/avatar/"+md5sum.digest('hex')
   return url
-}
-
-function process_unfollow(me, msg) {
-  var follow_idx = me.following.indexOf(msg.username)
-  if(follow_idx >= 0) {
-    delete me.following[follow_idx]
-    var msg = {type: "unfollow",
-               username: msg.username,
-               status: "OK",
-               message: "stopped following"}
-    clog(me,"-> "+JSON.stringify(msg))
-    client_write(me, msg)
-  } else {
-    var msg = {type: "unfollow",
-               username: msg.username,
-               status: "ERR",
-               message: "not following"}
-    clog(me,"-> "+JSON.stringify(msg))
-    client_write(me, msg)
-  }
 }
 
 function process_auth_email(client, msg) {
@@ -667,11 +642,11 @@ function process_user_payment(client, msg) {
         // New charge created on a new customer
         console.log('process_user_payment', 'stripe charge', charge)
         protocol.respond_success(client, msg.id, {amount: 0.02})
-        var email = emailer.build_payment_email(user.email, msg.params.product, charge.amount)
-        emailer.send_email(email)
+        var email_payment = emailer.build_payment_email(user.email, msg.params.product, charge.amount)
+        emailer.send_email(email_payment)
         user_add_time(user, msg.params.product)
-        var email = emailer.build_admin_email('User payment '+user.email+' '+msg.params.product)
-        emailer.send_email(email)
+        var email_admin = emailer.build_admin_email('User payment '+user.email+' '+msg.params.product)
+        emailer.send_email(email_admin)
       }, function(err) {
         // Deal with an error
         console.log('process_user_payment', 'error', err)
