@@ -28,7 +28,7 @@ function cleanUp() {
       keys.forEach(function(user_id){
         var list = JSON.parse(zipq[user_id])
         list.forEach(function(entry, idx) {
-          if(entry.status == 'processing') {
+          if(entry.status == 'building') {
             // broken
             console.log('clean', entry, idx)
             list[idx] = null
@@ -53,13 +53,14 @@ function downloadCheck() {
         list.forEach(function(entry) {
           if(entry.status == 'waiting') {
             console.log(user_id, entry)
-            entry.status = 'processing'
+            entry.status = 'building'
             redis.hset('zipq', user_id, JSON.stringify(list))
             doZip(user_id)
               .then(function(out){
                 entry.status = 'finished'
                 entry.url = out.url
                 entry.count = out.count
+                entry.size = out.size
                 console.log(entry)
                 redis.hset('zipq', user_id, JSON.stringify(list))
               })
@@ -93,7 +94,8 @@ function doZip(user_id) {
                 .then(function(count){
                   var stat = fs.statSync(fs_path)
                   var mb_size = stat.size/1024/1024
-                  var email = emailer.build_dump_email(user.email, url_path, count, mb_size)
+                  var email = emailer.build_dump_email(user.email, url_path,
+                                                       count, mb_size)
                   emailer.send_email(email)
                   return {url: '/'+url_path, count: count, size: stat.size}
                 })
