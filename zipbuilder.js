@@ -75,7 +75,10 @@ function doZip(user_id) {
     conn.use('icecondor')
     return rethink.table('users').get(user_id).run(conn)
       .then(function(user){
-        return rethink.table('activities').filter({user_id: user_id}).run(conn)
+        return rethink.table('activities')
+          .filter({user_id: user_id})
+          .orderBy(rethink.asc('user_id_date'))
+          .run(conn)
           .then(function(cursor){
             var nonce = newId(36,5)
             var web_dir = 'gpx/'+nonce
