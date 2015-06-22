@@ -82,7 +82,7 @@ function doZip(user_id, start, stop) {
                              {index: 'user_id_date',
                               left_bound:'open',
                               right_bound:'closed'})
-          .orderBy(rethink.asc('user_id_date'))
+          .orderBy({index:rethink.asc('user_id_date')})
           .run(conn)
           .then(function(cursor){
             var nonce = newId(36,5)
