@@ -10,6 +10,8 @@ var mkdirp = Promise.promisify(require('mkdirp'))
 // local
 var major_version = 2
 var settings = require('./lib/settings')(major_version)
+var emailer = require('./lib/email').factory(settings.email)
+
 var r = rethink.connect(settings.rethinkdb)
 var redis = then_redis.createClient();
 
@@ -40,7 +42,7 @@ function cleanUp() {
 }
 
 function downloadCheck() {
-  console.log('## downloadCheck', new Date())
+  console.log('## dumpQueueCheck', new Date())
   if(lock) { console.log('abort! lock held.'); return }
   lock = true
   redis.hgetall('zipq')
@@ -86,6 +88,8 @@ function doZip(user_id) {
               var gpx = fs.createWriteStream(fs_path)
               return doWrite(user, gpx, cursor)
                 .then(function(count){
+                  var email = emailer.build_dump_email(user.email, url_path, count)
+                  emailer.send_email(email)
                   return {url: '/'+url_path, count: count}
                 })
             })
