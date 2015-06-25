@@ -710,7 +710,9 @@ function process_fence_add(client,msg){
     fence.name = msg.params.name
     fence.user_id = client.flags.authenticated.user_id
     db.fence_add(fence).then(function(result){
-      protocol.respond_success(client, msg.id, result)
+      if(result.inserted == 1) {
+        protocol.respond_success(client, msg.id, fence)
+      }
     })
   } else {
     protocol.respond_fail(client, msg.id, {message:"Not authenticated"})
