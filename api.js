@@ -517,7 +517,9 @@ function process_user_detail(client, msg) {
   var filter = {}
 
   if(msg.params && Object.keys(msg.params).length > 0){
-    if(msg.params.username) {
+    if(msg.params.id) {
+      filter = {id: msg.params.id}
+    } else if(msg.params.username) {
       filter = {username: msg.params.username}
     }
   } else {
