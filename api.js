@@ -472,7 +472,7 @@ function process_auth_session(client, msg) {
 }
 
 function client_auth_check(client, msg, session) {
-  db.find_user_by(rethink.row('email').eq(session.email)).then(function(user){
+  db.find_user_by({email_downcase: session.email.toLowerCase()}).then(function(user){
     clog(client, 'authenticating session for '+session.email)
     if(user.devices.indexOf(session.device_id) > -1) {
       clog(client, '* existing device '+session.device_id);
