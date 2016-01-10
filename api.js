@@ -808,6 +808,9 @@ function process_rule_add(client,msg){
     rule.user_id = client.flags.authenticated.user_id
     rule.fence_id = msg.params.fence_id
     rule.kind = 'cloaked'
+    if(msg.params.kind && msg.params.kind.length > 0) {
+      rule.kind = msg.params.kind
+    }
     db.rule_add(rule).then(function(result){
       protocol.respond_success(client, msg.id, result)
     })
