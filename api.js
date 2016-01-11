@@ -239,6 +239,7 @@ function process_activity_add(client, msg) {
           protocol.respond_success(client, msg.id, {message: "saved",
                                                     id: msg.params.id})
           if(msg.params.type === 'location') {
+            console.log('location activity added.')
             user_latest(msg.params)
           }
         } else {
@@ -260,16 +261,19 @@ function user_latest(location) {
         .then(function(fences){
           var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
                                 .map(function(fence){return fence.id})
-          var latest = { location_id: newer_location.id,
-                          fences: my_fences }
+
           fences.forEach(function(fence){
             var rules = rules_for(null, fence.id)
+            console.log('rules for new location:', rules.map(function(rule){return rule.kind}))
             rules.forEach(function(rule){
               if(rule.kind == 'alert') {
                 rule_alert_go(location, rule)
               }
             })
           })
+
+          var latest = { location_id: newer_location.id,
+                          fences: my_fences }
           return db.update_user_latest(location.user_id, latest)
         })
     })
@@ -433,7 +437,7 @@ function location_fences_load(location) {
       .then(rules_add)
         .then(function(location){
           if(location.rules) {
-            console.log('rules triggered', location.rules)
+            console.log('rules for location:', location.rules.map(function(rule){return rule.kind}))
             var cloak_rules = location.rules.filter(function(rule){return rule.kind == 'cloaked'})
             if(cloak_rules.length > 0) {
               delete location.longitude
