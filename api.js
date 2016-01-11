@@ -254,6 +254,7 @@ function user_latest(location) {
     .then(function(newer_location) {
       fences_for(newer_location)
         .then(function(fences){
+          console.log('applicable fences', fences)
           var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
                                 .map(function(fence){return fence.id})
           var latest = { location_id: newer_location.id,
