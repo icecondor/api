@@ -263,13 +263,15 @@ function user_latest(location) {
                                 .map(function(fence){return fence.id})
 
           fences.forEach(function(fence){
-            var rules = rules_for(null, fence.id)
-            console.log('rules for new location:', rules.map(function(rule){return rule.kind}))
-            rules.forEach(function(rule){
-              if(rule.kind == 'alert') {
-                rule_alert_go(location, rule)
-              }
-            })
+            rules_for(null, fence.id)
+              .then(function(rules){
+                console.log('rules for new location:', rules.map(function(rule){return rule.kind}))
+                rules.forEach(function(rule){
+                  if(rule.kind == 'alert') {
+                    rule_alert_go(location, rule)
+                  }
+                })
+              })
           })
 
           var latest = { location_id: newer_location.id,
