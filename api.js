@@ -124,9 +124,13 @@ function fences_for(location, filter) {
 
 function rules_for(user_id, fence_id) {
   return db.rule_list(user_id).then(function(cursor){
-    return cursor.toArray().filter(function(rule){
-      return rule.fence_id === fence_id
-    })
+    var rules = cursor.toArray()
+    if(user_id){
+      rules = rules.filter(function(rule){
+        return rule.fence_id === fence_id
+      })
+    }
+    return rules
   })
 }
 
@@ -254,15 +258,25 @@ function user_latest(location) {
     .then(function(newer_location) {
       fences_for(newer_location)
         .then(function(fences){
-          console.log('applicable fences', fences)
           var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
                                 .map(function(fence){return fence.id})
           var latest = { location_id: newer_location.id,
                           fences: my_fences }
-          console.log('updating user last location', latest)
+          fences.forEach(function(fence){
+            var rules = rules_for(null, fence.id)
+            rules.forEach(funciton(rule){
+              if(rule.kind == 'alert') {
+                rule_alert_go(location, rule)
+              }
+            })
+          })
           return db.update_user_latest(location.user_id, latest)
         })
     })
+}
+
+function rule_alert_go(location, rule) {
+  console.log('rule alert go!')
 }
 
 function process_user_stats(client, msg) {
@@ -420,8 +434,11 @@ function location_fences_load(location) {
         .then(function(location){
           if(location.rules) {
             console.log('rules triggered', location.rules)
-            delete location.longitude
-            delete location.latitude
+            var cloak_rules = location.rules.filter(function(rule){return rule.kind == 'cloaked'})
+            if(cloak_rules.length > 0) {
+              delete location.longitude
+              delete location.latitude
+            }
           }
           return location
         })
