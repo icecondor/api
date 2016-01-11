@@ -116,8 +116,8 @@ function newer_user_location(location) {
 }
 
 function fences_for(location) {
-  return db.fences_intersect(location.user_id,
-                             rethink.point(location.longitude, location.latitude))
+  return db.fences_intersect(rethink.point(location.longitude, location.latitude),
+                             {user_id: location.user_id})
     .then(function(cursor){
       return cursor.toArray()
   })
