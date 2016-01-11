@@ -264,7 +264,7 @@ function user_latest(location) {
                           fences: my_fences }
           fences.forEach(function(fence){
             var rules = rules_for(null, fence.id)
-            rules.forEach(funciton(rule){
+            rules.forEach(function(rule){
               if(rule.kind == 'alert') {
                 rule_alert_go(location, rule)
               }
