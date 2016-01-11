@@ -115,9 +115,8 @@ function newer_user_location(location) {
   })
 }
 
-function fences_for(location) {
-  return db.fences_intersect(rethink.point(location.longitude, location.latitude),
-                             {user_id: location.user_id})
+function fences_for(location, filter) {
+  return db.fences_intersect(rethink.point(location.longitude, location.latitude), filter)
     .then(function(cursor){
       return cursor.toArray()
   })
@@ -193,7 +192,7 @@ function pump(status) {
 }
 
 function fences_add(location) {
-  return fences_for(location).then(function(fences){
+  return fences_for(location, {user_id: location.user_id}).then(function(fences){
     if(fences.length > 0) {
       location.fences = fences.map(function(fence){return fence.id})
     }
@@ -255,8 +254,10 @@ function user_latest(location) {
     .then(function(newer_location) {
       fences_for(newer_location)
         .then(function(fences){
+          var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
+                                .map(function(fence){return fence.id})
           var latest = { location_id: newer_location.id,
-                          fences: fences.map(function(fence){return fence.id}) }
+                          fences: my_fences }
           console.log('updating user last location', latest)
           return db.update_user_latest(location.user_id, latest)
         })
