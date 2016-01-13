@@ -266,7 +266,7 @@ function user_latest(location) {
                     console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
                     rules.forEach(function(rule){
                       if(rule.kind == 'alert') {
-                        rule_alert_go(location, rule)
+                        rule_alert_go(location, fence, rule)
                       }
                     })
                   })
@@ -282,8 +282,16 @@ function user_latest(location) {
     })
 }
 
-function rule_alert_go(location, rule) {
+function rule_alert_go(location, fence, rule) {
   console.log('rule alert go!')
+  db.get_user(rule.user_id)
+    .then(function(ruleuser){
+      db.get_user(location.user_id)
+        .then(function(locationuser){
+          var email = emailer.build_fence_alert_email(ruleuser.email, fence.name, locationuser.username)
+          emailer.send_email(email)
+        })
+    })
 }
 
 function process_user_stats(client, msg) {
