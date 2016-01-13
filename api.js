@@ -125,11 +125,9 @@ function fences_for(location, filter) {
 function rules_for(user_id, fence_id) {
   return db.rule_list(user_id).then(function(cursor){
     var rules = cursor.toArray()
-    if(user_id){
-      rules = rules.filter(function(rule){
-        return rule.fence_id === fence_id
-      })
-    }
+    rules = rules.filter(function(rule){
+      return rule.fence_id === fence_id
+    })
     return rules
   })
 }
@@ -255,25 +253,28 @@ function process_activity_add(client, msg) {
 }
 
 function user_latest(location) {
+ console.log('user_latest')
   newer_user_location(location)
     .then(function(newer_location) {
       fences_for(newer_location)
         .then(function(fences){
-          var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
-                                .map(function(fence){return fence.id})
-
           fences.forEach(function(fence){
-            rules_for(null, fence.id)
-              .then(function(rules){
-                console.log('rules for new location:', rules.map(function(rule){return rule.kind}))
-                rules.forEach(function(rule){
-                  if(rule.kind == 'alert') {
-                    rule_alert_go(location, rule)
-                  }
-                })
+            db.rule_list_by_fence(fence.id)
+              .then(function(rules_cursor){
+                rules_cursor.toArray()
+                  .then(function(rules){
+                    console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
+                    rules.forEach(function(rule){
+                      if(rule.kind == 'alert') {
+                        rule_alert_go(location, rule)
+                      }
+                    })
+                  })
               })
           })
 
+          var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
+                                .map(function(fence){return fence.id})
           var latest = { location_id: newer_location.id,
                           fences: my_fences }
           return db.update_user_latest(location.user_id, latest)
