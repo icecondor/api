@@ -14,16 +14,6 @@ module.exports = (function() {
     }
   }
 
-  function factoryRunAnswer(value){
-    return { run: function(a,b){
-        return new Promise(function(resolve, reject){
-          if(b) {b(null, value)}
-          resolve(value)
-        })
-      }
-    }
-  }
-
   mock.connect = function() {
     console.log('mock db connected')
     return factoryRunAnswer(conn).run()
@@ -51,6 +41,10 @@ module.exports = (function() {
     return data[db_name][name]
   }
 
+  mock.row = function(name){
+    return {downcase: function(){}}
+  }
+
   var conn = {}
   conn.use = function(name) {
     console.log('mock using db '+name)
@@ -69,6 +63,7 @@ module.exports = (function() {
     var table = {}
     table.next_answers = []
     table.inserted = []
+    table.indexes = []
 
     table._next_answer = function(answer) {
       table.next_answers.push(cursorFactory(answer))
@@ -87,7 +82,34 @@ module.exports = (function() {
       return factoryRunAnswer({inserted:1})
     }
 
+    table.indexList = function() {
+      return factoryRunAnswer(table.indexes)
+    }
+
+    table.indexCreate = function(name){
+      table.indexes.push(name)
+      return factoryRunAnswer()
+    }
+
+    table.indexWait = function(){
+      return factoryRunAnswer()
+    }
+
+    table.getAll = function(key){
+     return factoryRunAnswer(cursorFactory([]))
+    }
+
     return table
+  }
+
+  function factoryRunAnswer(value){
+    return { run: function(a,b){
+        return new Promise(function(resolve, reject){
+          if(b) {b(null, value)}
+          resolve(value)
+        })
+      }
+    }
   }
 
   function cursorFactory(values) {
@@ -99,7 +121,7 @@ module.exports = (function() {
     }
 
     cursor.toArray = function() {
-      return cursor.values
+      return new Promise(function(resolve, reject){resolve(cursor.values)})
     }
 
     cursor.next = function() {

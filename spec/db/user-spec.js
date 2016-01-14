@@ -1,5 +1,5 @@
 var rethink_mock = require('../rethink_mock')
-var db = require('../../lib/dblib').factory(rethink_mock)
+var db = require('../../lib/dblib').factory(rethink_mock, rethink_mock.connect())
 
 describe("existing users", function(){
   // call before db.setup
@@ -8,7 +8,7 @@ describe("existing users", function(){
     db.setup(function(){
       var orig_user = {email:'bob@server'}
       rethink_mock._next_answer('users', orig_user)
-      db.find_user_by_email('bob@server').then(function(user){
+      db.find_user_by({email:'bob@server'}).then(function(user){
         expect(user).toEqual(orig_user)
         done() //jasmine
       })
