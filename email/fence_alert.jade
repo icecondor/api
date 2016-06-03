@@ -7,10 +7,10 @@ html(xmlns="http://www.w3.org/1999/xhtml")
   body(style="margin: 0; padding: 0;")
     h2 IceCondor Fence Alert
 
-    p(style='padding: 1em 0;').
-      Your fence #{fence_name} has been crossed by
-      a(href="#{user_link}")
-        #{username}.
+    p(style='padding: 1em 0;')
+      | Your fence #{fence_name} has been crossed by
+      a(href="#{user_link}")#{username}
+      | .
 
     p(style='padding: 1em 0;').
       Use the link below or login to icecondor.com and look under "Data".
