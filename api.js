@@ -258,19 +258,26 @@ function user_latest(location) {
     .then(function(newer_location) {
       fences_for(newer_location)
         .then(function(fences){
-          fences.forEach(function(fence){
-            db.rule_list_by_fence(fence.id)
-              .then(function(rules_cursor){
-                rules_cursor.toArray()
-                  .then(function(rules){
-                    console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
-                    rules.forEach(function(rule){
-                      if(rule.kind == 'alert') {
-                        rule_alert_go(location, fence, rule)
-                      }
+          db.get_user(location.user_id).then(function(location_user){
+            return fences.filter(function(fence){
+              return location_user.friends.indexOf(fence.user_id) > -1
+            })
+          }).then(function(friend_fences){
+            console.log('all fences hit', fences.length, 'friend filtered to', friend_fences.length)
+            friend_fences.forEach(function(fence){
+              db.rule_list_by_fence(fence.id)
+                .then(function(rules_cursor){
+                  rules_cursor.toArray()
+                    .then(function(rules){
+                      console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
+                      rules.forEach(function(rule){
+                        if(rule.kind == 'alert') {
+                          rule_alert_go(location, fence, rule)
+                        }
+                      })
                     })
-                  })
-              })
+                })
+            })
           })
 
           var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
