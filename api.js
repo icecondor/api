@@ -238,7 +238,7 @@ function process_activity_add(client, msg) {
                                                     id: msg.params.id})
           if(msg.params.type === 'location') {
             console.log('location activity added.')
-            user_latest(msg.params)
+            user_latest_freshen(msg.params)
           }
         } else {
           var fail = {message: result.first_error};
@@ -252,33 +252,12 @@ function process_activity_add(client, msg) {
   }
 }
 
-function user_latest(location) {
- console.log('user_latest')
+function user_latest_freshen(location) {
   newer_user_location(location)
     .then(function(newer_location) {
       fences_for(newer_location)
         .then(function(fences){
-          db.get_user(location.user_id).then(function(location_user){
-            return fences.filter(function(fence){
-              return location_user.friends.indexOf(fence.user_id) > -1
-            })
-          }).then(function(friend_fences){
-            console.log('all fences hit', fences.length, 'friend filtered to', friend_fences.length)
-            friend_fences.forEach(function(fence){
-              db.rule_list_by_fence(fence.id)
-                .then(function(rules_cursor){
-                  rules_cursor.toArray()
-                    .then(function(rules){
-                      console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
-                      rules.forEach(function(rule){
-                        if(rule.kind == 'alert') {
-                          rule_alert_go(location, fence, rule)
-                        }
-                      })
-                    })
-                })
-            })
-          })
+          fence_rule_run(location, fences)
 
           var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
                                 .map(function(fence){return fence.id})
@@ -287,6 +266,31 @@ function user_latest(location) {
           return db.update_user_latest(location.user_id, latest)
         })
     })
+}
+
+function fence_rule_run(location, fences) {
+  db.get_user(location.user_id).then(function(location_user){
+    return fences.filter(function(fence){
+      return location_user.id == fence.user_id ||
+             location_user.friends.indexOf(fence.user_id) > -1
+    })
+  }).then(function(friend_fences){
+    console.log('all fences hit', fences.length, 'friend filtered to', friend_fences.length)
+    friend_fences.forEach(function(fence){
+      db.rule_list_by_fence(fence.id)
+        .then(function(rules_cursor){
+          rules_cursor.toArray()
+            .then(function(rules){
+              console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
+              rules.forEach(function(rule){
+                if(rule.kind == 'alert') {
+                  rule_alert_go(location, fence, rule)
+                }
+              })
+            })
+        })
+    })
+  })
 }
 
 function rule_alert_go(location, fence, rule) {
