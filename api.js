@@ -134,7 +134,10 @@ function rules_for(user_id, fence_id) {
 
 function pump_location(location) {
   server.clients.list.forEach(function(client) {
-    console.log('pump_location for device', location.device_id.substr(0, 8), 'to', client.following.length, 'clients')
+    if(clients.following.length > 0) {
+      console.log('pump_location for device', location.device_id.substr(7, 8),
+                  'to', client.following.length, 'clients')
+    }
     client.following.forEach(function(search){
       var stream_id = search(location)
       if(stream_id){
