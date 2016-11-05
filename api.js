@@ -236,8 +236,8 @@ function process_activity_add(client, msg) {
         if(result.errors === 0) {
           protocol.respond_success(client, msg.id, {message: "saved",
                                                     id: msg.params.id})
+          clog(client, 'activity '+msg.params.type)
           if(msg.params.type === 'location') {
-            console.log('location activity added.')
             user_latest_freshen(msg.params)
           }
         } else {
@@ -501,7 +501,7 @@ function process_auth_session(client, msg) {
   } else {
     server.find_session(msg.params.device_key).then(function(session){
       if(session) {
-        console.log("session loaded:", session)
+        console.log("session loaded:", JSON.stringify(session))
         if(session.email) {
           client_auth_check(client, msg, session)
         } else {
