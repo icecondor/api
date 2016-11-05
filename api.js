@@ -278,7 +278,9 @@ function fence_rule_run(location, fences) {
              location_user.friends.indexOf(fence.user_id) > -1
     })
   }).then(function(friend_fences){
-    console.log('all fences hit', fences.length, 'friend filtered to', friend_fences.length)
+    if(fences.length > 0) {
+      console.log('all fences hit', fences.length, 'friend filtered to', friend_fences.length)
+    }
     friend_fences.forEach(function(fence){
       db.rule_list_by_fence(fence.id)
         .then(function(rules_cursor){
