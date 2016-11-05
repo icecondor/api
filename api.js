@@ -133,8 +133,8 @@ function rules_for(user_id, fence_id) {
 }
 
 function pump_location(location) {
-  console.log('pump_location for device ' + location.device_id)
   server.clients.list.forEach(function(client) {
+    console.log('pump_location for device', location.device_id.substr(0, 8), 'to', client.following.length, 'clients')
     client.following.forEach(function(search){
       var stream_id = search(location)
       if(stream_id){
@@ -544,7 +544,7 @@ function client_auth_check(client, msg, session) {
 
 function client_auth_trusted(client, session) {
   client.flags.authenticated = session
-  clog(client, "Trusted user id "+session.user_id.substr(0,8))
+  clog(client, "logged in user id "+session.user_id.substr(0,8))
 }
 
 function user_new(email, device_id){
