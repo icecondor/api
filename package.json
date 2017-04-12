@@ -21,7 +21,9 @@
   "devDependencies": {
     "@types/node": "^7.0.8",
     "eslint": "^0.17.0",
-    "jasmine-node": "1.14.x"
+    "jasmine-node": "1.14.x",
+    "ts-node": "^3.0.2",
+    "typescript": "^2.2.2"
   },
   "repository": {
     "type": "git",
@@ -29,5 +31,8 @@
   },
   "scripts": {
     "test": "jasmine-node spec"
+  },
+  "compilerOptions": {
+    "typeRoots": ["node_modules/@types"]
   }
 }
