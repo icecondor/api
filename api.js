@@ -1,25 +1,32 @@
 // nodejs
-var timers = require('timers')
-var crypto = require('crypto')
-var uuid = require('node-uuid');
-var os = require('os')
+import * as timers from 'timers'
+import * as crypto from 'crypto'
+import * as uuid from 'node-uuid'
+import * as os from 'os'
+//os.freemem()
 
 // npm
-var moment = require('moment')
-var rethink = require('rethinkdb')
-var Promise = require('bluebird');
-var geojsonArea = require('geojson-area')
+import * as moment from 'moment'
+import * as rethink from 'rethinkdb'
+import * as Promise from 'bluebird'
+import * as geojsonArea from 'geojson-area'
 
 // local
-var major_version = 2
-var settings = require('./lib/settings')(major_version)
-var protocol = require('./lib/protocol-v' + major_version)(settings.api)
-var server = require('./lib/server').factory()
-var db = require('./lib/dblib').factory(rethink, rethink.connect(settings.rethinkdb))
-var emailer = require('./lib/email').factory(settings.email)
+let major_version = 2
+import * as settingsLib from './lib/settings'
+let settings = settingsLib(major_version)
+import * as protocolLib from "./lib/protocol-v2"
+let protocol = protocolLib(settings.api)
+import * as serverLib from './lib/server'
+let server = serverLib.factory()
+import * as dbLib from './lib/dblib'
+let db = dbLib.factory(rethink, rethink.connect(settings.rethinkdb)) as any
+import * as emailerLib from './lib/email'
+let emailer = emailerLib.factory(settings.email) as any
 
 // config-dependent
-var stripe = require('stripe')(settings.stripe.key);
+import * as stripeLib from 'stripe'
+let stripe = stripeLib(settings.stripe.key);
 
 var motd = "version:" + settings.api.version + " server:" + settings.api.hostname
 console.log("api", motd)
@@ -151,7 +158,7 @@ function pump_location(location) {
 
 function progress_report() {
   var now = new Date();
-  var period = (now - server.timer.mark) / 1000
+  var period = (now.getTime() - server.timer.mark) / 1000
   var rate = server.timer.hits / period
   var stats = { type: "status_report",
                 server: settings.api.hostname,
@@ -258,7 +265,7 @@ function process_activity_add(client, msg) {
 function user_latest_freshen(location) {
   newer_user_location(location)
     .then(function(newer_location) {
-      fences_for(newer_location)
+      fences_for(newer_location, {})
         .then(function(fences){
           fence_rule_run(location, fences)
 
@@ -311,7 +318,7 @@ function rule_alert_go(location, fence, rule) {
 }
 
 function process_user_stats(client, msg) {
-  var stats = {}
+  var stats: any = {}
   db.users_link_count().then(function(link_count){
     stats.link_count = link_count
     console.log('stats', link_count)
@@ -325,8 +332,8 @@ function process_user_stats(client, msg) {
 }
 
 function process_activity_stats(client, msg) {
-  var stats = {}
-  var allfilter = {}
+  var stats: any = {}
+  var allfilter: any = {}
   if(client.flags.authenticated){
     allfilter.user_id = client.flags.authenticated.user_id
   }
@@ -335,7 +342,7 @@ function process_activity_stats(client, msg) {
     stats.total = count
     // 24 hour count
     var today = msg.params.start ? new Date(msg.params.start) : new Date()
-    var yesterday = new Date(today - 1000 * 60 * 60 * 24)
+    var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24)
     allfilter.start = yesterday
     allfilter.stop = today
     console.log('process_activity_stats', '2 allfilter', allfilter)
@@ -478,7 +485,7 @@ function location_fences_load(location) {
   }
 }
 
-function gravatar_url(email, size) {
+function gravatar_url(email) {
   var md5sum = crypto.createHash('md5')
   md5sum.update(email)
   var url = "//www.gravatar.com/avatar/"+md5sum.digest('hex')
@@ -583,7 +590,7 @@ function process_user_detail(client, msg) {
 
   console.log('process_user_detail', filter)
   db.find_user_by(filter).then(function(user){
-    var safe_user = {id: user.id,
+    var safe_user: any = {id: user.id,
                      username: user.username,
                      friends: []}
     if(client.flags.authenticated) {
@@ -633,7 +640,7 @@ function process_user_access_add(client, msg) {
   if(client.flags.authenticated){
     db.find_user_by({id: client.flags.authenticated.user_id}).then(function(user){
       var key = uuid.v4().substr(0,18)
-      var rule = {created_at: new Date(),
+      var rule: any = {created_at: new Date(),
                   scopes: ["read"]}
       if(msg.params.expires_at){
         rule.expires_at = msg.params.expires_at
@@ -756,7 +763,7 @@ function process_user_friend(client, msg) {
 function process_fence_add(client,msg){
   if(client.flags.authenticated){
     console.log('fence_add', msg)
-    var fence = {}
+    var fence: any = {}
     fence.id = uuid.v4().substr(0,18)
     fence.created_at = new Date()
     fence.name = msg.params.name
@@ -853,7 +860,7 @@ function process_rule_list(client,msg){
 function process_rule_add(client,msg){
   if(client.flags.authenticated){
     console.log('rule_add', msg)
-    var rule = {}
+    var rule: any = {}
     rule.created_at = new Date()
     rule.user_id = client.flags.authenticated.user_id
     rule.fence_id = msg.params.fence_id
