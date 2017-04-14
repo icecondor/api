@@ -1,3 +1,5 @@
-node_modules/
-settings.json
+/node_modules/
+/build/
+
+/settings.json
 /version
