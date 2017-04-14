@@ -10,7 +10,7 @@ import * as moment from 'moment'
 import * as rethink from 'rethinkdb'
 import * as Promise from 'bluebird'
 import * as geojsonArea from 'geojson-area'
-import { InfluxDB } from 'influx'
+import * as request from 'request'
 
 // local
 let major_version = 2
@@ -24,7 +24,6 @@ import * as dbLib from './lib/dblib'
 let db = dbLib.factory(rethink, rethink.connect(settings.rethinkdb)) as any
 import * as emailerLib from './lib/email'
 let emailer = emailerLib.factory(settings.email) as any
-let influx = new InfluxDB(settings.influx)
 
 // config-dependent
 import * as stripeLib from 'stripe'
@@ -41,15 +40,15 @@ db.setup(function(){
   })
 })
 
-influx.writePoints([
-  {
-    measurement: 'heartbeat',
-    tags: { module: 'api' },
-    fields: { value: 1 }
-  }
-]).then(() => {
-  console.log('influx written')
-})
+function influxWrite(module, value) {
+  request({method: 'POST',
+         uri: settings.influx.url+'/write?db='+settings.influx.database,
+         body: "response_time,module="+module+" value="+value},
+         function (error, response, body) {
+           if(error) {console.log(error)}
+         })
+}
+influxWrite('api', 3)
 
 server.on('listening', function () {
   console.log("api listening on *:" + settings.api.listen_port)
