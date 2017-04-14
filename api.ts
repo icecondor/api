@@ -41,6 +41,16 @@ db.setup(function(){
   })
 })
 
+influx.writePoints([
+  {
+    measurement: 'heartbeat',
+    tags: { module: 'api' },
+    fields: { value: 1 }
+  }
+]).then(() => {
+  console.log('influx written')
+})
+
 server.on('listening', function () {
   console.log("api listening on *:" + settings.api.listen_port)
   timers.setInterval(function() {
