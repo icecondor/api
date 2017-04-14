@@ -10,6 +10,7 @@ import * as moment from 'moment'
 import * as rethink from 'rethinkdb'
 import * as Promise from 'bluebird'
 import * as geojsonArea from 'geojson-area'
+import { InfluxDB } from 'influx'
 
 // local
 let major_version = 2
@@ -23,6 +24,7 @@ import * as dbLib from './lib/dblib'
 let db = dbLib.factory(rethink, rethink.connect(settings.rethinkdb)) as any
 import * as emailerLib from './lib/email'
 let emailer = emailerLib.factory(settings.email) as any
+let influx = new InfluxDB(settings.influx)
 
 // config-dependent
 import * as stripeLib from 'stripe'
