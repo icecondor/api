@@ -30,7 +30,7 @@
     "url": "http://github.com/icecondor/api.git"
   },
   "scripts": {
-    "server": "tsc && node build/api.js",
+    "start": "tsc && node build/api.js",
     "test": "jasmine-node spec"
   },
   "compilerOptions": {
