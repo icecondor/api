@@ -48,7 +48,6 @@ function influxWrite(module, value) {
            if(error) {console.log(error)}
          })
 }
-influxWrite('api', 3)
 
 server.on('listening', function () {
   console.log("api listening on *:" + settings.api.listen_port)
@@ -252,8 +251,10 @@ function process_activity_add(client, msg) {
     var now = new Date()
     msg.params.received_at = now.toISOString()
 
+    let timer = new Date()
     db.activity_add(msg.params)
       .then(function(result) {
+        influxWrite('activity_add', (new Date()).getTime() - timer.getTime())
         if(result.errors === 0) {
           protocol.respond_success(client, msg.id, {message: "saved",
                                                     id: msg.params.id})
@@ -466,14 +467,16 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   console.log('send_last_locations',user_id, stream_id, start, stop, count, type, order)
   //db.count_locations_for(user_id, start, stop, count, type, order)
   //  .then(function(qcount){}) // stream helper
-    db.find_locations_for(user_id, start, stop, count, type, order)
-      .then(function(cursor){
-        cursor.each(function(err, location){
-          location_fences_load(location).then(function(location){
-            protocol.respond_success(client, stream_id, location)
-          })
+  let timer = new Date()
+  db.find_locations_for(user_id, start, stop, count, type, order)
+    .then(function(cursor){
+      cursor.each(function(err, location){
+        location_fences_load(location).then(function(location){
+          influxWrite('send_last_locations', (new Date()).getTime() - timer.getTime())
+          protocol.respond_success(client, stream_id, location)
         })
       })
+    })
 }
 
 function location_fences_load(location) {
