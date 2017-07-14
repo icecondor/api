@@ -2,6 +2,7 @@
 var net = require('net')
 var http = require('http')
 var Url = require('url')
+var uuid = require('node-uuid')
 var settings = require('./settings')
 
 console.log("rest listening on", settings.rest.listen_port)
@@ -15,8 +16,8 @@ var server = http.createServer(function(request, response) {
     }).on('end', () => {
       body = Buffer.concat(body).toString()
       try {
-        let geojson = JSON.parse(body)
-        push_point(response, params.token, geojson2icecondor(geojson))
+        let jsonbody = JSON.parse(body)
+        push_point(response, params.token, geojson2icecondor(jsonbody.locations[0]))
       } catch(e) {
         console.log(e)
         response.writeHead(400)
@@ -28,7 +29,7 @@ var server = http.createServer(function(request, response) {
 
 server.listen(settings.rest.listen_port)
 
-function push_point(response, auth_token, geopoint) {
+function push_point(response, auth_token, icpoint) {
   console.log('ws_connect')
   var apiSocket = new net.Socket()
 
@@ -57,8 +58,9 @@ function push_point(response, auth_token, geopoint) {
 
     if(msg.result) {
       if(msg.result.user) {
-        apiSocket.write(JSON.stringify({id:"l1",
-          method:"activity.add", params:{}})+"\n")
+        let rpc = {id:"l1", method:"activity.add", params:icpoint}
+        console.log(rpc)
+        apiSocket.write(JSON.stringify(rpc)+"\n")
         response.writeHead(200)
         response.end()
       }
@@ -68,6 +70,8 @@ function push_point(response, auth_token, geopoint) {
   apiSocket.on('error', function(exception) {
     console.log("apiSocket error: "+exception)
     apiSocket.end()
+    response.writeHead(500)
+    response.end()
   })
 
   apiSocket.connect(settings.api.listen_port, "localhost")
@@ -75,6 +79,20 @@ function push_point(response, auth_token, geopoint) {
 
 function geojson2icecondor(geojson){
   console.log('geojson', geojson)
+
+/*
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-122.621, 45.535]
+      },
+      "properties": {
+        "timestamp": "2017-01-01T10:00:00-0700",
+        "horizontal_accuracy": 65
+      }
+    }
+*/
 /*
 {
   "id": "c7aaef5d-b785-4f1f-8c9d-0189749de972",
@@ -87,4 +105,7 @@ function geojson2icecondor(geojson){
   "provider": "network"
 }
 */
+  return {
+    id: uuid.v4()
+  }
 }
