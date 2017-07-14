@@ -1,15 +1,29 @@
+'use strict'
 var net = require('net')
 var http = require('http')
 var Url = require('url')
 var settings = require('./settings')
 
 console.log("rest listening on", settings.rest.listen_port)
-var server = http.createServer( function(request, response) {
+var server = http.createServer(function(request, response) {
     var url = Url.parse(request.url)
-    var parts = url.query.split('&').map(function(r){z=r.match(/([^=]+)=(.*)/); y={}; y[z[1]]=z[2]; return y})
+    var parts = url.query.split('&').map(function(r){let z=r.match(/([^=]+)=(.*)/); let y={}; y[z[1]]=z[2]; return y})
     var params = Object.assign({}, ...parts)
-    console.log('rest connected. ', params)
-    push_point(response, params.token, {})
+    let body = []
+    request.on('data', (chunk) => {
+      body.push(chunk)
+    }).on('end', () => {
+      body = Buffer.concat(body).toString()
+      try {
+        let geojson = JSON.parse(body)
+        push_point(response, params.token, geojson2icecondor(geojson))
+      } catch(e) {
+        console.log(e)
+        response.writeHead(400)
+        response.end()
+      }
+    })
+
 })
 
 server.listen(settings.rest.listen_port)
@@ -60,6 +74,7 @@ function push_point(response, auth_token, geopoint) {
 }
 
 function geojson2icecondor(geojson){
+  console.log('geojson', geojson)
 /*
 {
   "id": "c7aaef5d-b785-4f1f-8c9d-0189749de972",
