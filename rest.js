@@ -41,7 +41,7 @@ function push_point(response, auth_token, icpoint) {
     if(msg.method) {
       console.log('method', msg.method)
       if(msg.method == "hello") {
-        apiSocket.write(JSON.stringify({id:"r1",
+        apiSocket.write(JSON.stringify({id:"rpc-auth",
           method:"auth.session", params:{device_key: auth_token}})+"\n")
       }
     }
@@ -56,12 +56,18 @@ function push_point(response, auth_token, icpoint) {
       response.end()
     }
 
-    if(msg.result) {
+    if(msg.id == "rpc-auth" && msg.result) {
       if(msg.result.user) {
-        let rpc = {id:"l1", method:"activity.add", params:icpoint}
+        let rpc = {id:"rpc-add", method:"activity.add", params:icpoint}
         console.log(rpc)
         apiSocket.write(JSON.stringify(rpc)+"\n")
+      }
+    }
+
+    if(msg.id == "rpc-add") {
+      if(msg.result) {
         response.writeHead(200)
+        response.write(JSON.stringify(msg.result))
         response.end()
       }
     }
@@ -131,6 +137,7 @@ function geojson2icecondor(geojson){
     date: geojson.properties.timestamp,
     latitude: geojson.geometry.coordinates[1],
     longitude: geojson.geometry.coordinates[0],
-    accuracy: geojson.properties.horizontal_accuracy
+    accuracy: geojson.properties.horizontal_accuracy,
+    provider: "network"
   }
 }
