@@ -68,8 +68,12 @@ function push_point(response, auth_token, icpoint) {
       if(msg.result) {
         response.writeHead(200)
         response.write(JSON.stringify(msg.result))
-        response.end()
       }
+      if(msg.error) {
+        response.writeHead(500)
+        response.write(JSON.stringify(msg.error))
+      }
+      response.end()
     }
   })
 
