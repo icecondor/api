@@ -78,7 +78,7 @@ function push_point(response, auth_token, icpoint) {
 }
 
 function geojson2icecondor(geojson){
-  console.log('geojson', geojson)
+  console.log('geojson', JSON.stringify(geojson, null, 2))
 
 /*
     {
@@ -92,6 +92,25 @@ function geojson2icecondor(geojson){
         "horizontal_accuracy": 65
       }
     }
+
+{ type: 'Feature',
+  geometry: { type: 'Point', coordinates: [ -122.406417, 37.785834 ] },
+  properties:
+   { speed: -1,
+     battery_state: 'unknown',
+     timestamp: '2017-07-14T21:51:35Z',
+     motion: [],
+     horizontal_accuracy: 5,
+     vertical_accuracy: -1,
+     pauses: false,
+     deferred: 0,
+     significant_change: 0,
+     locations_in_payload: 1,
+     battery_level: -1,
+     activity: 'other',
+     desired_accuracy: 100,
+     altitude: 0 } }
+
 */
 /*
 {
