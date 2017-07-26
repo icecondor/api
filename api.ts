@@ -390,8 +390,26 @@ function process_activity_stats(client, msg) {
 }
 
 function process_stream_follow(client, msg) {
+  var stream_id = uuid.v4().substr(0, 8)
+  if (msg.params.username) {
+    stream_follow_user(stream_id, client, msg)
+  } else {
+      if(msg.params.follow) {
+        db.friending_me(client.flags.authenticated.user_id).then(function(friends){
+          friends.forEach(function(friend){
+            client.following.push(function(location){
+              if(location.user_id === friend.id){
+                return stream_id
+              }
+            })
+          })
+        })
+      }
+  }
+}
+
+function stream_follow_user(stream_id, client, msg) {
   db.find_user_by({username: msg.params.username}).then(function(user){
-    var stream_id = uuid.v4().substr(0, 8)
     var auth = false
 
     if(msg.params.key) {
