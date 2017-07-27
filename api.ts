@@ -400,6 +400,7 @@ function process_stream_follow(client, msg) {
           cursor.toArray().then(function(friends){
             console.log(friends)
             friends.forEach(function(friend){
+              send_last_locations(client, stream_id, friend.id, null, null, 1, msg.params.type, 'newest')
               client.following.push(function(location){
                 if(location.user_id === friend.id){
                   return stream_id
