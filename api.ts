@@ -394,17 +394,25 @@ function process_stream_follow(client, msg) {
   if (msg.params.username) {
     stream_follow_user(stream_id, client, msg)
   } else {
+    if(client.flags.authenticated){
       if(msg.params.follow) {
-        db.friending_me(client.flags.authenticated.user_id).then(function(friends){
-          friends.forEach(function(friend){
-            client.following.push(function(location){
-              if(location.user_id === friend.id){
-                return stream_id
-              }
+        db.friending_me(client.flags.authenticated.user_id).then(function(cursor){
+          cursor.toArray().then(function(friends){
+            console.log(friends)
+            friends.forEach(function(friend){
+              client.following.push(function(location){
+                if(location.user_id === friend.id){
+                  return stream_id
+                }
+              })
             })
           })
         })
       }
+    } else {
+      protocol.respond_fail(client, msg.id, {code: "UNAUTHORIZED",
+                                             message: "This action requires authorization"})
+    }
   }
 }
 
