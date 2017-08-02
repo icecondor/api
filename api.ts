@@ -120,6 +120,7 @@ function friendly_fences_for(location, friends: string[]) {
         var friendly_fences = fences.filter(fence => friends.indexOf(fence.user_id) != -1)
         console.log('pt hit', fences.length, 'looking for', friends.length, 'friends.',
                     'found', friendly_fences.length, 'friendly fences')
+        return friendly_fences
       })
   })
 }
