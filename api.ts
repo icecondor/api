@@ -261,30 +261,33 @@ function process_activity_add(client, msg) {
 
 function user_latest_freshen(location) {
   return db.get_user(location.user_id).then(function(user){
-    newer_user_location(user, location)
-      .then(function(last_location) {
-        friendly_fences_for(last_location, [user.id].concat(user.friends))
-          .then(function(last_fences) {
-            friendly_fences_for(location, [user.id].concat(user.friends))
-              .then(function(fences){
-                console.log('new pt', location.date,'in', fences.length, 'fences.',
-                            'prev pt', last_location.date,' in', last_fences.length, 'fences.')
-                var fences_left = fences_diff(last_fences, fences)
-                var fences_entered = fences_diff(fences, last_fences)
-                console.log('fences_left', fences_left, 'fences_entered', fences_entered)
+    db.friending_me(user.id)
+      .then(function(friends){
+        newer_user_location(user, location)
+          .then(function(last_location) {
+            friendly_fences_for(last_location, [user.id].concat(friends))
+              .then(function(last_fences) {
+                friendly_fences_for(location, [user.id].concat(friends))
+                  .then(function(fences){
+                    console.log('new pt', location.date,'in', fences.length, 'fences.',
+                                'prev pt', last_location.date,' in', last_fences.length, 'fences.')
+                    var fences_left = fences_diff(last_fences, fences)
+                    var fences_entered = fences_diff(fences, last_fences)
+                    console.log('fences_left', fences_left, 'fences_entered', fences_entered)
 
-                fence_rule_run(location, fences)
+                    fence_rule_run(location, fences)
 
-                var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
-                                      .map(function(fence){return fence.id})
-                var latest = { location_id: location.id,
-                                fences: my_fences }
-                return db.update_user_latest(location.user_id, latest)
+                    var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
+                                          .map(function(fence){return fence.id})
+                    var latest = { location_id: location.id,
+                                    fences: my_fences }
+                    return db.update_user_latest(location.user_id, latest)
+                  })
               })
-          })
-      }, function() {
-        console.log('skipping user freshen. historical point received.')
-      } )
+          }, function() {
+            console.log('skipping user freshen. historical point received.')
+          } )
+      })
   })
 }
 
