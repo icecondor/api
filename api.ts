@@ -256,46 +256,50 @@ function process_activity_add(client, msg) {
 }
 
 function user_latest_freshen(location) {
-  newer_user_location(location)
-    .then(function(time_locations) {
-      fences_for(time_locations.older, {})
-        .then(function(old_fences) {
-          fences_for(time_locations.newer, {})
-            .then(function(fences){
-              console.log('new pt in', fences.length, 'fences.',
-                          'prev pt in', old_fences.length, 'fences.')
-              var fences_left = fences_diff(old_fences, fences)
-              var fences_entered = fences_diff(fences, old_fences)
-              console.log('fences_left', fences_left, 'fences_entered', fences_entered)
+  return db.get_user(location.user_id).then(function(user){
+    newer_user_location(location)
+      .then(function(last_location) {
+        fences_for(last_location, {})
+          .then(function(last_fences) {
+            fences_for(location, {})
+              .then(function(fences){
+                console.log('new pt', location.date,'in', fences.length, 'fences.',
+                            'prev pt', last_location.date,' in', last_fences.length, 'fences.')
+                var fences_left = fences_diff(last_fences, fences)
+                var fences_entered = fences_diff(fences, last_fences)
+                console.log('fences_left', fences_left, 'fences_entered', fences_entered)
 
-              fence_rule_run(location, fences)
+                fence_rule_run(location, fences)
 
-              var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
-                                    .map(function(fence){return fence.id})
-              var latest = { location_id: time_locations.newer.id,
-                              fences: my_fences }
-              return db.update_user_latest(location.user_id, latest)
-            })
-        })
-    })
+                var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
+                                      .map(function(fence){return fence.id})
+                var latest = { location_id: time_locations.newer.id,
+                                fences: my_fences }
+                return db.update_user_latest(location.user_id, latest)
+              })
+          })
+      })
+  })
 }
 
 function newer_user_location(location) {
-  return db.get_user(location.user_id).then(function(user){
-    return new Promise(function(resolve) {
-      if(user.latest && user.latest.location_id){
-        db.activity_get(user.latest.location_id)
-          .then(function(last_location){
-            if(last_location) {
-              if(location.date > last_location.date){
-                resolve({newer: location, older: last_location})
-              }
+  return new Promise(function(resolve, reject) {
+    if(user.latest && user.latest.location_id){
+      db.activity_get(user.latest.location_id)
+        .then(function(last_location){
+          if(last_location) {
+            if(location.date > last_location.date){
+              resolve(last_location)
+            } else {
+              reject()
             }
-          })
-      } else {
-        resolve({newer: location, older: location})
-      }
-    })
+          } else {
+            resolve(location)
+          }
+        })
+    } else {
+      resolve(location)
+    }
   })
 }
 
