@@ -113,25 +113,6 @@ function activity_added(activity_chg){
   }
 }
 
-function newer_user_location(location) {
-  return db.get_user(location.user_id).then(function(user){
-    return new Promise(function(resolve) {
-      if(user.latest && user.latest.location_id){
-        db.activity_get(user.latest.location_id)
-          .then(function(last_location){
-            if(last_location) {
-              if(location.date > last_location.date){
-                resolve({newer: location, older: last_location})
-              }
-            }
-          })
-      } else {
-        resolve({newer: location, older: location})
-      }
-    })
-  })
-}
-
 function fences_for(location, filter) {
   return db.fences_intersect(rethink.point(location.longitude, location.latitude), filter)
     .then(function(cursor){
@@ -297,6 +278,25 @@ function user_latest_freshen(location) {
             })
         })
     })
+}
+
+function newer_user_location(location) {
+  return db.get_user(location.user_id).then(function(user){
+    return new Promise(function(resolve) {
+      if(user.latest && user.latest.location_id){
+        db.activity_get(user.latest.location_id)
+          .then(function(last_location){
+            if(last_location) {
+              if(location.date > last_location.date){
+                resolve({newer: location, older: last_location})
+              }
+            }
+          })
+      } else {
+        resolve({newer: location, older: location})
+      }
+    })
+  })
 }
 
 function fences_diff(a: any[], b: any[]) {
