@@ -121,12 +121,12 @@ function newer_user_location(location) {
           .then(function(last_location){
             if(last_location) {
               if(location.date > last_location.date){
-                resolve(location)
+                resolve({newer: location, older: last_location})
               }
             }
           })
       } else {
-        resolve(location)
+        resolve({newer: location, older: location})
       }
     })
   })
@@ -276,18 +276,30 @@ function process_activity_add(client, msg) {
 
 function user_latest_freshen(location) {
   newer_user_location(location)
-    .then(function(newer_location) {
-      fences_for(newer_location, {})
-        .then(function(fences){
-          fence_rule_run(location, fences)
+    .then(function(time_locations) {
+      fences_for(time_locations.older, {})
+        .then(function(old_fences) {
+          fences_for(time_locations.newer, {})
+            .then(function(fences){
+              console.log('new pt', fences.length, 'prev pt', old_fences.length)
+              var fences_left = array_diff(old_fences, fences)
+              var fences_entered = array_diff(fences, old_fences)
+              console.log('fences_left', fences_left, 'fences_entered', fences_entered)
 
-          var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
-                                .map(function(fence){return fence.id})
-          var latest = { location_id: newer_location.id,
-                          fences: my_fences }
-          return db.update_user_latest(location.user_id, latest)
+              fence_rule_run(location, fences)
+
+              var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
+                                    .map(function(fence){return fence.id})
+              var latest = { location_id: time_locations.newer.id,
+                              fences: my_fences }
+              return db.update_user_latest(location.user_id, latest)
+            })
         })
     })
+}
+
+function array_diff(a: string[], b: string[]) {
+  a.filter(x => b.indexOf(x) == -1)
 }
 
 function fence_rule_run(location, fences) {
@@ -298,7 +310,8 @@ function fence_rule_run(location, fences) {
     })
   }).then(function(friend_fences){
     if(fences.length > 0) {
-      console.log('all fences hit', fences.length, 'friend filtered to', friend_fences.length)
+      console.log('location id', location.id, 'hit', fences.length, 'fences.',
+                  'friend filtered to', friend_fences.length)
     }
     friend_fences.forEach(function(fence){
       db.rule_list_by_fence(fence.id)
