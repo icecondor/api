@@ -278,7 +278,7 @@ function user_latest_freshen(location) {
                 return db.update_user_latest(location.user_id, latest)
               })
           })
-      })
+      }, function() { /* old point */ } )
   })
 }
 
