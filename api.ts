@@ -113,10 +113,14 @@ function activity_added(activity_chg){
   }
 }
 
-function fences_for(location, filter) {
-  return db.fences_intersect(rethink.point(location.longitude, location.latitude), filter)
+function friendly_fences_for(location, friends: string[]) {
+  return db.fences_intersect(rethink.point(location.longitude, location.latitude))
     .then(function(cursor){
-      return cursor.toArray()
+      return cursor.toArray().then(fences => {
+        var friendly_fences = fences.filter(fence => friends.indexOf(fence.user_id) != -1)
+        console.log('pt hit', fences.length, 'looking for', friends.length, 'friends.',
+                    'found', friendly_fences.length, 'friendly fences')
+      })
   })
 }
 
@@ -195,7 +199,7 @@ function pump(status) {
 }
 
 function fences_add(location) {
-  return fences_for(location, {user_id: location.user_id}).then(function(fences){
+  return friendly_fences_for(location, [location.user_id]).then(function(fences){
     if(fences.length > 0) {
       location.fences = fences.map(function(fence){return fence.id})
     }
@@ -259,9 +263,9 @@ function user_latest_freshen(location) {
   return db.get_user(location.user_id).then(function(user){
     newer_user_location(user, location)
       .then(function(last_location) {
-        fences_for(last_location, {})
+        friendly_fences_for(last_location, [user.id].concat(user.friends))
           .then(function(last_fences) {
-            fences_for(location, {})
+            friendly_fences_for(location, [user.id].concat(user.friends))
               .then(function(fences){
                 console.log('new pt', location.date,'in', fences.length, 'fences.',
                             'prev pt', last_location.date,' in', last_fences.length, 'fences.')
