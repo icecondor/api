@@ -257,7 +257,7 @@ function process_activity_add(client, msg) {
 
 function user_latest_freshen(location) {
   return db.get_user(location.user_id).then(function(user){
-    newer_user_location(location)
+    newer_user_location(user, location)
       .then(function(last_location) {
         fences_for(last_location, {})
           .then(function(last_fences) {
@@ -273,7 +273,7 @@ function user_latest_freshen(location) {
 
                 var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
                                       .map(function(fence){return fence.id})
-                var latest = { location_id: time_locations.newer.id,
+                var latest = { location_id: location.id,
                                 fences: my_fences }
                 return db.update_user_latest(location.user_id, latest)
               })
@@ -282,7 +282,7 @@ function user_latest_freshen(location) {
   })
 }
 
-function newer_user_location(location) {
+function newer_user_location(user, location) {
   return new Promise(function(resolve, reject) {
     if(user.latest && user.latest.location_id){
       db.activity_get(user.latest.location_id)
