@@ -283,8 +283,8 @@ function user_latest_freshen(location) {
             .then(function(fences){
               console.log('new pt in', fences.length, 'fences.',
                           'prev pt in', old_fences.length, 'fences.')
-              var fences_left = array_diff(old_fences, fences)
-              var fences_entered = array_diff(fences, old_fences)
+              var fences_left = fences_diff(old_fences, fences)
+              var fences_entered = fences_diff(fences, old_fences)
               console.log('fences_left', fences_left, 'fences_entered', fences_entered)
 
               fence_rule_run(location, fences)
@@ -299,8 +299,8 @@ function user_latest_freshen(location) {
     })
 }
 
-function array_diff(a: string[], b: string[]) {
-  return a.filter(x => b.indexOf(x) == -1)
+function fences_diff(a: any[], b: any[]) {
+  return a.filter(x => b.map(f => f.id).indexOf(x.id) == -1)
 }
 
 function fence_rule_run(location, fences) {
