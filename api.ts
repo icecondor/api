@@ -539,7 +539,6 @@ function location_fences_load(location) {
       .then(rules_add)
         .then(function(location){
           if(location.rules) {
-            console.log('rules for location:', location.rules.map(function(rule){return rule.kind}))
             var cloak_rules = location.rules.filter(function(rule){return rule.kind == 'cloaked'})
             if(cloak_rules.length > 0) {
               delete location.longitude
