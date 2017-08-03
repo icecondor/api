@@ -432,7 +432,8 @@ function process_stream_follow(client, msg) {
 }
 
 function stream_follow_user(stream_id, client, msg) {
-  var findby = {id: msg.params.id, username: msg.params.username}
+  var findby: any = {username: msg.params.username}
+  if(msg.params.id) { findby = {id: msg.params.id} }
   db.find_user_by(findby).then(function(user){
     var auth = false
 
