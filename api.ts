@@ -142,7 +142,7 @@ function pump_location(location) {
     client.following.forEach(function(search){
       var stream_id = search(location)
       if(stream_id){
-        location_fences_load(location, client.flags.authenticated.user_id).then(function(location_enhanced){
+        location_fences_load(location).then(function(location_enhanced){
           protocol.respond_success(client, stream_id, location_enhanced)
         })
       }
@@ -197,8 +197,8 @@ function pump(status) {
   })
 }
 
-function fences_add(location, user_id) {
-  return friendly_fences_for(location, [user_id]).then(function(fences){
+function fences_add(location) {
+  return friendly_fences_for(location, [location.user_id]).then(function(fences){
     if(fences.length > 0) {
       location.fences = fences.map(function(fence){return fence.id})
     }
@@ -524,7 +524,7 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   db.find_locations_for(user_id, start, stop, count, type, order)
     .then(function(cursor){
       cursor.each(function(err, location){
-        location_fences_load(location, client.flags.authenticated.user_id).then(function(location){
+        location_fences_load(location).then(function(location){
           influxWrite('send_last_locations', (new Date()).getTime() - timer.getTime())
           protocol.respond_success(client, stream_id, location)
         })
@@ -532,9 +532,9 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
     })
 }
 
-function location_fences_load(location, user_id) {
+function location_fences_load(location) {
   if(location.type == 'location') {
-    return fences_add(location, user_id)
+    return fences_add(location)
       .then(rules_add)
         .then(function(location){
           if(location.rules) {
