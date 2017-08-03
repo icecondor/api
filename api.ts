@@ -268,11 +268,12 @@ function user_latest_freshen(location) {
               .then(function(last_fences) {
                 friendly_fences_for(location, [user.id].concat(friends))
                   .then(function(fences){
-                    console.log('new pt', location.date,'in', fences.length, 'fences.',
+                    console.log(user.username, 'new pt', location.date,'in', fences.length, 'fences.',
                                 'prev pt', last_location.date,' in', last_fences.length, 'fences.')
                     var fences_left = fences_diff(last_fences, fences)
                     var fences_entered = fences_diff(fences, last_fences)
-                    console.log('fences_left', fences_left, 'fences_entered', fences_entered)
+                    console.log(user.username, 'fences_left', fences_left.map(f => f.name),
+                                'fences_entered', fences_entered.map(f => f.name))
 
                     fence_rule_run(location, fences)
 
