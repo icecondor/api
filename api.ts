@@ -271,12 +271,13 @@ function user_latest_freshen(location) {
                   .then(function(fences){
                     console.log(user.username, 'new pt', location.date,'in', fences.length, 'fences.',
                                 'prev pt', last_location.date,' in', last_fences.length, 'fences.')
-                    var fences_left = fences_diff(last_fences, fences)
+                    var fences_exited = fences_diff(last_fences, fences)
                     var fences_entered = fences_diff(fences, last_fences)
-                    console.log(user.username, 'fences_left', fences_left.map(f => f.name),
+                    console.log(user.username, 'fences_exited', fences_exited.map(f => f.name),
                                 'fences_entered', fences_entered.map(f => f.name))
 
-                    fence_rule_run(location, fences)
+                    fence_rule_run(user, location, fences_entered, "entered")
+                    fence_rule_run(user, location, fences_exited, "exited")
 
                     var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
                                           .map(function(fence){return fence.id})
@@ -317,43 +318,35 @@ function fences_diff(a: any[], b: any[]) {
   return a.filter(x => b.map(f => f.id).indexOf(x.id) == -1)
 }
 
-function fence_rule_run(location, fences) {
-  db.get_user(location.user_id).then(function(location_user){
-    return fences.filter(function(fence){
-      return location_user.id == fence.user_id ||
-             location_user.friends.indexOf(fence.user_id) > -1
-    })
-  }).then(function(friend_fences){
-    if(fences.length > 0) {
-      console.log('location id', location.id, 'hit', fences.length, 'fences.',
-                  'friend filtered to', friend_fences.length)
-    }
-    friend_fences.forEach(function(fence){
-      db.rule_list_by_fence(fence.id)
-        .then(function(rules_cursor){
-          rules_cursor.toArray()
-            .then(function(rules){
-              console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
-              rules.forEach(function(rule){
-                if(rule.kind == 'alert') {
-                  rule_alert_go(location, fence, rule)
-                }
-              })
+function fence_rule_run(user, location, fences, direction: Direction) {
+  fences.forEach(function(fence){
+    db.rule_list_by_fence(fence.id)
+      .then(function(rules_cursor){
+        rules_cursor.toArray()
+          .then(function(rules){
+            console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
+            rules.forEach(function(rule){
+              if(rule.kind == 'alert') {
+                rule_alert_go(user, location, fence, rule, direction)
+              }
             })
-        })
-    })
+          })
+      })
   })
 }
 
-function rule_alert_go(location, fence, rule) {
-  console.log('rule alert go!')
+type Direction = "entered" | "exited"
+
+function rule_alert_go(user, location, fence, rule, direction: Direction) {
+  console.log('rule trigger', rule.kind, 'for location user', user.username,
+              'fence', fence.name, 'direction', direction)
   db.get_user(rule.user_id)
     .then(function(ruleuser){
-      db.get_user(location.user_id)
-        .then(function(locationuser){
-          var email = emailer.build_fence_alert_email(ruleuser.email, fence.name, locationuser.username)
-          emailer.send_email(email)
-        })
+      var email = emailer.build_fence_alert_email(ruleuser.email,
+                                                  fence.name,
+                                                  user.username,
+                                                  direction)
+      emailer.send_email(email)
     })
 }
 
