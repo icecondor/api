@@ -264,7 +264,7 @@ function user_latest_freshen(location) {
       .then(function(friends){
         newer_user_location(user, location)
           .then(function(last_location) {
-            friendly_fences_for(last_location, [user.id].concat(friends))
+            friendly_fences_for(last_location, [user.id].concat(friends.map(f => f.id)))
               .then(function(last_fences) {
                 friendly_fences_for(location, [user.id].concat(friends))
                   .then(function(fences){
