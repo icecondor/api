@@ -416,19 +416,14 @@ function process_stream_follow(client, msg) {
     stream_follow_user(stream_id, client, msg)
   } else {
     if(client.flags.authenticated){
-      if(msg.params.follow) {
-        db.friending_me(client.flags.authenticated.user_id).then(function(friends){
-          console.log(friends)
-          friends.forEach(function(friend){
-            send_last_locations(client, stream_id, friend.id, null, null, 1, msg.params.type, 'newest')
-            client.following.push(function(location){
-              if(location.user_id === friend.id){
-                return stream_id
-              }
-            })
-          })
+      db.friending_me(client.flags.authenticated.user_id).then(function(friends){
+        console.log(friends)
+        friends.forEach(function(friend){
+          msg.params.username = friend.username
+          msg.params.count = 1
+          stream_follow_user(stream_id, client, msg)
         })
-      }
+      })
     } else {
       protocol.respond_fail(client, msg.id, {code: "UNAUTHORIZED",
                                              message: "This action requires authorization"})
@@ -459,11 +454,11 @@ function stream_follow_user(stream_id, client, msg) {
     }
 
     if(auth) {
-      if(!msg.params.count){ msg.params.count = 2 }
+      if(!msg.params.count){ msg.params.count = 1 }
       var count = msg.params.count < 2000 ? msg.params.count : 2000
       var start = msg.params.start && (new Date(msg.params.start))
       var stop = msg.params.stop && (new Date(msg.params.stop))
-      var type = msg.params.type
+      var type = msg.params.type || "location"
       var order = msg.params.order
       if(msg.params.follow) {
         // a running query if no stop/start specified
@@ -474,7 +469,7 @@ function stream_follow_user(stream_id, client, msg) {
         })
       }
 
-      protocol.respond_success(client, msg.id, {stream_id: stream_id})
+      protocol.respond_success(client, msg.id, {stream_id: stream_id, added: [{id: user.id, username: user.username}]})
       send_last_locations(client, stream_id, user.id, start, stop, count, type, order)
 
     } else {
