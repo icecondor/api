@@ -416,11 +416,11 @@ function process_stream_follow(client, msg) {
     stream_follow_user(stream_id, client, msg)
   } else {
     if(client.flags.authenticated){
+      msg.params.id = client.flags.authenticated.user_id
+      stream_follow_user(stream_id, client, msg) // follow me too
       db.friending_me(client.flags.authenticated.user_id).then(function(friends){
-        console.log(friends)
         friends.forEach(function(friend){
-          msg.params.username = friend.username
-          msg.params.count = 1
+          msg.params.id = friend.id
           stream_follow_user(stream_id, client, msg)
         })
       })
@@ -432,7 +432,8 @@ function process_stream_follow(client, msg) {
 }
 
 function stream_follow_user(stream_id, client, msg) {
-  db.find_user_by({username: msg.params.username}).then(function(user){
+  var findby = {id: msg.params.id, username: msg.params.username}
+  db.find_user_by(findby).then(function(user){
     var auth = false
 
     if(msg.params.key) {
