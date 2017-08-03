@@ -262,11 +262,12 @@ function user_latest_freshen(location) {
   return db.get_user(location.user_id).then(function(user){
     db.friending_me(user.id)
       .then(function(friends){
+        var me_and_friends = [user.id].concat(friends.map(f => f.id))
         newer_user_location(user, location)
           .then(function(last_location) {
-            friendly_fences_for(last_location, [user.id].concat(friends.map(f => f.id)))
+            friendly_fences_for(last_location, me_and_friends)
               .then(function(last_fences) {
-                friendly_fences_for(location, [user.id].concat(friends))
+                friendly_fences_for(location, me_and_friends)
                   .then(function(fences){
                     console.log(user.username, 'new pt', location.date,'in', fences.length, 'fences.',
                                 'prev pt', last_location.date,' in', last_fences.length, 'fences.')
