@@ -13,7 +13,15 @@ html(xmlns="http://www.w3.org/1999/xhtml")
       a(href="#{fence_link}") #{fence_name}.
 
     p(style='padding: 1em 0;')
-      | Location inside #{location_inside.date}
+      | Location inside
+      div(style='padding: 1em 0; background: grey; color: white;')
+        | date #{location_inside.date}
+        | lat/lng #{location_inside.latitude.toFixed(4)} / #{location_inside.longitude.toFixed(4)}
+        | accuracy #{location_inside.accuracy}
 
     p(style='padding: 1em 0;')
-      | Location outside #{location_outside.date}
+      | Location outside
+      div(style='padding: 1em 0; background: grey; color: white;')
+        | date #{location_outside.date}
+        | lat/lng #{location_outside.latitude.toFixed(4)} / #{location_outside.longitude.toFixed(4)}
+        | accuracy #{location_outside.accuracy}

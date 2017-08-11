@@ -343,7 +343,7 @@ function rule_alert_go(user, location_outside, location_inside, fence, rule, dir
   db.get_user(rule.user_id)
     .then(function(ruleuser){
       var email = emailer.build_fence_alert_email(ruleuser.email,
-                                                  fence.name,
+                                                  fence,
                                                   user.username,
                                                   location_outside,
                                                   location_inside,
