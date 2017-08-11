@@ -4,10 +4,16 @@ html(xmlns="http://www.w3.org/1999/xhtml")
     meta(http-equiv="Content-Type" content="text/html; charset=UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
 
-  body(style="margin: 0; padding: 0;")
+  body(style="margin: 0; padding: 0 1em;")
     h2 IceCondor Fence Alert
 
     p(style='padding: 1em 0;')
       a(href="#{user_link}") #{username}
-      |  has crossed fence #{fence_name}.
+      |  has #{direction} fence
+      a(href="#{fence_link}") #{fence_name}.
 
+    p(style='padding: 1em 0;')
+      | Location inside #{location_inside.date}
+
+    p(style='padding: 1em 0;')
+      | Location outside #{location_outside.date}

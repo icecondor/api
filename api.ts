@@ -276,8 +276,8 @@ function user_latest_freshen(location) {
                     console.log(user.username, 'fences_exited', fences_exited.map(f => f.name),
                                 'fences_entered', fences_entered.map(f => f.name))
 
-                    fence_rule_run(user, location, fences_entered, "entered")
-                    fence_rule_run(user, location, fences_exited, "exited")
+                    fence_rule_run(user, last_location, location, fences_entered, "entered")
+                    fence_rule_run(user, location, last_location, fences_exited, "exited")
 
                     var my_fences = fences.filter(function(f){return f.user_id == location.user_id})
                                           .map(function(fence){return fence.id})
@@ -318,7 +318,7 @@ function fences_diff(a: any[], b: any[]) {
   return a.filter(x => b.map(f => f.id).indexOf(x.id) == -1)
 }
 
-function fence_rule_run(user, location, fences, direction: Direction) {
+function fence_rule_run(user, location_outside, location_inside, fences, direction: Direction) {
   fences.forEach(function(fence){
     db.rule_list_by_fence(fence.id)
       .then(function(rules_cursor){
@@ -327,7 +327,7 @@ function fence_rule_run(user, location, fences, direction: Direction) {
             console.log('fence', fence.name, 'rules', rules.map(function(rule){return rule.kind}))
             rules.forEach(function(rule){
               if(rule.kind == 'alert') {
-                rule_alert_go(user, location, fence, rule, direction)
+                rule_alert_go(user, location_outside, location_inside, fence, rule, direction)
               }
             })
           })
@@ -337,7 +337,7 @@ function fence_rule_run(user, location, fences, direction: Direction) {
 
 type Direction = "entered" | "exited"
 
-function rule_alert_go(user, location, fence, rule, direction: Direction) {
+function rule_alert_go(user, location_outside, location_inside, fence, rule, direction: Direction) {
   console.log('rule trigger', rule.kind, 'for location user', user.username,
               'fence', fence.name, 'direction', direction)
   db.get_user(rule.user_id)
@@ -345,6 +345,8 @@ function rule_alert_go(user, location, fence, rule, direction: Direction) {
       var email = emailer.build_fence_alert_email(ruleuser.email,
                                                   fence.name,
                                                   user.username,
+                                                  location_outside,
+                                                  location_inside,
                                                   direction)
       emailer.send_email(email)
     })
