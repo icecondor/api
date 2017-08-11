@@ -7,21 +7,23 @@ html(xmlns="http://www.w3.org/1999/xhtml")
   body(style="margin: 0; padding: 0 1em;")
     h2 IceCondor Fence Alert
 
-    p(style='padding: 1em 0;')
+    p(style='padding: 1em 0; font-size: 150%;')
       a(href="#{user_link}") #{username}
       |  has #{direction} fence
-      a(href="#{fence_link}") #{fence_name}.
+      = ' '
+      a(href="#{fence_link}") #{fence_name}
+      | .
 
-    p(style='padding: 1em 0;')
+    p(style='padding: 1em 0; margin: 0; background-color: #aaa')
       | Location inside
-      div(style='padding: 1em 0; background: grey; color: white;')
-        | date #{location_inside.date}
-        | lat/lng #{location_inside.latitude.toFixed(4)} / #{location_inside.longitude.toFixed(4)}
-        | accuracy #{location_inside.accuracy}
+      div(style='padding: 1em 0; background: grey; color: white;').
+        date #{location_inside.date}
+        lat/lng #{location_inside.latitude.toFixed(4)} / #{location_inside.longitude.toFixed(4)}
+        accuracy #{location_inside.accuracy}
 
-    p(style='padding: 1em 0;')
+    p(style='padding: 1em 0; margin: 0; background-color: #aaa')
       | Location outside
-      div(style='padding: 1em 0; background: grey; color: white;')
-        | date #{location_outside.date}
-        | lat/lng #{location_outside.latitude.toFixed(4)} / #{location_outside.longitude.toFixed(4)}
-        | accuracy #{location_outside.accuracy}
+      div(style='padding: 1em 0; background: grey; color: white;').
+        date #{location_outside.date}
+        lat/lng #{location_outside.latitude.toFixed(4)} / #{location_outside.longitude.toFixed(4)}
+        accuracy #{location_outside.accuracy}
