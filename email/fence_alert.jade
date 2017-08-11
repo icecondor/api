@@ -19,11 +19,11 @@ html(xmlns="http://www.w3.org/1999/xhtml")
       pre(style='padding: 1em 0.5em; background: grey; color: white;').
         date #{location_inside.date}
         lat/lng #{location_inside.latitude.toFixed(4)} / #{location_inside.longitude.toFixed(4)}
-        accuracy #{location_inside.accuracy}
+        accuracy #{location_inside.accuracy.toFixed(1)}
 
     p(style='padding: 0em 0.2em; margin: 0; background-color: #aaa')
       | Location outside
       pre(style='padding: 1em 0.5em; background: grey; color: white;').
         date #{location_outside.date}
         lat/lng #{location_outside.latitude.toFixed(4)} / #{location_outside.longitude.toFixed(4)}
-        accuracy #{location_outside.accuracy}
+        accuracy #{location_outside.accuracy.toFixed(1)}
