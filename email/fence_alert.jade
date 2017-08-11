@@ -16,14 +16,14 @@ html(xmlns="http://www.w3.org/1999/xhtml")
 
     p(style='padding: 1em 0; margin: 0; background-color: #aaa')
       | Location inside
-      div(style='padding: 1em 0; background: grey; color: white;').
+      pre(style='padding: 1em 0; background: grey; color: white;').
         date #{location_inside.date}
         lat/lng #{location_inside.latitude.toFixed(4)} / #{location_inside.longitude.toFixed(4)}
         accuracy #{location_inside.accuracy}
 
     p(style='padding: 1em 0; margin: 0; background-color: #aaa')
       | Location outside
-      div(style='padding: 1em 0; background: grey; color: white;').
+      pre(style='padding: 1em 0; background: grey; color: white;').
         date #{location_outside.date}
         lat/lng #{location_outside.latitude.toFixed(4)} / #{location_outside.longitude.toFixed(4)}
         accuracy #{location_outside.accuracy}
