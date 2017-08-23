@@ -230,32 +230,45 @@ function rules_add(location) {
 
 function process_activity_add(client, msg) {
   if(client.flags.authenticated){
-    msg.params.user_id = client.flags.authenticated.user_id
-    msg.params.device_id = client.flags.authenticated.device_id
-    var now = new Date()
-    msg.params.received_at = now.toISOString()
+    if (activityValid(msg.params)) {
+      msg.params.user_id = client.flags.authenticated.user_id
+      msg.params.device_id = client.flags.authenticated.device_id
+      var now = new Date()
+      msg.params.received_at = now.toISOString()
 
-    let timer = new Date()
-    db.activity_add(msg.params)
-      .then(function(result) {
-        influxWrite('activity_add', (new Date()).getTime() - timer.getTime())
-        if(result.errors === 0) {
-          protocol.respond_success(client, msg.id, {message: "saved",
-                                                    id: msg.params.id})
-          clog(client, 'activity '+msg.params.type)
-          if(msg.params.type === 'location') {
-            user_latest_freshen(msg.params)
+      let timer = new Date()
+      db.activity_add(msg.params)
+        .then(function(result) {
+          influxWrite('activity_add', (new Date()).getTime() - timer.getTime())
+          if(result.errors === 0) {
+            protocol.respond_success(client, msg.id, {message: "saved",
+                                                      id: msg.params.id})
+            clog(client, 'activity '+msg.params.type)
+            if(msg.params.type === 'location') {
+              user_latest_freshen(msg.params)
+            }
+          } else {
+            var fail = {message: result.first_error};
+            protocol.respond_fail(client, msg.id, fail)
           }
-        } else {
-          var fail = {message: result.first_error};
-          protocol.respond_fail(client, msg.id, fail)
-        }
-      })
-
+        })
+    } else {
+      var fail = {message: 'invalid activity properties'};
+      protocol.respond_fail(client, msg.id, auth_fail)
+    }
   } else {
     var auth_fail = {message: 'not authorized'};
     protocol.respond_fail(client, msg.id, auth_fail)
   }
+}
+
+function activityValid(location) {
+  if(location.type === 'location') {
+    return location.latitude &&
+           location.longitude &&
+           location.date
+  }
+  return true
 }
 
 function user_latest_freshen(location) {
