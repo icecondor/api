@@ -3,7 +3,6 @@ var readline = require('readline');
 var path = require('path');
 var Url = require('url');
 var wsock = require('websock');
-var settings = require('./settings');
 
 var url = process.argv[2]
 if(typeof url == "undefined") {
