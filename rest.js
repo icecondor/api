@@ -66,7 +66,8 @@ function push_point(response, auth_token, icpoint) {
 
     if(msg.id == "rpc-add") {
       if(msg.result) {
-        response.writeHead(200)
+        response.writeHead(200, {"Content-type": "application/json"} )
+        msg.result.result = "ok"
         response.write(JSON.stringify(msg.result))
       }
       if(msg.error) {
