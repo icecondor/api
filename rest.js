@@ -138,7 +138,6 @@ function geojson2icecondor(geojson){
   return {
     id: uuid.v4(),
     type: "location",
-    class: "com.icecondor.nest.db.activity.GpsLocation",
     date: geojson.properties.timestamp,
     latitude: geojson.geometry.coordinates[1],
     longitude: geojson.geometry.coordinates[0],
