@@ -17,7 +17,8 @@ var server = http.createServer(function(request, response) {
       body = Buffer.concat(body).toString()
       try {
         let jsonbody = JSON.parse(body)
-        push_point(response, params.token, geojson2icecondor(jsonbody.locations[0]))
+        console.log(JSON.stringify(jsonbody, null, 2))
+        push_points(response, params.token, jsonbody.locations)
       } catch(e) {
         console.log(e)
         response.writeHead(400)
@@ -29,15 +30,16 @@ var server = http.createServer(function(request, response) {
 
 server.listen(settings.rest.listen_port)
 
-function push_point(response, auth_token, icpoint) {
+function push_points(response, auth_token, points) {
   console.log('ws_connect')
   var apiSocket = new net.Socket()
 
   console.log('connecting to api on '+settings.api.listen_port)
 
   apiSocket.on('data', function(data) {
-    console.log('-> '+data)
-    var msg = JSON.parse(data)
+    var lines = data.toString('utf8').split('\n')
+    console.log('->', lines)
+    var msg = JSON.parse(lines[0])
     if(msg.method) {
       console.log('method', msg.method)
       if(msg.method == "hello") {
@@ -58,9 +60,15 @@ function push_point(response, auth_token, icpoint) {
 
     if(msg.id == "rpc-auth" && msg.result) {
       if(msg.result.user) {
-        let rpc = {id:"rpc-add", method:"activity.add", params:icpoint}
-        console.log(rpc)
-        apiSocket.write(JSON.stringify(rpc)+"\n")
+        points.forEach(function(last_location){
+          if(last_location.properties.action) {
+            console.log('overland action', last_location.action, 'ignored')
+          } else {
+            let rpc = {id:"rpc-add", method:"activity.add", params:geojson2icecondor(last_location)}
+            console.log(rpc)
+            apiSocket.write(JSON.stringify(rpc)+"\n")
+          }
+        })
       }
     }
 
@@ -68,7 +76,8 @@ function push_point(response, auth_token, icpoint) {
       if(msg.result) {
         response.writeHead(200, {"Content-type": "application/json"} )
         msg.result.result = "ok"
-        response.write(JSON.stringify(msg.result))
+        //try { response.write(JSON.stringify(msg.result)) } catch(e) { console.log('client write err', e) }
+        if(!response.finished) { response.write(JSON.stringify(msg.result)) } else { console.log('client write when finished') }
       }
       if(msg.error) {
         response.writeHead(500)
@@ -89,7 +98,6 @@ function push_point(response, auth_token, icpoint) {
 }
 
 function geojson2icecondor(geojson){
-  console.log('geojson', JSON.stringify(geojson, null, 2))
 
 /*
     {
