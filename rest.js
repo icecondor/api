@@ -36,6 +36,10 @@ function push_points(response, auth_token, points) {
 
   console.log('connecting to api on '+settings.api.listen_port)
 
+  apiSocket.on('open', function(data) {
+    console.log("apiSocket open.")
+  })
+
   apiSocket.on('data', function(data) {
     var lines = data.toString('utf8').split('\n')
     console.log('->', lines)
@@ -60,15 +64,7 @@ function push_points(response, auth_token, points) {
 
     if(msg.id == "rpc-auth" && msg.result) {
       if(msg.result.user) {
-        points.forEach(function(last_location){
-          if(last_location.properties.action) {
-            console.log('overland action', last_location.action, 'ignored')
-          } else {
-            let rpc = {id:"rpc-add", method:"activity.add", params:geojson2icecondor(last_location)}
-            console.log(rpc)
-            apiSocket.write(JSON.stringify(rpc)+"\n")
-          }
-        })
+        rpcAdd(points.pop(), apiSocket)
       }
     }
 
@@ -76,8 +72,12 @@ function push_points(response, auth_token, points) {
       if(msg.result) {
         response.writeHead(200, {"Content-type": "application/json"} )
         msg.result.result = "ok"
-        //try { response.write(JSON.stringify(msg.result)) } catch(e) { console.log('client write err', e) }
-        if(!response.finished) { response.write(JSON.stringify(msg.result)) } else { console.log('client write when finished') }
+        if(!response.finished) {
+          response.write(JSON.stringify(msg.result))
+        } else {
+          console.log('!!client write when finished')
+        }
+        rpcAdd(points.pop(), apiSocket)
       }
       if(msg.error) {
         response.writeHead(500)
@@ -94,7 +94,23 @@ function push_points(response, auth_token, points) {
     response.end()
   })
 
+  apiSocket.on('close', function(data) {
+    console.log("apiSocket closed.")
+  })
+
   apiSocket.connect(settings.api.listen_port, "localhost")
+}
+
+function rpcAdd(last_location, apiSocket) {
+  if(last_location) {
+    if(last_location.properties.action) {
+      console.log('overland action', last_location.action, 'ignored')
+    } else {
+      let rpc = {id:"rpc-add", method:"activity.add", params:geojson2icecondor(last_location)}
+      console.log(rpc)
+      apiSocket.write(JSON.stringify(rpc)+"\n")
+    }
+  }
 }
 
 function geojson2icecondor(geojson){
