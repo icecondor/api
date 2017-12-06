@@ -21,6 +21,7 @@ var server = http.createServer(function(request, response) {
         push_points(response, params.token, jsonbody.locations)
       } catch(e) {
         console.log(e)
+        console.log(body)
         response.writeHead(400)
         response.end()
       }
