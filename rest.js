@@ -64,7 +64,7 @@ function push_points(response, auth_token, points) {
 
     if(msg.id == "rpc-auth" && msg.result) {
       if(msg.result.user) {
-        rpcAdd(points.pop(), apiSocket)
+        rpcNext(points, apiSocket)
       }
     }
 
@@ -77,7 +77,7 @@ function push_points(response, auth_token, points) {
         } else {
           console.log('!!client write when finished')
         }
-        rpcAdd(points.pop(), apiSocket)
+        rpcNext(points, apiSocket)
       }
       if(msg.error) {
         response.writeHead(500)
@@ -101,16 +101,21 @@ function push_points(response, auth_token, points) {
   apiSocket.connect(settings.api.listen_port, "localhost")
 }
 
+function rpcNext(points, apiSocket) {
+  var last_location = points.pop()
+  if(last_location.properties.action) {
+    console.log('#'+points.length, 'overland action', last_location.properties.action, 'ignored')
+    rpcAdd(points, apiSocket)
+  } else {
+    rpcAdd(last_location, apiSocket)
+  }
+}
+
 function rpcAdd(last_location, apiSocket) {
   if(last_location) {
-    if(last_location.properties.action) {
-      console.log('#'+points.length, 'overland action', last_location.properties.action, 'ignored')
-      rpcAdd(points.pop(), apiSocket)
-    } else {
       let rpc = {id:"rpc-add", method:"activity.add", params:geojson2icecondor(last_location)}
       console.log('#'+points.length, rpc)
       apiSocket.write(JSON.stringify(rpc)+"\n")
-    }
   }
 }
 
