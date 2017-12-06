@@ -104,10 +104,11 @@ function push_points(response, auth_token, points) {
 function rpcAdd(last_location, apiSocket) {
   if(last_location) {
     if(last_location.properties.action) {
-      console.log('overland action', last_location.action, 'ignored')
+      console.log('#'+points.length, 'overland action', last_location.properties.action, 'ignored')
+      rpcAdd(points.pop(), apiSocket)
     } else {
       let rpc = {id:"rpc-add", method:"activity.add", params:geojson2icecondor(last_location)}
-      console.log(rpc)
+      console.log('#'+points.length, rpc)
       apiSocket.write(JSON.stringify(rpc)+"\n")
     }
   }
