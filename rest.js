@@ -32,7 +32,7 @@ var server = http.createServer(function(request, response) {
 server.listen(settings.rest.listen_port)
 
 function push_points(response, auth_token, points) {
-  console.log('ws_connect')
+  console.log(new Date(), 'ws_connect')
   var apiSocket = new net.Socket()
 
   console.log('connecting to api on '+settings.api.listen_port)
