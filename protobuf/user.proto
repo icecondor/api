@@ -1,0 +1,12 @@
+syntax = "proto3";
+package icecondor;
+
+message User {
+  string Id = 1;
+  string Email = 2;
+  string Username = 3;
+  string Fullname = 4;
+  string TimeZone = 5;
+  int32 Credits = 6;
+  string Stripe = 7;
+}

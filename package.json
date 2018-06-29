@@ -18,6 +18,8 @@
     "sockjs": "0.3.*",
     "stripe": "2.9.*",
     "then-redis": "2.0.*",
+    "protobufjs": "*",
+    "rqlite-js": "*",
     "websock": "^0.3.19"
   },
   "devDependencies": {

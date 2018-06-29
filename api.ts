@@ -8,7 +8,6 @@ import * as os from 'os'
 // npm
 import * as moment from 'moment'
 import * as rethink from 'rethinkdb'
-import * as Promise from 'bluebird'
 import * as geojsonArea from 'geojson-area'
 import * as request from 'request'
 
@@ -20,8 +19,8 @@ import * as protocolLib from "./lib/protocol-v2"
 let protocol = protocolLib(settings.api)
 import * as serverLib from './lib/server'
 let server = serverLib.factory()
-import * as dbLib from './lib/dblib'
-let db = dbLib.factory(rethink, rethink.connect(settings.rethinkdb)) as any
+import * as dbLib from './lib/db-rqlite'
+let db = new dbLib.Db(settings.rethinkdb) as any
 import * as emailerLib from './lib/email'
 let emailer = emailerLib.factory(settings.email) as any
 
@@ -33,7 +32,7 @@ var motd = "version:" + settings.api.version + " server:" + settings.api.hostnam
 console.log("api", motd)
 console.log("rethinkdb", "host:", settings.rethinkdb.host)
 
-db.setup(function(){
+db.connect(function(){
   server.listen(settings.api.listen_port)
   db.changes().then(function(cursor){
     cursor.on("data", activity_added)
@@ -277,7 +276,7 @@ function user_latest_freshen(location) {
       .then(function(friends){
         var me_and_friends = [user.id].concat(friends.map(f => f.id))
         newer_user_location(user, location)
-          .then(function(last_location) {
+          .then(function(last_location: any) {
             friendly_fences_for(last_location, me_and_friends)
               .then(function(last_fences) {
                 friendly_fences_for(location, me_and_friends)
