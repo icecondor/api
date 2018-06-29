@@ -30,7 +30,7 @@ let stripe = stripeLib(settings.stripe.key);
 
 var motd = "version:" + settings.api.version + " server:" + settings.api.hostname
 console.log("api", motd)
-console.log("rethinkdb", "host:", settings.rethinkdb.host)
+console.log("rqlite", "host:", settings.rqlite.host)
 
 db.connect(function(){
   server.listen(settings.api.listen_port)

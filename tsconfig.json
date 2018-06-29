@@ -5,6 +5,7 @@
         "noImplicitAny": false,
         "allowJs": true,
         "sourceMap": false,
-        "outDir": "build"
+        "outDir": "build",
+        "lib": ["es2015"]
     }
 }

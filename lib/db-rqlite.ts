@@ -1,3 +1,4 @@
+import * as fs from 'fs'
 import * as rqlite from 'rqlite-js'
 import { Db as DbBase } from './db'
 
@@ -16,15 +17,30 @@ let schema = { 'users': {indexes: ['username',
              }
 
 export class Db implements DbBase {
-  api: object
+  settings: any
+  api: any
 
   constructor(settings: object) {
+    this.settings = settings
   }
 
   async connect(f) {
-    this.api = await rqlite.connect('http://localhost:4001')
+    console.log('about to connect')
+    try {
+      this.api = await rqlite('http://'+this.settings.host+':4001')
+      let r = await this.api.select("select * from sqlite_master")
+      console.log(JSON.stringify(r.body))
+      this.ensure_schema()
+    } catch(e) {
+      console.log(e)
+    }
   }
 
   changes() {
+  }
+
+  ensure_schema(){
+    let sql_files = fs.readdirSync(this.settings.sql_folder)
+    console.log(sql_files)
   }
 }
