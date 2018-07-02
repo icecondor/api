@@ -20,7 +20,7 @@ let protocol = protocolLib(settings.api)
 import * as serverLib from './lib/server'
 let server = serverLib.factory()
 import * as dbLib from './lib/db-rqlite'
-let db = new dbLib.Db(settings.rethinkdb) as any
+let db = new dbLib.Db(settings.rqlite) as any
 import * as emailerLib from './lib/email'
 let emailer = emailerLib.factory(settings.email) as any
 
