@@ -28,7 +28,7 @@ export class Db implements DbBase {
     console.log('about to connect')
     try {
       this.api = await rqlite('http://'+this.settings.host+':4001')
-      this.ensure_schema()
+      await this.ensure_schema()
       let r = await this.api.select("select * from sqlite_master")
       r.body.results[0].values.forEach(row => console.log(row[0], row[1]))
     } catch(e) {
@@ -39,10 +39,10 @@ export class Db implements DbBase {
   changes() {
   }
 
-  ensure_schema(){
+  async ensure_schema(){
     console.log(this.settings)
     let sql_files = fs.readdirSync(this.settings.sql_folder)
-    sql_files.forEach(async (filename) => {
+    await Promise.all(sql_files.map(async (filename) => {
       let sql = fs.readFileSync(this.settings.sql_folder+'/'+filename)
       try {
         let sql_result = await this.api.select(sql)
@@ -50,6 +50,7 @@ export class Db implements DbBase {
       } catch(e) {
         console.log('err1',e)
       }
-    })
+      return this
+    }))
   }
 }
