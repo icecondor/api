@@ -1,5 +1,8 @@
 import * as fs from 'fs'
 import * as rqlite from 'rqlite-js'
+import * as squel from 'squel'
+import { ulid } from 'ulid'
+
 import { Db as DbBase } from './db'
 
 let db_name = 'icecondor'
@@ -53,7 +56,58 @@ export class Db implements DbBase {
     }))
   }
 
-  activity_add() {
+  async activity_add() {
+  }
+
+  async find_user_by(e) {
+    let sql = squel.select().from("user").where("email = ?", e.email_downcase)
+    console.log('find user by', e, sql.toString())
+    let r = await this.api.select(sql.toString())
+    let results = r.body.results[0] || []
+    console.log('find user by result:', JSON.stringify(results.values.length))
+    if(results.values && results.values.length > 0) {
+      let row = results.values[0]
+      let user = {
+        id: row[results.columns.indexOf('id')],
+        email: row[results.columns.indexOf('email')],
+        username: row[results.columns.indexOf('email')],
+        createdat: row[results.columns.indexOf('createdat')],
+      }
+      await this.user_enhance_devices(user)
+      console.log('user built', user)
+      return user
+    } else {
+      return Promise.reject({err:"not found"})
+    }
+  }
+
+  async user_enhance_devices(user) {
+    let sql = squel.select().from("device").where("userid = ?", user.id)
+    console.log('user sql', sql.toString())
+    let r = await this.api.select(sql.toString())
+    let values = r.body.results.values || []
+    console.log('user devices', values)
+    user['devices'] = values
+  }
+
+  async user_add_device(d) {
+    console.log('user_add_device', d)
+  }
+
+  async ensure_user(u) {
+    let new_user = {
+      Id: ulid(),
+      Email: u.email,
+      CreatedAt: u.created_at
+    }
+    let sql = squel.insert().into("user").setFields(new_user)
+    let sql2 = squel.insert().into("device").setFields({
+      Id: u.devices[0],
+      UserId: new_user.Id
+    })
+    console.log('ensure user', u, sql.toString(), sql2.toString())
+    let r = await this.api.select([sql.toString(), sql2.toString], {transaction: true})
+    let results = r.body.results[0] || []
   }
 }
 

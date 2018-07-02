@@ -12,14 +12,16 @@
     "nano": "0.9.5",
     "node-uuid": "1.4.*",
     "nodemailer": "^1.1.2",
+    "protobufjs": "*",
     "redis": "2.7.*",
     "request": "^2.81.0",
     "rethinkdb": "^1.16.2",
+    "rqlite-js": "*",
     "sockjs": "0.3.*",
+    "squel": "*",
     "stripe": "2.9.*",
     "then-redis": "2.0.*",
-    "protobufjs": "*",
-    "rqlite-js": "*",
+    "ulid": "^2.3.0",
     "websock": "^0.3.19"
   },
   "devDependencies": {
@@ -27,7 +29,7 @@
     "eslint": "^0.17.0",
     "jasmine-node": "1.14.x",
     "ts-node": "^3.0.2",
-    "typescript": "^2.2.2"
+    "typescript": "^2.9.2"
   },
   "repository": {
     "type": "git",

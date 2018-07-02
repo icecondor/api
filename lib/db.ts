@@ -1,4 +1,4 @@
 export interface Db {
-  connect(f)
-  changes()
+  connect(onConnect: Function)
+  changes(onChange: Function)
 }
