@@ -30,11 +30,11 @@ let stripe = stripeLib(settings.stripe.key);
 
 var motd = "version:" + settings.api.version + " server:" + settings.api.hostname
 console.log("api", motd)
-console.log("rqlite", "host:", settings.rqlite.host)
+console.log("rqlite", settings.rqlite)
 
 db.connect(function(){
   server.listen(settings.api.listen_port)
-  db.changes().then(function(cursor){
+  db.changes(function(cursor){
     cursor.on("data", activity_added)
   })
 })

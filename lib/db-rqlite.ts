@@ -24,23 +24,22 @@ export class Db implements DbBase {
     this.settings = settings
   }
 
-  async connect(f) {
-    console.log('about to connect')
+  async connect(onConnect) {
     try {
       this.api = await rqlite('http://'+this.settings.host+':4001')
       await this.ensure_schema()
       let r = await this.api.select("select * from sqlite_master")
       r.body.results[0].values.forEach(row => console.log(row[0], row[1]))
+      onConnect()
     } catch(e) {
-      console.log('err1',e)
+      console.log('connect err',e)
     }
   }
 
-  changes() {
+  changes(onChange) {
   }
 
   async ensure_schema(){
-    console.log(this.settings)
     let sql_files = fs.readdirSync(this.settings.sql_folder)
     await Promise.all(sql_files.map(async (filename) => {
       let sql = fs.readFileSync(this.settings.sql_folder+'/'+filename)
@@ -48,9 +47,13 @@ export class Db implements DbBase {
         let sql_result = await this.api.select(sql)
         console.log(filename, "table create", sql_result.body)
       } catch(e) {
-        console.log('err1',e)
+        console.log('ensure_schema err',e)
       }
       return this
     }))
   }
+
+  activity_add() {
+  }
 }
+
