@@ -31,12 +31,20 @@ export class Db implements DbBase {
     try {
       this.api = await rqlite('http://'+this.settings.host+':4001')
       await this.ensure_schema()
-      let r = await this.api.select("select * from sqlite_master")
-      r.body.results[0].values.forEach(row => console.log(row[0], row[1]))
+      this.schema_dump()
       onConnect()
     } catch(e) {
       console.log('connect err',e)
     }
+  }
+
+  async schema_dump() {
+      let r = await this.api.select("select * from sqlite_master")
+      r.body.results[0].values.forEach(async row => {
+        let table = row[1]
+        let r2 = await this.api.select(squel.select().field("COUNT(*)").from(table))
+        console.log(table, r2.body.results[0].values[0][0], "rows")
+      })
   }
 
   changes(onChange) {
@@ -47,8 +55,11 @@ export class Db implements DbBase {
     await Promise.all(sql_files.map(async (filename) => {
       let sql = fs.readFileSync(this.settings.sql_folder+'/'+filename)
       try {
-        let sql_result = await this.api.select(sql)
-        console.log(filename, "table create", sql_result.body)
+        let r = await this.api.select(sql)
+        let result = r.body.results[0]
+        if (result.error) {
+          console.log(filename, "table create err", result.error)
+        }
       } catch(e) {
         console.log('ensure_schema err',e)
       }
@@ -96,7 +107,7 @@ export class Db implements DbBase {
 
   async ensure_user(u) {
     let new_user = {
-      Id: ulid(),
+      Id: ulid().toLowerCase(),
       Email: u.email,
       CreatedAt: u.created_at
     }
