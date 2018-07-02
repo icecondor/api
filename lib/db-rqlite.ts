@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as rqlite from 'rqlite-js'
 import * as squel from 'squel'
+import * as protobuf from 'protobufjs'
 import { ulid } from 'ulid'
 
 import { Db as DbBase } from './db'
@@ -22,6 +23,7 @@ let schema = { 'users': {indexes: ['username',
 export class Db implements DbBase {
   settings: any
   api: any
+  proto_root: any
 
   constructor(settings: object) {
     this.settings = settings
@@ -30,6 +32,7 @@ export class Db implements DbBase {
   async connect(onConnect) {
     try {
       this.api = await rqlite('http://'+this.settings.host+':4001')
+      await this.load_protobuf()
       await this.ensure_schema()
       this.schema_dump()
       onConnect()
@@ -50,10 +53,18 @@ export class Db implements DbBase {
   changes(onChange) {
   }
 
+  async load_protobuf(){
+    let proto_folder = this.settings.sql_folder+"/proto/"
+    let proto_files = fs.readdirSync(proto_folder)
+                        .map(fname => proto_folder+fname)
+    this.proto_root = await protobuf.load(proto_files)
+  }
+
   async ensure_schema(){
-    let sql_files = fs.readdirSync(this.settings.sql_folder)
+    let sql_folder = this.settings.sql_folder+"/sql/"
+    let sql_files = fs.readdirSync(sql_folder)
     await Promise.all(sql_files.map(async (filename) => {
-      let sql = fs.readFileSync(this.settings.sql_folder+'/'+filename)
+      let sql = fs.readFileSync(sql_folder+filename)
       try {
         let r = await this.api.select(sql)
         let result = r.body.results[0]
@@ -67,7 +78,9 @@ export class Db implements DbBase {
     }))
   }
 
-  async activity_add() {
+  async activity_add(a) {
+    console.log('acivity_add', a)
+    return {errors: 0}
   }
 
   async find_user_by(e) {
@@ -78,12 +91,12 @@ export class Db implements DbBase {
     console.log('find user by result:', JSON.stringify(results.values.length))
     if(results.values && results.values.length > 0) {
       let row = results.values[0]
-      let user = {
+      let user = this.proto_root.lookupType('icecondor.User').create({
         id: row[results.columns.indexOf('id')],
         email: row[results.columns.indexOf('email')],
         username: row[results.columns.indexOf('email')],
         createdat: row[results.columns.indexOf('createdat')],
-      }
+      })
       await this.user_enhance_devices(user)
       console.log('user built', user)
       return user
@@ -118,7 +131,10 @@ export class Db implements DbBase {
     })
     console.log('ensure user', u, sql.toString(), sql2.toString())
     let r = await this.api.select([sql.toString(), sql2.toString], {transaction: true})
-    let results = r.body.results[0] || []
+    let result = r.body.results[0]
+    if (result.error) {
+      console.log('ensure_user', result.error)
+    }
   }
 }
 
