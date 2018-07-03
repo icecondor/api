@@ -41,11 +41,12 @@ export class Db implements DbBase {
   }
 
   async schema_dump() {
-      let r = await this.api.select("select * from sqlite_master")
-      r.body.results[0].values.forEach(async row => {
+      let result = await this.select("select * from sqlite_master")
+      result.values.forEach(async row => {
         let table = row[1]
-        let r2 = await this.api.select(squel.select().field("COUNT(*)").from(table))
-        console.log(table, r2.body.results[0].values[0][0], "rows")
+        let sql = squel.select().field("COUNT(*)").from(table)
+        let result = await this.select(sql)
+        console.log(table, result.values[0][0], "rows")
       })
   }
 
@@ -65,8 +66,7 @@ export class Db implements DbBase {
     await Promise.all(sql_files.map(async (filename) => {
       let sql = fs.readFileSync(sql_folder+filename)
       try {
-        let r = await this.api.select(sql)
-        let result = r.body.results[0]
+        let result = await this.select(sql)
         if (result.error) {
           console.log(filename, "table create err", result.error)
         }
@@ -82,35 +82,38 @@ export class Db implements DbBase {
     return {errors: 0}
   }
 
+  async select(sql) {
+    let r = await this.api.select(sql.toString())
+    let result = r.body.results[0]
+    if(!result.values) {
+      result.values = []
+    }
+    return result
+  }
+
   async find_user_by(e) {
     let sql = squel.select().from("user").where("email = ?", e.email_downcase)
-    console.log('find user by', e, sql.toString())
-    let r = await this.api.select(sql.toString())
-    let results = r.body.results[0] || []
-    console.log('find user by result:', JSON.stringify(results.values.length))
-    if(results.values && results.values.length > 0) {
-      let row = results.values[0]
+    let result = await this.select(sql)
+    if(result.values.length > 0) {
+      let row = result.values[0]
       let user = this.proto_root.lookupType('icecondor.User').create({
-        id: row[results.columns.indexOf('id')],
-        email: row[results.columns.indexOf('email')],
-        username: row[results.columns.indexOf('email')],
-        createdat: row[results.columns.indexOf('createdat')],
+        id: row[result.columns.indexOf('id')],
+        email: row[result.columns.indexOf('email')],
+        username: row[result.columns.indexOf('email')],
+        createdat: row[result.columns.indexOf('createdat')],
       })
-      await this.user_enhance_devices(user)
-      console.log('user built', user)
+      await this.user_load_devices(user)
       return user
     } else {
       return Promise.reject({err:"not found"})
     }
   }
 
-  async user_enhance_devices(user) {
+  async user_load_devices(user) {
     let sql = squel.select().from("device").where("userid = ?", user.id)
     console.log('user sql', sql.toString())
-    let r = await this.api.select(sql.toString())
-    let values = r.body.results.values || []
-    console.log('user devices', values)
-    user['devices'] = values
+    let result = await this.select(sql)
+    user['devices'] = result.values
   }
 
   async user_add_device(d) {
@@ -128,8 +131,7 @@ export class Db implements DbBase {
       Id: u.devices[0],
       UserId: new_user.Id
     })
-    console.log('ensure user', u, sql.toString(), sql2.toString())
-    let r = await this.api.select([sql.toString(), sql2.toString], {transaction: true})
+    let r = await this.api.select([sql.toString(), sql2.toString()], {transaction: true})
     let result = r.body.results[0]
     if (result.error) {
       console.log('ensure_user', result.error)
