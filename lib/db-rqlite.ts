@@ -111,7 +111,6 @@ export class Db implements DbBase {
 
   async user_load_devices(user) {
     let sql = squel.select().from("device").where("userid = ?", user.id)
-    console.log('user sql', sql.toString())
     let result = await this.select(sql)
     user['devices'] = result.values
   }
@@ -121,6 +120,14 @@ export class Db implements DbBase {
   }
 
   async ensure_user(u) {
+    try {
+      await this.find_user_by({email_downcase: u.email.toLowerCase()})
+    } catch(e) {
+      await this.create_user(u)
+    }
+  }
+
+  async create_user(u) {
     let new_user = {
       Id: ulid().toLowerCase(),
       Email: u.email,

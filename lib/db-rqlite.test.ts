@@ -19,3 +19,12 @@ test('find_user_by', () => {
     }
   })
 })
+
+test('ensure_user', () => {
+  let rdb = new db.Db(settings.rqlite)
+  rdb.connect(async ()=>{
+    rdb.ensure_user({email: "a@b.c", devices: ["device-abc123"]})
+    let user = await rdb.find_user_by({email_downcase: "a@b.c"})
+    expect(user.email).toBe("a@b.c")
+  })
+})
