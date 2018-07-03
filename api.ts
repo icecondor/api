@@ -33,6 +33,7 @@ console.log("api", motd)
 console.log("rqlite", settings.rqlite)
 
 db.connect(function(){
+  db.schema_dump()
   server.listen(settings.api.listen_port)
   db.changes(function(cursor){
     cursor.on("data", activity_added)

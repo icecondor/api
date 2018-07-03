@@ -40,7 +40,7 @@
   },
   "scripts": {
     "start": "tsc && node build/api.js",
-    "test": "jasmine-node spec"
+    "test": "jest build"
   },
   "compilerOptions": {
     "typeRoots": [

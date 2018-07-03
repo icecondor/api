@@ -34,7 +34,6 @@ export class Db implements DbBase {
       this.api = await rqlite('http://'+this.settings.host+':4001')
       await this.load_protobuf()
       await this.ensure_schema()
-      this.schema_dump()
       onConnect()
     } catch(e) {
       console.log('connect err',e)
