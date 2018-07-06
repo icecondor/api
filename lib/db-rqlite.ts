@@ -34,7 +34,7 @@ export class Db implements DbBase {
       this.api = await rqlite('http://'+this.settings.host+':4001')
       await this.load_protobuf()
       await this.ensure_schema()
-      onConnect()
+      await onConnect()
     } catch(e) {
       console.log('connect err',e)
     }
@@ -77,11 +77,6 @@ export class Db implements DbBase {
     }))
   }
 
-  async activity_add(a) {
-    console.log('acivity_add', a)
-    return {errors: 0}
-  }
-
   async select(sql) {
     let r = await this.api.select(sql.toString())
     let result = r.body.results[0]
@@ -91,8 +86,29 @@ export class Db implements DbBase {
     return result
   }
 
+  async activity_add(a) {
+    const Location = this.proto_root.lookupType('icecondor.Location')
+    let location = Location.create({
+      Id: a.id || this.new_id(),
+      UserId: a.user_id,
+      Date: a.date,
+      Latitude: a.latitude,
+      Longitude: a.longitude
+    })
+    let new_location = Location.toObject(location)
+    let sql = squel.insert().into("location").setFields(new_location)
+    let result = await this.select(sql)
+    return {errors: 0}
+  }
+
   async find_user_by(e) {
-    let sql = squel.select().from("user").where("email = ?", e.email_downcase)
+    let sql
+    if (e.email_downcase) {
+      sql = squel.select().from("user").where("email = ?", e.email_downcase)
+    }
+    if (e.id) {
+      sql = squel.select().from("user").where("id = ?", e.id)
+    }
     let result = await this.select(sql)
     if(result.values.length > 0) {
       let row = result.values[0]
@@ -127,9 +143,13 @@ export class Db implements DbBase {
     }
   }
 
+  new_id() {
+    return ulid().toLowerCase()
+  }
+
   async create_user(u) {
     let new_user = {
-      Id: ulid().toLowerCase(),
+      Id: this.new_id(),
       Email: u.email,
       CreatedAt: u.created_at
     }
@@ -143,6 +163,22 @@ export class Db implements DbBase {
     if (result.error) {
       console.log('ensure_user', result.error)
     }
+  }
+
+  async get_user(user_id: string) {
+    return this.find_user_by({id: user_id})
+  }
+
+  async friending_me(user_id: string) {
+    return []
+  }
+
+  async fences_intersect(point) {
+    return {toArray: () => Promise.resolve([])} // quack like rethinkdb
+  }
+
+  async update_user_latest(user_id: string, latest) {
+    console.log('update_user_latest', user_id, latest)
   }
 }
 
