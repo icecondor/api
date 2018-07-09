@@ -1,4 +1,4 @@
-import {} from 'source-map-support/register'
+require('source-map-support').install()
 
 // nodejs
 import * as timers from 'timers'

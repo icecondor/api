@@ -44,9 +44,17 @@ export class Db implements DbBase {
       let result = await this.select("select * from sqlite_master")
       result.values.forEach(async row => {
         let table = row[1]
-        let sql = squel.select().field("COUNT(*)").from(table)
-        let result = await this.select(sql)
-        console.log(table, result.values[0][0], "rows")
+        if(!table.match(/^sqlite_/)) {
+          let sql = squel.select().field("COUNT(*)").from(table)
+          let result = await this.select(sql)
+          let msg
+          if(result.error) {
+            msg = result.error
+          } else {
+            msg = result.values[0][0] + " rows"
+          }
+          console.log(table, msg)
+        }
       })
   }
 
@@ -66,7 +74,7 @@ export class Db implements DbBase {
     await Promise.all(sql_files.map(async (filename) => {
       let sql = fs.readFileSync(sql_folder+filename)
       try {
-        let result = await this.select(sql)
+        let result = await this.insert(sql)
         if (result.error) {
           console.log(filename, "table create err", result.error)
         }
@@ -78,7 +86,15 @@ export class Db implements DbBase {
   }
 
   async select(sql) {
-    let r = await this.api.select(sql.toString())
+    return await this.dbgo(sql, this.api.select)
+  }
+
+  async insert(sql) {
+    return await this.dbgo(sql, this.api.insert)
+  }
+
+  async dbgo(sql, dbmethod) {
+    let r = await dbmethod(sql.toString())
     let result = r.body.results[0]
     if(!result.values) {
       result.values = []
@@ -97,7 +113,7 @@ export class Db implements DbBase {
     })
     let new_location = Location.toObject(location)
     let sql = squel.insert().into("location").setFields(new_location)
-    let result = await this.select(sql)
+    let result = await this.insert(sql)
     return {errors: 0}
   }
 
