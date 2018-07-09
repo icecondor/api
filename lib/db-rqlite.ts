@@ -148,7 +148,7 @@ export class Db implements DbBase {
   async user_load_devices(user) {
     let sql = squel.select().from("device").where("userid = ?", user.id)
     let result = await this.select(sql)
-    user['devices'] = result.values
+    user['devices'] = result.values.map(row => row[0])
   }
 
   async user_add_device(d) {
@@ -157,9 +157,9 @@ export class Db implements DbBase {
 
   async ensure_user(u) {
     try {
-      await this.find_user_by({email_downcase: u.email.toLowerCase()})
+      return await this.find_user_by({email_downcase: u.email.toLowerCase()})
     } catch(e) {
-      await this.create_user(u)
+      return await this.create_user(u)
     }
   }
 
@@ -178,10 +178,12 @@ export class Db implements DbBase {
       Id: u.devices[0],
       UserId: new_user.Id
     })
-    let r = await this.api.select([sql.toString(), sql2.toString()], {transaction: true})
+    let r = await this.api.insert([sql.toString(), sql2.toString()], {transaction: true})
     let result = r.body.results[0]
     if (result.error) {
-      console.log('ensure_user', result.error)
+      return Promise.reject(result.error)
+    } else {
+      return this.find_user_by({id: new_user.Id})
     }
   }
 
