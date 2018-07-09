@@ -1,3 +1,5 @@
+import {} from 'source-map-support/register'
+
 // nodejs
 import * as timers from 'timers'
 import * as crypto from 'crypto'
