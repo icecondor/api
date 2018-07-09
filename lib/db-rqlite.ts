@@ -74,7 +74,7 @@ export class Db implements DbBase {
     await Promise.all(sql_files.map(async (filename) => {
       let sql = fs.readFileSync(sql_folder+filename)
       try {
-        let result = await this.insert(sql)
+        let result = await this.table_create(sql)
         if (result.error) {
           console.log(filename, "table create err", result.error)
         }
@@ -83,6 +83,10 @@ export class Db implements DbBase {
       }
       return this
     }))
+  }
+
+  async table_create(sql) {
+    return await this.dbgo(sql, this.api.table.create)
   }
 
   async select(sql) {
