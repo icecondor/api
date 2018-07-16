@@ -223,6 +223,8 @@ export class Db implements DbBase {
   }
 
   async find_locations_for(user_id, start, stop, count, type, order) {
+    start = start || new Date("2008-08-01").toISOString()
+    stop = stop || new Date().toISOString()
     let sql = squel.select()
                    .from("location")
                    .where("id = ?", user_id)
@@ -230,7 +232,7 @@ export class Db implements DbBase {
                    .where("date < ?", stop)
                    .limit(count)
     let result = await this.select(sql)
-    return result
+    return result.values
   }
 }
 
