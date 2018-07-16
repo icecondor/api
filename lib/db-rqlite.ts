@@ -131,6 +131,9 @@ export class Db implements DbBase {
     if (e.email_downcase) {
       sql = squel.select().from("user").where("email = ?", e.email_downcase)
     }
+    if (e.username) {
+      sql = squel.select().from("user").where("username = ?", e.username)
+    }
     if (e.id) {
       sql = squel.select().from("user").where("id = ?", e.id)
     }
