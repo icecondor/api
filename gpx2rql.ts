@@ -8,7 +8,7 @@ rdb.connect(async () => {
   const email = process.argv[2]
   try {
     let user = await rdb.ensure_user({email: email, devices: ["gpxload"]})
-    console.log(email, user)
+    console.log(user.email, 'found')
     const filename = process.argv[3]
     const data = fs.readFileSync(filename, 'utf8')
     const lines = data.split('\n')

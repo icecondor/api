@@ -159,6 +159,7 @@ export class Db implements DbBase {
     try {
       return await this.find_user_by({email_downcase: u.email.toLowerCase()})
     } catch(e) {
+      console.log('ensure_user creating', u.email)
       return await this.create_user(u)
     }
   }
