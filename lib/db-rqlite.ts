@@ -135,7 +135,7 @@ export class Db implements DbBase {
       let user = this.proto_root.lookupType('icecondor.User').create({
         id: row[result.columns.indexOf('id')],
         email: row[result.columns.indexOf('email')],
-        username: row[result.columns.indexOf('email')],
+        username: row[result.columns.indexOf('username')],
         createdat: row[result.columns.indexOf('createdat')],
       })
       await this.user_load_devices(user)
