@@ -221,5 +221,16 @@ export class Db implements DbBase {
     let result = await this.update(sql)
     return {}
   }
+
+  async find_locations_for(user_id, start, stop, count, type, order) {
+    let sql = squel.select()
+                   .from("location")
+                   .where("id = ?", user_id)
+                   .where("date > ?", start)
+                   .where("date < ?", stop)
+                   .limit(count)
+    let result = await this.select(sql)
+    return result
+  }
 }
 
