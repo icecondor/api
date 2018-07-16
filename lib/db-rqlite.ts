@@ -107,6 +107,7 @@ export class Db implements DbBase {
     if(!result.values) {
       result.values = []
     }
+    console.log(sql, result)
     return result
   }
 
@@ -211,8 +212,9 @@ export class Db implements DbBase {
   async update_user_by(user_id, params) {
     let sql = squel.update().table("user")
     if (params.username) {
-      sql.set("username", params.username)
+      sql = sql.set("username", params.username)
     }
+    sql = sql.where("id = ?", user_id)
     let result = await this.update(sql)
     return {}
   }
