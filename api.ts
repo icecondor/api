@@ -32,7 +32,6 @@ let stripe = stripeLib(settings.stripe.key);
 
 var motd = "version:" + settings.api.version + " server:" + settings.api.hostname
 console.log("api", motd)
-console.log("rqlite", settings.rqlite)
 
 db.connect(function(){
   db.schema_dump()
@@ -468,9 +467,9 @@ function stream_follow_user(stream_id, client, msg) {
         auth = true
       }
     }
-    if(user.access.public){
-      auth = true
-    }
+    //if(user.access.public){
+    //  auth = true
+    //}
 
     if(auth) {
       if(!msg.params.count){ msg.params.count = 1 }
