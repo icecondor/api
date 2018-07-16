@@ -97,6 +97,10 @@ export class Db implements DbBase {
     return await this.dbgo(sql, this.api.insert)
   }
 
+  async update(sql) {
+    return await this.dbgo(sql, this.api.update)
+  }
+
   async dbgo(sql, dbmethod) {
     let r = await dbmethod(sql.toString())
     let result = r.body.results[0]
@@ -202,6 +206,15 @@ export class Db implements DbBase {
 
   async update_user_latest(user_id: string, latest) {
     console.log('update_user_latest', user_id, latest)
+  }
+
+  async update_user_by(user_id, params) {
+    let sql = squel.update().table("user")
+    if (params.username) {
+      sql.set("username", params.username)
+    }
+    let result = await this.update(sql)
+    return {}
   }
 }
 
