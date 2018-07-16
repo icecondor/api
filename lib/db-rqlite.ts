@@ -107,7 +107,7 @@ export class Db implements DbBase {
     if(!result.values) {
       result.values = []
     }
-    console.log(sql.toString(), "("+result.values.length+")", result.values[0])
+    console.log(sql.toString(), result)
     return result
   }
 
