@@ -528,8 +528,8 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   //  .then(function(qcount){}) // stream helper
   let timer = new Date()
   db.find_locations_for(user_id, start, stop, count, type, order)
-    .then(function(cursor){
-      cursor.each(function(err, location){
+    .then(function(locations){
+      locations.forEach(function(location){
         location_fences_load(location).then(function(location){
           influxWrite('send_last_locations', (new Date()).getTime() - timer.getTime())
           protocol.respond_success(client, stream_id, location)
