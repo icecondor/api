@@ -1,5 +1,5 @@
 import * as fs from 'fs'
-import * as rqlite from 'rqlite-js'
+import * as mysql from 'mysql2/promise'
 import * as squel from 'squel'
 import * as protobuf from 'protobufjs'
 import { ulid } from 'ulid'
@@ -7,18 +7,6 @@ import { ulid } from 'ulid'
 import { Db as DbBase } from './db'
 
 let db_name = 'icecondor'
-let schema = { 'users': {indexes: ['username',
-                                   ['email_downcase', ''],
-                                   ['friends', ['friends'], {multi: true}]
-                                  ]},
-               'activities': {indexes: ['date',
-                                        'user_id',
-                                        ['user_id_date', ['user_id', 'date']]
-                                       ]},
-               'fences': {indexes: ['user_id',
-                                    ['geojson', ['geojson'], {geo: true}]]},
-               'rules': {indexes: ['user_id', 'fence_id']}
-             }
 
 export class Db implements DbBase {
   settings: any
@@ -26,12 +14,13 @@ export class Db implements DbBase {
   proto_root: any
 
   constructor(settings: object) {
+    console.log('mysql', settings)
     this.settings = settings
   }
 
   async connect(onConnect) {
     try {
-      this.api = await rqlite('http://'+this.settings.host+':4001')
+      this.api = await mysql.createConnection(this.settings)
       await this.load_protobuf()
       await this.ensure_schema()
       await onConnect()
@@ -86,29 +75,24 @@ export class Db implements DbBase {
   }
 
   async table_create(sql) {
-    return await this.dbgo(sql, this.api.table.create)
+    return await this.dbgo(sql, this.api.query)
   }
 
   async select(sql) {
-    return await this.dbgo(sql, this.api.select)
+    return await this.dbgo(sql, this.api.query)
   }
 
   async insert(sql) {
-    return await this.dbgo(sql, this.api.insert)
-  }
-
-  async update(sql) {
-    return await this.dbgo(sql, this.api.update)
+    return await this.dbgo(sql, this.api.query)
   }
 
   async dbgo(sql, dbmethod) {
-    let r = await dbmethod(sql.toString())
+    let r = await dbmethod(sql.toString(), [], () => true)
+    console.log('dbgo', r)
     let result = r.body.results[0]
     if(!result.values) {
       result.values = []
     }
-    console.log(JSON.stringify(sql.toString()),
-                typeof result.values == "object" ? result.values[0] : result.values)
     return result
   }
 
@@ -132,9 +116,6 @@ export class Db implements DbBase {
     if (e.email_downcase) {
       sql = squel.select().from("user").where("email = ?", e.email_downcase)
     }
-    if (e.username) {
-      sql = squel.select().from("user").where("username = ?", e.username)
-    }
     if (e.id) {
       sql = squel.select().from("user").where("id = ?", e.id)
     }
@@ -144,7 +125,7 @@ export class Db implements DbBase {
       let user = this.proto_root.lookupType('icecondor.User').create({
         id: row[result.columns.indexOf('id')],
         email: row[result.columns.indexOf('email')],
-        username: row[result.columns.indexOf('username')],
+        username: row[result.columns.indexOf('email')],
         createdat: row[result.columns.indexOf('createdat')],
       })
       await this.user_load_devices(user)
@@ -168,7 +149,6 @@ export class Db implements DbBase {
     try {
       return await this.find_user_by({email_downcase: u.email.toLowerCase()})
     } catch(e) {
-      console.log('ensure_user creating', u.email)
       return await this.create_user(u)
     }
   }
@@ -211,29 +191,6 @@ export class Db implements DbBase {
 
   async update_user_latest(user_id: string, latest) {
     console.log('update_user_latest', user_id, latest)
-  }
-
-  async update_user_by(user_id, params) {
-    let sql = squel.update().table("user")
-    if (params.username) {
-      sql = sql.set("username", params.username)
-    }
-    sql = sql.where("id = ?", user_id)
-    let result = await this.update(sql)
-    return {}
-  }
-
-  async find_locations_for(user_id, start, stop, count, type, order) {
-    start = start || new Date("2008-08-01").toISOString()
-    stop = stop || new Date().toISOString()
-    let sql = squel.select()
-                   .from("location")
-                   .where("id = ?", user_id)
-                   .where("date > ?", start)
-                   .where("date < ?", stop)
-                   .limit(count)
-    let result = await this.select(sql)
-    return result.values
   }
 }
 
