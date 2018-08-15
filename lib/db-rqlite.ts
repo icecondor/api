@@ -108,7 +108,7 @@ export class Db extends DbBase {
     if (!result.values) {
       result.values = []
     }
-//    this.sql_log(sql, result)
+    //    this.sql_log(sql, result)
     return result
   }
 
@@ -240,7 +240,17 @@ export class Db extends DbBase {
       .order("date")
       .limit(count)
     let result = await this.select(sql)
-    return result.values
+    let proto_location = this.proto_root.lookupType('icecondor.Location')
+    let locations = result.values.map(row => {
+      proto_location.create({
+        Id: row[result.columns.indexOf('id')],
+        UserId: row[result.columns.indexOf('userid')],
+        Latitude: row[result.columns.indexOf('latitude')],
+        Longitude: row[result.columns.indexOf('longitude')],
+        Date: row[result.columns.indexOf('date')],
+      })
+    })
+    return locations
   }
 }
 

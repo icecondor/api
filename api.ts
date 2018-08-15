@@ -552,6 +552,7 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
 }
 
 function location_fences_load(location) {
+  console.log('location fences load', 'location', location)
   if (location.type == 'location') {
     return fences_add(location)
       .then(rules_add)
@@ -608,7 +609,7 @@ function process_auth_session(client, msg) {
           protocol.respond_success(client, msg.id, { user: { id: session.user_id } })
         }
       } else {
-        console.log("session for "+msg.params.device_key+" not found")
+        console.log("session for " + msg.params.device_key + " not found")
         protocol.respond_fail(client, msg.id, { code: "BK1", message: "bad device_key" })
       }
     }).catch(function(err) { console.log('Err! ' + err) })

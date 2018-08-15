@@ -11,6 +11,6 @@ export abstract class Db {
   }
 
   new_id(tableName: string) {
-    return (tableName+'-'+ulid()).toLowerCase()
+    return (tableName + '-' + ulid()).toLowerCase()
   }
 }

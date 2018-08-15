@@ -45,7 +45,8 @@
   "scripts": {
     "start": "tsc && echo build/api.js && node build/api.js",
     "build": "tsc",
-    "test": "jest build"
+    "test": "jest build",
+    "format": "tsfmt -r"
   },
   "compilerOptions": {
     "typeRoots": [
