@@ -2,7 +2,6 @@ import * as fs from 'fs'
 import * as rqlite from 'rqlite-js'
 import * as squel from 'squel'
 import * as protobuf from 'protobufjs'
-import { ulid } from 'ulid'
 
 import { Db as DbBase } from './db'
 
@@ -27,16 +26,12 @@ let schema = {
   'rules': { indexes: ['user_id', 'fence_id'] }
 }
 
-export class Db implements DbBase {
-  settings: any
+export class Db extends DbBase {
   api: any
   proto_root: any
 
-  constructor(settings: object) {
-    this.settings = settings
-  }
 
-  async connect(onConnect, onFail) {
+  async connect(onConnect) {
     this.api = await rqlite('http://' + this.settings.host + ':4001')
     await this.load_protobuf()
     await this.ensure_schema()
@@ -113,7 +108,7 @@ export class Db implements DbBase {
     if (!result.values) {
       result.values = []
     }
-    this.sql_log(sql, result)
+//    this.sql_log(sql, result)
     return result
   }
 
@@ -125,7 +120,7 @@ export class Db implements DbBase {
   async activity_add(a) {
     const Location = this.proto_root.lookupType('icecondor.Location')
     let location = Location.create({
-      Id: a.id || this.new_id(),
+      Id: a.id || this.new_id("location"),
       UserId: a.user_id,
       Date: a.date,
       Latitude: a.latitude,
@@ -183,13 +178,9 @@ export class Db implements DbBase {
     }
   }
 
-  new_id() {
-    return ulid().toLowerCase()
-  }
-
   async create_user(u) {
     let new_user = {
-      Id: this.new_id(),
+      Id: this.new_id("user"),
       Email: u.email,
       CreatedAt: u.created_at
     }

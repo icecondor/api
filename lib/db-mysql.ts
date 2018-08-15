@@ -8,15 +8,9 @@ import { Db as DbBase } from './db'
 
 let db_name = 'icecondor'
 
-export class Db implements DbBase {
-  settings: any
+export class Db extends DbBase {
   api: any
   proto_root: any
-
-  constructor(settings: object) {
-    console.log('mysql', settings)
-    this.settings = settings
-  }
 
   async connect(onConnect) {
     try {
