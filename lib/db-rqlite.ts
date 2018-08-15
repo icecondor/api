@@ -234,9 +234,10 @@ export class Db extends DbBase {
     stop = stop || new Date().toISOString()
     let sql = squel.select()
       .from("location")
-      .where("id = ?", user_id)
+      .where("userid = ?", user_id)
       .where("date > ?", start)
       .where("date < ?", stop)
+      .order("date")
       .limit(count)
     let result = await this.select(sql)
     return result.values
