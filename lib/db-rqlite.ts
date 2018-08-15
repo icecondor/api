@@ -242,19 +242,22 @@ export class Db extends DbBase {
     let result = await this.select(sql)
     let proto_location = this.proto_root.lookupType('icecondor.Location')
     let locations = result.values.map(row =>
-        ({ type: 'location',
-         id: row[result.columns.indexOf('id')],
-         userid: row[result.columns.indexOf('userid')],
-         latitude: parseFloat(row[result.columns.indexOf('latitude')]),
-         longitude: parseFloat(row[result.columns.indexOf('longitude')]),
-         date: row[result.columns.indexOf('date')]})
- /*     proto_location.create({
-        Id: row[result.columns.indexOf('id')],
-        UserId: row[result.columns.indexOf('userid')],
-        Latitude: row[result.columns.indexOf('latitude')],
-        Longitude: row[result.columns.indexOf('longitude')],
-        Date: row[result.columns.indexOf('date')],
-      }) */
+      ({
+        type: 'location',
+        id: row[result.columns.indexOf('id')],
+        userid: row[result.columns.indexOf('userid')],
+        latitude: parseFloat(row[result.columns.indexOf('latitude')]),
+        longitude: parseFloat(row[result.columns.indexOf('longitude')]),
+        date: row[result.columns.indexOf('date')],
+        provider: 'gps'
+      })
+      /*     proto_location.create({
+             Id: row[result.columns.indexOf('id')],
+             UserId: row[result.columns.indexOf('userid')],
+             Latitude: row[result.columns.indexOf('latitude')],
+             Longitude: row[result.columns.indexOf('longitude')],
+             Date: row[result.columns.indexOf('date')],
+           }) */
     )
     return locations
   }
