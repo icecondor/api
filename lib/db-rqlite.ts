@@ -245,8 +245,8 @@ export class Db extends DbBase {
         ({ type: 'location',
          id: row[result.columns.indexOf('id')],
          userid: row[result.columns.indexOf('userid')],
-         latitude: row[result.columns.indexOf('latitude')],
-         longitude: row[result.columns.indexOf('longitude')],
+         latitude: parseFloat(row[result.columns.indexOf('latitude')]),
+         longitude: parseFloat(row[result.columns.indexOf('longitude')]),
          date: row[result.columns.indexOf('date')]})
  /*     proto_location.create({
         Id: row[result.columns.indexOf('id')],
