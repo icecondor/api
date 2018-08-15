@@ -536,12 +536,12 @@ function rule_check(rule) {
 }
 
 function send_last_locations(client, stream_id, user_id, start, stop, count, type, order) {
-  console.log('send_last_locations', user_id, stream_id, start, stop, count, type, order)
   //db.count_locations_for(user_id, start, stop, count, type, order)
   //  .then(function(qcount){}) // stream helper
   let timer = new Date()
   db.find_locations_for(user_id, start, stop, count, type, order)
     .then(function(locations) {
+      console.log('send_last_locations', user_id, start, '-', stop, locations.length, 'points')
       locations.forEach(function(location) {
         location_fences_load(location).then(function(location) {
           influxWrite('send_last_locations', (new Date()).getTime() - timer.getTime())
