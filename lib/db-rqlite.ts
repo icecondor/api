@@ -83,13 +83,11 @@ export class Db implements DbBase {
           return Promise.reject(new Error("table create err"))
         }
       } catch (e) {
-        console.log('ensure_schema err', e)
+        console.log('ensure_schema err', filename, e.code)
         return Promise.reject(new Error("other ensure schema err"))
       }
       return this
     })
-    console.log('ensure schema sql promises', sql_promises.length)
-    console.log(sql_promises)
     await Promise.all(sql_promises)
   }
 
@@ -115,9 +113,13 @@ export class Db implements DbBase {
     if (!result.values) {
       result.values = []
     }
-    console.log(JSON.stringify(sql.toString()),
-      typeof result.values == "object" ? result.values[0] : result.values)
+    this.sql_log(sql, result)
     return result
+  }
+
+  sql_log(sql, result) {
+    console.log('SQL:', JSON.stringify(sql.toString()))
+    console.log('ROW:', typeof result.values == "object" ? result.values[0] : result.values)
   }
 
   async activity_add(a) {
