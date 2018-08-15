@@ -165,8 +165,15 @@ export class Db extends DbBase {
     user['devices'] = result.values.map(row => row[0])
   }
 
-  async user_add_device(d) {
-    console.log('user_add_device', d)
+  async user_add_device(user_id, device_id) {
+    console.log('user_add_device', 'user_id', user_id, 'device_id', device_id)
+    let new_device = {
+      Id: device_id,
+      UserId: user_id
+    }
+    let sql = squel.insert().into("device").setFields(new_device)
+    await this.insert(sql) // best effort
+    return this.find_user_by({ id: user_id })
   }
 
   async ensure_user(u) {
@@ -185,11 +192,7 @@ export class Db extends DbBase {
       CreatedAt: u.created_at
     }
     let sql = squel.insert().into("user").setFields(new_user)
-    let sql2 = squel.insert().into("device").setFields({
-      Id: u.devices[0],
-      UserId: new_user.Id
-    })
-    let r = await this.api.insert([sql.toString(), sql2.toString()], { transaction: true })
+    let r = await this.api.insert(sql.toString())
     let result = r.body.results[0]
     if (result.error) {
       return Promise.reject(result.error)

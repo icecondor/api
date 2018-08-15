@@ -608,7 +608,7 @@ function process_auth_session(client, msg) {
           protocol.respond_success(client, msg.id, { user: { id: session.user_id } })
         }
       } else {
-        console.log("session not found")
+        console.log("session for "+msg.params.device_key+" not found")
         protocol.respond_fail(client, msg.id, { code: "BK1", message: "bad device_key" })
       }
     }).catch(function(err) { console.log('Err! ' + err) })
