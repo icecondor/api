@@ -5,7 +5,6 @@ import * as timers from 'timers'
 import * as crypto from 'crypto'
 import * as uuid from 'node-uuid'
 import * as os from 'os'
-//os.freemem()
 
 // npm
 import * as moment from 'moment'
@@ -25,8 +24,6 @@ import * as dbLib from './lib/db-rqlite'
 let db = new dbLib.Db(settings.rqlite) as any
 import * as emailerLib from './lib/email'
 let emailer = emailerLib.factory(settings.email) as any
-
-// config-dependent
 import * as stripeLib from 'stripe'
 let stripe = stripeLib(settings.stripe.key);
 
@@ -35,11 +32,17 @@ console.log("api", motd)
 
 db.connect(function(){
   db.schema_dump()
+
+  server.on('listening', listening)
+  server.on('connection', handleConnection)
+  server.on('close', function() {console.log('closed')})
+  server.on('error', function(e) {console.log('net.sever err', e)})
   server.listen(settings.api.listen_port)
+
   db.changes(function(cursor){
     cursor.on("data", activity_added)
   })
-})
+}).catch((e) => {console.log('top level err', e)})
 
 function influxWrite(module, value) {
   request({method: 'POST',
@@ -50,18 +53,13 @@ function influxWrite(module, value) {
          })
 }
 
-server.on('listening', function () {
+function listening() {
   console.log("api listening on *:" + settings.api.listen_port)
   timers.setInterval(function() {
       progress_report();
       server.timer.reset();
     }, settings.api.progress_report_timer)
-})
-
-server.on('connection', handleConnection)
-
-server.on('close', function() {console.log('closed')})
-server.on('error', function(e) {console.log('net.sever err', e)})
+}
 
 function handleConnection(socket) {
   var client = server.build_client(socket)

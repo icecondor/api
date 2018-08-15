@@ -29,33 +29,29 @@ export class Db implements DbBase {
     this.settings = settings
   }
 
-  async connect(onConnect) {
-    try {
-      this.api = await rqlite('http://'+this.settings.host+':4001')
-      await this.load_protobuf()
-      await this.ensure_schema()
-      await onConnect()
-    } catch(e) {
-      console.log('connect err',e)
-    }
+  async connect(onConnect, onFail) {
+    this.api = await rqlite('http://'+this.settings.host+':4001')
+    await this.load_protobuf()
+    await this.ensure_schema()
+    await onConnect()
   }
 
   async schema_dump() {
-      let result = await this.select("select * from sqlite_master")
-      result.values.forEach(async row => {
-        let table = row[1]
-        if(!table.match(/^sqlite_/)) {
-          let sql = squel.select().field("COUNT(*)").from(table)
-          let result = await this.select(sql)
-          let msg
-          if(result.error) {
-            msg = result.error
-          } else {
-            msg = result.values[0][0] + " rows"
-          }
-          console.log(table, msg)
+    let result = await this.select("select * from sqlite_master")
+    result.values.forEach(async row => {
+      let table = row[1]
+      if(!table.match(/^sqlite_/)) {
+        let sql = squel.select().field("COUNT(*)").from(table)
+        let result = await this.select(sql)
+        let msg
+        if(result.error) {
+          msg = result.error
+        } else {
+          msg = result.values[0][0] + " rows"
         }
-      })
+        console.log(table, msg)
+      }
+    })
   }
 
   changes(onChange) {
@@ -71,18 +67,23 @@ export class Db implements DbBase {
   async ensure_schema(){
     let sql_folder = this.settings.sql_folder+"/sql/"
     let sql_files = fs.readdirSync(sql_folder)
-    await Promise.all(sql_files.map(async (filename) => {
+    let sql_promises = sql_files.map(async (filename) => {
       let sql = fs.readFileSync(sql_folder+filename)
       try {
         let result = await this.table_create(sql)
         if (result.error) {
           console.log(filename, "table create err", result.error)
+          return Promise.reject(new Error("table create err"))
         }
       } catch(e) {
         console.log('ensure_schema err',e)
+        return Promise.reject(new Error("other ensure schema err"))
       }
       return this
-    }))
+    })
+    console.log('ensure schema sql promises', sql_promises.length)
+    console.log(sql_promises)
+    await Promise.all(sql_promises)
   }
 
   async table_create(sql) {
