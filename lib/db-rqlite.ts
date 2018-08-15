@@ -7,18 +7,25 @@ import { ulid } from 'ulid'
 import { Db as DbBase } from './db'
 
 let db_name = 'icecondor'
-let schema = { 'users': {indexes: ['username',
-                                   ['email_downcase', ''],
-                                   ['friends', ['friends'], {multi: true}]
-                                  ]},
-               'activities': {indexes: ['date',
-                                        'user_id',
-                                        ['user_id_date', ['user_id', 'date']]
-                                       ]},
-               'fences': {indexes: ['user_id',
-                                    ['geojson', ['geojson'], {geo: true}]]},
-               'rules': {indexes: ['user_id', 'fence_id']}
-             }
+let schema = {
+  'users': {
+    indexes: ['username',
+      ['email_downcase', ''],
+      ['friends', ['friends'], { multi: true }]
+    ]
+  },
+  'activities': {
+    indexes: ['date',
+      'user_id',
+      ['user_id_date', ['user_id', 'date']]
+    ]
+  },
+  'fences': {
+    indexes: ['user_id',
+      ['geojson', ['geojson'], { geo: true }]]
+  },
+  'rules': { indexes: ['user_id', 'fence_id'] }
+}
 
 export class Db implements DbBase {
   settings: any
@@ -30,7 +37,7 @@ export class Db implements DbBase {
   }
 
   async connect(onConnect, onFail) {
-    this.api = await rqlite('http://'+this.settings.host+':4001')
+    this.api = await rqlite('http://' + this.settings.host + ':4001')
     await this.load_protobuf()
     await this.ensure_schema()
     await onConnect()
@@ -40,11 +47,11 @@ export class Db implements DbBase {
     let result = await this.select("select * from sqlite_master")
     result.values.forEach(async row => {
       let table = row[1]
-      if(!table.match(/^sqlite_/)) {
+      if (!table.match(/^sqlite_/)) {
         let sql = squel.select().field("COUNT(*)").from(table)
         let result = await this.select(sql)
         let msg
-        if(result.error) {
+        if (result.error) {
           msg = result.error
         } else {
           msg = result.values[0][0] + " rows"
@@ -57,26 +64,26 @@ export class Db implements DbBase {
   changes(onChange) {
   }
 
-  async load_protobuf(){
-    let proto_folder = this.settings.sql_folder+"/proto/"
+  async load_protobuf() {
+    let proto_folder = this.settings.sql_folder + "/proto/"
     let proto_files = fs.readdirSync(proto_folder)
-                        .map(fname => proto_folder+fname)
+      .map(fname => proto_folder + fname)
     this.proto_root = await protobuf.load(proto_files)
   }
 
-  async ensure_schema(){
-    let sql_folder = this.settings.sql_folder+"/sql/"
+  async ensure_schema() {
+    let sql_folder = this.settings.sql_folder + "/sql/"
     let sql_files = fs.readdirSync(sql_folder)
     let sql_promises = sql_files.map(async (filename) => {
-      let sql = fs.readFileSync(sql_folder+filename)
+      let sql = fs.readFileSync(sql_folder + filename)
       try {
         let result = await this.table_create(sql)
         if (result.error) {
           console.log(filename, "table create err", result.error)
           return Promise.reject(new Error("table create err"))
         }
-      } catch(e) {
-        console.log('ensure_schema err',e)
+      } catch (e) {
+        console.log('ensure_schema err', e)
         return Promise.reject(new Error("other ensure schema err"))
       }
       return this
@@ -105,11 +112,11 @@ export class Db implements DbBase {
   async dbgo(sql, dbmethod) {
     let r = await dbmethod(sql.toString())
     let result = r.body.results[0]
-    if(!result.values) {
+    if (!result.values) {
       result.values = []
     }
     console.log(JSON.stringify(sql.toString()),
-                typeof result.values == "object" ? result.values[0] : result.values)
+      typeof result.values == "object" ? result.values[0] : result.values)
     return result
   }
 
@@ -125,7 +132,7 @@ export class Db implements DbBase {
     let new_location = Location.toObject(location)
     let sql = squel.insert().into("location").setFields(new_location)
     let result = await this.insert(sql)
-    return {errors: 0}
+    return { errors: 0 }
   }
 
   async find_user_by(e) {
@@ -140,7 +147,7 @@ export class Db implements DbBase {
       sql = squel.select().from("user").where("id = ?", e.id)
     }
     let result = await this.select(sql)
-    if(result.values.length > 0) {
+    if (result.values.length > 0) {
       let row = result.values[0]
       let user = this.proto_root.lookupType('icecondor.User').create({
         id: row[result.columns.indexOf('id')],
@@ -151,7 +158,7 @@ export class Db implements DbBase {
       await this.user_load_devices(user)
       return user
     } else {
-      return Promise.reject({err:"not found"})
+      return Promise.reject({ err: "not found" })
     }
   }
 
@@ -167,8 +174,8 @@ export class Db implements DbBase {
 
   async ensure_user(u) {
     try {
-      return await this.find_user_by({email_downcase: u.email.toLowerCase()})
-    } catch(e) {
+      return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
+    } catch (e) {
       console.log('ensure_user creating', u.email)
       return await this.create_user(u)
     }
@@ -189,17 +196,17 @@ export class Db implements DbBase {
       Id: u.devices[0],
       UserId: new_user.Id
     })
-    let r = await this.api.insert([sql.toString(), sql2.toString()], {transaction: true})
+    let r = await this.api.insert([sql.toString(), sql2.toString()], { transaction: true })
     let result = r.body.results[0]
     if (result.error) {
       return Promise.reject(result.error)
     } else {
-      return this.find_user_by({id: new_user.Id})
+      return this.find_user_by({ id: new_user.Id })
     }
   }
 
   async get_user(user_id: string) {
-    return this.find_user_by({id: user_id})
+    return this.find_user_by({ id: user_id })
   }
 
   async friending_me(user_id: string) {
@@ -207,7 +214,7 @@ export class Db implements DbBase {
   }
 
   async fences_intersect(point) {
-    return {toArray: () => Promise.resolve([])} // quack like rethinkdb
+    return { toArray: () => Promise.resolve([]) } // quack like rethinkdb
   }
 
   async update_user_latest(user_id: string, latest) {
@@ -228,11 +235,11 @@ export class Db implements DbBase {
     start = start || new Date("2008-08-01").toISOString()
     stop = stop || new Date().toISOString()
     let sql = squel.select()
-                   .from("location")
-                   .where("id = ?", user_id)
-                   .where("date > ?", start)
-                   .where("date < ?", stop)
-                   .limit(count)
+      .from("location")
+      .where("id = ?", user_id)
+      .where("date > ?", start)
+      .where("date < ?", stop)
+      .limit(count)
     let result = await this.select(sql)
     return result.values
   }

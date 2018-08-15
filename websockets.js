@@ -3,21 +3,21 @@ var wsock = require('websock');
 var settings = require('./settings');
 
 wsock.listen(settings.websockets.listen_port, ws_connect);
-console.log("websockets listening on "+settings.websockets.listen_port)
+console.log("websockets listening on " + settings.websockets.listen_port)
 
 function ws_connect(socket) {
   console.log('ws_connect')
   var apiSocket = new net.Socket();
 
-  console.log('websockets open. connecting to api on '+settings.api.listen_port);
+  console.log('websockets open. connecting to api on ' + settings.api.listen_port);
 
   apiSocket.on('data', function(data) {
-    console.log(socket.address+'-> '+data)
+    console.log(socket.address + '-> ' + data)
     socket.send(data)
   })
 
   apiSocket.on('error', function(exception) {
-    console.log("apiSocket error: "+exception);
+    console.log("apiSocket error: " + exception);
     apiSocket.end()
     socket.end()
   })
@@ -25,8 +25,8 @@ function ws_connect(socket) {
   apiSocket.connect(settings.api.listen_port, "localhost")
 
   socket.on('message', function(data) {
-    console.log('<-ws '+data)
-    apiSocket.write(data+"\n")
+    console.log('<-ws ' + data)
+    apiSocket.write(data + "\n")
   });
 
   socket.on('close', function() {
