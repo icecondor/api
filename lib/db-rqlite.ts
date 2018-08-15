@@ -197,6 +197,7 @@ export class Db extends DbBase {
     if (result.error) {
       return Promise.reject(result.error)
     } else {
+      this.user_add_device(new_user.Id, u.devices[0])
       return this.find_user_by({ id: new_user.Id })
     }
   }
@@ -221,6 +222,7 @@ export class Db extends DbBase {
     let sql = squel.update().table("user")
     if (params.username) {
       sql = sql.set("username", params.username)
+      console.log('updating user', user_id, 'username', params.username)
     }
     sql = sql.where("id = ?", user_id)
     let result = await this.update(sql)
