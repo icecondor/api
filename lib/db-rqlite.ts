@@ -118,18 +118,20 @@ export class Db extends DbBase {
   }
 
   async activity_add(a) {
-    const Location = this.proto_root.lookupType('icecondor.Location')
-    let location = Location.create({
-      Id: a.id || this.new_id("location"),
-      UserId: a.user_id,
-      Date: a.date,
-      Latitude: a.latitude,
-      Longitude: a.longitude
-    })
-    let new_location = Location.toObject(location)
-    let sql = squel.insert().into("location").setFields(new_location)
-    let result = await this.insert(sql)
-    return { errors: 0 }
+    if (a.type == 'location') {
+      const Location = this.proto_root.lookupType('icecondor.Location')
+      let location = Location.create({
+        Id: a.id || this.new_id("location"),
+        UserId: a.user_id,
+        Date: a.date,
+        Latitude: a.latitude,
+        Longitude: a.longitude
+      })
+      let new_location = Location.toObject(location)
+      let sql = squel.insert().into("location").setFields(new_location)
+      let result = await this.insert(sql)
+      return { errors: 0 }
+    }
   }
 
   async find_user_by(e) {
