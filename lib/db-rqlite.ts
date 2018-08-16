@@ -132,8 +132,8 @@ export class Db extends DbBase {
       let new_location = Location.toObject(location)
       let sql = squel.insert().into("location").setFields(new_location)
       let result = await this.insert(sql)
-      return { errors: 0 }
     }
+    return { errors: 0 }
   }
 
   async find_user_by(e) {
