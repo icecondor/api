@@ -126,7 +126,8 @@ export class Db extends DbBase {
         Date: a.date,
         Latitude: a.latitude,
         Longitude: a.longitude,
-        Accuracy: a.accuracy
+        Accuracy: a.accuracy,
+        Provider: a.provider
       })
       let new_location = Location.toObject(location)
       let sql = squel.insert().into("location").setFields(new_location)
@@ -252,7 +253,8 @@ export class Db extends DbBase {
         latitude: parseFloat(row[result.columns.indexOf('latitude')]),
         longitude: parseFloat(row[result.columns.indexOf('longitude')]),
         date: row[result.columns.indexOf('date')],
-        provider: 'gps'
+        accuracy: parseFloat(row[result.columns.indexOf('accuracy')]),
+        provider: row[result.columns.indexOf('provider')],
       })
       /*     proto_location.create({
              Id: row[result.columns.indexOf('id')],
