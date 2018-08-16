@@ -125,7 +125,8 @@ export class Db extends DbBase {
         UserId: a.user_id,
         Date: a.date,
         Latitude: a.latitude,
-        Longitude: a.longitude
+        Longitude: a.longitude,
+        Accuracy: a.accuracy
       })
       let new_location = Location.toObject(location)
       let sql = squel.insert().into("location").setFields(new_location)
