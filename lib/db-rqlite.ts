@@ -4,6 +4,7 @@ import * as squel from 'squel'
 import * as protobuf from 'protobufjs'
 
 import { Db as DbBase } from './db'
+import * as noun from './nouns'
 
 let db_name = 'icecondor'
 let schema = {
@@ -119,18 +120,17 @@ export class Db extends DbBase {
 
   async activity_add(a) {
     if (a.type == 'location') {
-      const Location = this.proto_root.lookupType('icecondor.Location')
-      let location = Location.create({
+      let location: noun.Location = {
         Id: a.id || this.new_id("location"),
+        CreatedAt: new Date().toISOString(),
         UserId: a.user_id,
         Date: a.date,
         Latitude: a.latitude,
         Longitude: a.longitude,
         Accuracy: a.accuracy,
         Provider: a.provider
-      })
-      let new_location = Location.toObject(location)
-      let sql = squel.insert().into("location").setFields(new_location)
+      }
+      let sql = squel.insert().into("location").setFields(location)
       let result = await this.insert(sql)
     }
     return { errors: 0 }
