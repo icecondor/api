@@ -120,17 +120,33 @@ export class Db extends DbBase {
 
   async activity_add(a) {
     if (a.type == 'location') {
-      let location: noun.Location = {
-        Id: a.id || this.new_id("location"),
-        CreatedAt: new Date().toISOString(),
-        UserId: a.user_id,
-        Date: a.date,
-        Latitude: a.latitude,
-        Longitude: a.longitude,
-        Accuracy: a.accuracy,
-        Provider: a.provider
+      let thing: noun.Location = {
+        id: a.id || this.new_id("location"),
+        createdAt: new Date().toISOString(),
+        userId: a.user_id,
+        date: a.date,
+        latitude: a.latitude,
+        longitude: a.longitude,
+        accuracy: a.accuracy,
+        provider: a.provider
       }
-      let sql = squel.insert().into("location").setFields(location)
+      let sql = squel.insert().into("location").setFields(thing)
+      let result = await this.insert(sql)
+    }
+    if (a.type == 'heartbeat') {
+      let thing: noun.Heartbeat = {
+        id: a.id || this.new_id("location"),
+        createdAt: new Date().toISOString(),
+        userId: a.user_id,
+        deviceId: 'wha',
+        charging: a.power,
+        cellData: a.celldata,
+        wifiData: a.wifidata,
+        batteryPercentage: 0,
+        memoryFree: 0,
+        memoryTotal: 0
+      }
+      let sql = squel.insert().into("heartbeat").setFields(thing)
       let result = await this.insert(sql)
     }
     return { errors: 0 }
@@ -190,10 +206,11 @@ export class Db extends DbBase {
   }
 
   async create_user(u) {
-    let new_user = {
-      Id: this.new_id("user"),
-      Email: u.email,
-      CreatedAt: u.created_at
+    let new_user: noun.User = {
+      id: u.id || this.new_id("user"),
+      email: u.email,
+      username: u.username,
+      created_at: u.created_at || new Date().toISOString()
     }
     let sql = squel.insert().into("user").setFields(new_user)
     let r = await this.api.insert(sql.toString())
@@ -201,8 +218,8 @@ export class Db extends DbBase {
     if (result.error) {
       return Promise.reject(result.error)
     } else {
-      this.user_add_device(new_user.Id, u.devices[0])
-      return this.find_user_by({ id: new_user.Id })
+      this.user_add_device(new_user.id, u.devices[0])
+      return this.find_user_by({ id: new_user.id })
     }
   }
 
