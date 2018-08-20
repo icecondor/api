@@ -176,6 +176,24 @@ export class Db extends DbBase {
     user['devices'] = result.values.map(row => row[0])
   }
 
+  async user_add_access(user_id, key) {
+    console.log('user_add_access', 'user_id', user_id, 'key', key)
+    let new_access: noun.Access = {}
+    let sql = squel.insert().into('access').setFields(new_access)
+    await this.insert(sql) // best effort
+    return this.user_find_access(user_id, key)
+  }
+
+  async user_find_access(user_id, key) {
+  }
+
+  async user_add_friend(user_id, friend_id) {
+    console.log('user_add_friend', 'user_id', user_id, 'friend_id', friend_id)
+    let new_friendship: noun.Friendship = {}
+    let sql = squel.insert().into('friendship').setFields(new_friendship)
+    await this.insert(sql) // best effort
+  }
+
   async user_add_device(user_id, device_id) {
     console.log('user_add_device', 'user_id', user_id, 'device_id', device_id)
     let new_device = {
