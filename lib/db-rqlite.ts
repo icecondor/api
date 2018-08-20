@@ -1,7 +1,6 @@
 import * as fs from 'fs'
 import * as rqlite from 'rqlite-js'
 import * as squel from 'squel'
-import * as protobuf from 'protobufjs'
 
 import { Db as DbBase } from './db'
 import * as noun from './nouns'
@@ -34,7 +33,6 @@ export class Db extends DbBase {
 
   async connect(onConnect) {
     this.api = await rqlite('http://' + this.settings.host + ':4001')
-    await this.load_protobuf()
     await this.ensure_schema()
     await onConnect()
   }
@@ -58,13 +56,6 @@ export class Db extends DbBase {
   }
 
   changes(onChange) {
-  }
-
-  async load_protobuf() {
-    let proto_folder = this.settings.sql_folder + "/proto/"
-    let proto_files = fs.readdirSync(proto_folder)
-      .map(fname => proto_folder + fname)
-    this.proto_root = await protobuf.load(proto_files)
   }
 
   async ensure_schema() {
@@ -122,8 +113,8 @@ export class Db extends DbBase {
     if (a.type == 'location') {
       let thing: noun.Location = {
         id: a.id || this.new_id("location"),
-        createdAt: new Date().toISOString(),
-        userId: a.user_id,
+        created_at: new Date().toISOString(),
+        user_id: a.user_id,
         date: a.date,
         latitude: a.latitude,
         longitude: a.longitude,
@@ -136,15 +127,15 @@ export class Db extends DbBase {
     if (a.type == 'heartbeat') {
       let thing: noun.Heartbeat = {
         id: a.id || this.new_id("location"),
-        createdAt: new Date().toISOString(),
-        userId: a.user_id,
-        deviceId: 'wha',
+        created_at: new Date().toISOString(),
+        user_id: a.user_id,
+        device_id: 'wha',
         charging: a.power,
-        cellData: a.celldata,
-        wifiData: a.wifidata,
-        batteryPercentage: 0,
-        memoryFree: 0,
-        memoryTotal: 0
+        cell_data: a.celldata,
+        wifi_data: a.wifidata,
+        battery_percentage: 0,
+        memory_free: 0,
+        memory_total: 0
       }
       let sql = squel.insert().into("heartbeat").setFields(thing)
       let result = await this.insert(sql)
@@ -166,12 +157,12 @@ export class Db extends DbBase {
     let result = await this.select(sql)
     if (result.values.length > 0) {
       let row = result.values[0]
-      let user = this.proto_root.lookupType('icecondor.User').create({
+      let user: noun.User = {
         id: row[result.columns.indexOf('id')],
         email: row[result.columns.indexOf('email')],
         username: row[result.columns.indexOf('username')],
-        createdat: row[result.columns.indexOf('createdat')],
-      })
+        created_at: row[result.columns.indexOf('createdat')],
+      }
       await this.user_load_devices(user)
       return user
     } else {
@@ -218,7 +209,7 @@ export class Db extends DbBase {
     if (result.error) {
       return Promise.reject(result.error)
     } else {
-      this.user_add_device(new_user.id, u.devices[0])
+      //this.user_add_device(new_user.id, u.devices[0])
       return this.find_user_by({ id: new_user.id })
     }
   }
@@ -266,7 +257,7 @@ export class Db extends DbBase {
       ({
         type: 'location',
         id: row[result.columns.indexOf('id')],
-        userid: row[result.columns.indexOf('userid')],
+        userid: row[result.columns.indexOf('user_id')],
         latitude: parseFloat(row[result.columns.indexOf('latitude')]),
         longitude: parseFloat(row[result.columns.indexOf('longitude')]),
         date: row[result.columns.indexOf('date')],
