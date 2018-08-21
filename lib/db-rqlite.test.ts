@@ -9,9 +9,10 @@ test('connect', () => {
   rdb.connect(() => { })
 })
 
-test('find_user_by', () => {
+test('find_user_by (not found)', async () => {
+  expect.assertions(1)
   let rdb = new db.Db(settings.rqlite)
-  rdb.connect(async () => {
+  await rdb.connect(async () => {
     try {
       let user = await rdb.find_user_by({ email_downcase: "a@b.c" })
     } catch (e) {
@@ -20,11 +21,13 @@ test('find_user_by', () => {
   })
 })
 
-test('ensure_user', () => {
+test('ensure_user', async () => {
+  expect.assertions(1)
   let rdb = new db.Db(settings.rqlite)
-  rdb.connect(async () => {
-    rdb.ensure_user({ email: "a@b.c", devices: ["device-abc123"] })
-    let user = await rdb.find_user_by({ email_downcase: "a@b.c" })
-    expect(user.email).toBe("a@b.c")
+  await rdb.connect(async () => {
+    let email = "a@b.c"
+    await rdb.ensure_user({ email: email, devices: ["device-abc123"] })
+    let user = await rdb.find_user_by({ email_downcase: email })
+    expect(user.email).toBe(email)
   })
 })

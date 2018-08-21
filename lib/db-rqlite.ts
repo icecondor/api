@@ -30,7 +30,6 @@ export class Db extends DbBase {
   api: any
   proto_root: any
 
-
   async connect(onConnect) {
     this.api = await rqlite('http://' + this.settings.host + ':4001')
     await this.ensure_schema()
@@ -166,7 +165,7 @@ export class Db extends DbBase {
       await this.user_load_devices(user)
       return user
     } else {
-      return Promise.reject({ err: "not found" })
+      return Promise.reject({ err: "find_user_by not found for "+sql.toString() })
     }
   }
 
@@ -196,13 +195,16 @@ export class Db extends DbBase {
 
   async user_add_device(user_id, device_id) {
     console.log('user_add_device', 'user_id', user_id, 'device_id', device_id)
-    let new_device = {
-      Id: device_id,
-      UserId: user_id
+    let new_device: noun.Device = {
+      id: device_id,
+      user_id: user_id
     }
     let sql = squel.insert().into("device").setFields(new_device)
     await this.insert(sql) // best effort
-    return this.find_user_by({ id: user_id })
+    return this.user_find_device(user_id, device_id)
+  }
+
+  async user_find_device(user_id, device_id) {
   }
 
   async ensure_user(u) {
