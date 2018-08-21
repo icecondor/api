@@ -22,12 +22,14 @@ test('find_user_by (not found)', async () => {
 })
 
 test('ensure_user', async () => {
-  expect.assertions(1)
+  expect.assertions(2)
   let rdb = new db.Db(settings.rqlite)
   await rdb.connect(async () => {
     let email = "a@b.c"
-    await rdb.ensure_user({ email: email, devices: ["device-abc123"] })
+    let device_id = "device-abc123"
+    await rdb.ensure_user({ email: email, devices: [device_id] })
     let user = await rdb.find_user_by({ email_downcase: email })
     expect(user.email).toBe(email)
+    expect(user.devices[0]).toBe(device_id)
   })
 })

@@ -125,10 +125,10 @@ export class Db extends DbBase {
     }
     if (a.type == 'heartbeat') {
       let thing: noun.Heartbeat = {
-        id: a.id || this.new_id("location"),
+        id: a.id || this.new_id("heartbeat"),
         created_at: new Date().toISOString(),
         user_id: a.user_id,
-        device_id: 'wha',
+        //device_id: 'wha',
         charging: a.power,
         cell_data: a.celldata,
         wifi_data: a.wifidata,
@@ -156,23 +156,23 @@ export class Db extends DbBase {
     let result = await this.select(sql)
     if (result.values.length > 0) {
       let row = result.values[0]
-      let user: noun.User = {
+      let full_user: any = {
         id: row[result.columns.indexOf('id')],
         email: row[result.columns.indexOf('email')],
         username: row[result.columns.indexOf('username')],
         created_at: row[result.columns.indexOf('createdat')],
       }
-      await this.user_load_devices(user)
-      return user
+      full_user.devices = await this.user_load_devices(full_user.id)
+      return full_user
     } else {
       return Promise.reject({ err: "find_user_by not found for "+sql.toString() })
     }
   }
 
-  async user_load_devices(user) {
-    let sql = squel.select().from("device").where("userid = ?", user.id)
+  async user_load_devices(user_id) {
+    let sql = squel.select().from("device").where("user_id = ?", user_id)
     let result = await this.select(sql)
-    user['devices'] = result.values.map(row => row[0])
+    return result.values.map(row => row[result.columns.indexOf('id')])
   }
 
   async user_add_access(user_id, key) {
@@ -211,8 +211,11 @@ export class Db extends DbBase {
     try {
       return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
     } catch (e) {
+      // not found
       console.log('ensure_user creating', u.email)
-      return await this.create_user(u)
+      let user: noun.User = await this.create_user(u)
+      for(const device_id of u.devices) await this.user_add_device(user.id, device_id)
+      return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
     }
   }
 
