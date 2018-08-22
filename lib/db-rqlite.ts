@@ -176,7 +176,6 @@ export class Db extends DbBase {
   }
 
   async user_add_access(user_id, key) {
-    console.log('user_add_access', 'user_id', user_id, 'key', key)
     let new_access: noun.Access = {}
     let sql = squel.insert().into('access').setFields(new_access)
     await this.insert(sql) // best effort
@@ -187,14 +186,12 @@ export class Db extends DbBase {
   }
 
   async user_add_friend(user_id, friend_id) {
-    console.log('user_add_friend', 'user_id', user_id, 'friend_id', friend_id)
     let new_friendship: noun.Friendship = {}
     let sql = squel.insert().into('friendship').setFields(new_friendship)
     await this.insert(sql) // best effort
   }
 
   async user_add_device(user_id, device_id) {
-    console.log('user_add_device', 'user_id', user_id, 'device_id', device_id)
     let new_device: noun.Device = {
       id: device_id,
       user_id: user_id
@@ -214,7 +211,18 @@ export class Db extends DbBase {
       // not found
       console.log('ensure_user creating', u.email)
       let user: noun.User = await this.create_user(u)
-      for(const device_id of u.devices) await this.user_add_device(user.id, device_id)
+      if (u.devices) {
+         console.log('adding', u.devices.length, 'devices')
+        for(const device_id of u.devices) await this.user_add_device(user.id, device_id)
+      }
+      if (u.access) {
+        console.log('adding', Object.keys(u.access).length, 'keys')
+        for (const key of Object.keys(u.access)) await this.user_add_access(user.id, key)
+      }
+      if (u.friends) {
+        console.log('adding', u.friends.length, 'friends')
+        for (const friend of u.friends) await this.user_add_friend(user.id, friend)
+      }
       return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
     }
   }
