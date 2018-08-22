@@ -145,7 +145,7 @@ export class Db extends DbBase {
   async find_user_by(e) {
     let sql
     if (e.email_downcase) {
-      sql = squel.select().from("user").where("email = ?", e.email_downcase)
+      sql = squel.select().from("user").where("email = ? collate nocase", e.email_downcase)
     }
     if (e.username) {
       sql = squel.select().from("user").where("username = ?", e.username)
