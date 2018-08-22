@@ -177,7 +177,7 @@ export class Db extends DbBase {
 
   async user_add_access(user_id, key) {
     let new_access: noun.Access = {
-      id: u.id || this.new_id("user"),
+      id: this.new_id("access"),
       created_at: new Date().toISOString(),
       user_id: user_id,
     }
