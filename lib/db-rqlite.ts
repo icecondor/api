@@ -292,7 +292,7 @@ export class Db extends DbBase {
     stop = stop || new Date().toISOString()
     let sql = squel.select()
       .from("location")
-      .where("userid = ?", user_id)
+      .where("user_id = ?", user_id)
       .where("date > ?", start)
       .where("date < ?", stop)
       .order("date")
@@ -302,7 +302,7 @@ export class Db extends DbBase {
       ({
         type: 'location',
         id: row[result.columns.indexOf('id')],
-        userid: row[result.columns.indexOf('user_id')],
+        user_id: row[result.columns.indexOf('user_id')],
         latitude: parseFloat(row[result.columns.indexOf('latitude')]),
         longitude: parseFloat(row[result.columns.indexOf('longitude')]),
         date: row[result.columns.indexOf('date')],
