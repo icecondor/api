@@ -288,8 +288,7 @@ export class Db extends DbBase {
       .order("date")
       .limit(count)
     let result = await this.select(sql)
-    let proto_location = this.proto_root.lookupType('icecondor.Location')
-    let locations = result.values.map(row =>
+    let locations: noun.Location[] = result.values.map(row =>
       ({
         type: 'location',
         id: row[result.columns.indexOf('id')],

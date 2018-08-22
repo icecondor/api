@@ -27,9 +27,10 @@ test('ensure_user', async () => {
   await rdb.connect(async () => {
     let email = "a@b.c"
     let device_id = "device-abc123"
-    await rdb.ensure_user({ email: email, devices: [device_id] })
+    let full_user = { email: email, devices: [device_id] }
+    await rdb.ensure_user(full_user)
     let user = await rdb.find_user_by({ email_downcase: email })
-    expect(user.email).toBe(email)
-    expect(user.devices[0]).toBe(device_id)
+    expect(user.email).toBe(full_user.email)
+    expect(user.devices[0]).toBe(full_user.devices[0])
   })
 })
