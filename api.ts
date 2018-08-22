@@ -556,7 +556,7 @@ function location_fences_load(location) {
     return fences_add(location)
       .then(rules_add)
       .then(function(location) {
-        console.log('location', location.date, location.latitude, location.longitude, 'fences', location.fences.length)
+        if (location.fences) console.log('location', location.date, location.latitude, location.longitude, 'fences', location.fences.length)
         if (location.rules) {
           var cloak_rules = location.rules.filter(function(rule) { return rule.kind == 'cloaked' })
           if (cloak_rules.length > 0) {
