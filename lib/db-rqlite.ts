@@ -176,7 +176,11 @@ export class Db extends DbBase {
   }
 
   async user_add_access(user_id, key) {
-    let new_access: noun.Access = {}
+    let new_access: noun.Access = {
+      id: u.id || this.new_id("user"),
+      created_at: new Date().toISOString(),
+      user_id: user_id,
+    }
     let sql = squel.insert().into('access').setFields(new_access)
     await this.insert(sql) // best effort
     return this.user_find_access(user_id, key)
@@ -194,6 +198,7 @@ export class Db extends DbBase {
   async user_add_device(user_id, device_id) {
     let new_device: noun.Device = {
       id: device_id,
+      created_at: new Date().toISOString(),
       user_id: user_id
     }
     let sql = squel.insert().into("device").setFields(new_device)
