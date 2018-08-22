@@ -26,6 +26,12 @@ let schema = {
   'rules': { indexes: ['user_id', 'fence_id'] }
 }
 
+squel.registerValueHandler('boolean', sqlite_bool)
+
+function sqlite_bool(tf) {
+  return tf ? "1" : "0"
+}
+
 export class Db extends DbBase {
   api: any
   proto_root: any
@@ -96,6 +102,10 @@ export class Db extends DbBase {
   async dbgo(sql, dbmethod) {
     let r = await dbmethod(sql.toString())
     let result = r.body.results[0]
+    if (result.error) {
+      console.log(sql.toString())
+      console.log(result)
+    }
     if (!result.values) {
       result.values = []
     }
