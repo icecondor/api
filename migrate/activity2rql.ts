@@ -9,6 +9,7 @@ rdb.connect(async () => {
     const filename = process.argv[2]
     let err_count = 0
     let promiseq = 0
+    let save = 0
 
     var lineReader = require('readline').createInterface({input: fs.createReadStream(filename)})
     lineReader.on('line', async function (line) {
@@ -20,14 +21,14 @@ rdb.connect(async () => {
         if(line.length > 0) {
           var act = JSON.parse(line)
           await dbsave(act)
-          promiseq -= 1
+          save += 1
         }
       } catch(e) {
         err_count += 1
         console.log('err #'+err_count+' (q '+promiseq+'):', line.substr(0,30), e.errno || e)
       }
     })
-    console.log('done', err_count, 'errors', promiseq, 'promiseq')
+    console.log('done', save, 'save', err_count, 'errors', promiseq-save, 'promiseq')
   } catch (e) {
     console.log(e)
   }
