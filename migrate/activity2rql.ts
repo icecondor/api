@@ -20,8 +20,10 @@ rdb.connect(async () => {
         line = line.replace(/,$/, '')
         if(line.length > 0) {
           var act = JSON.parse(line)
-          await dbsave(act)
-          save += 1
+          if (act.type != 'status_report') {
+            await dbsave(act)
+            save += 1
+          }
         }
       } catch(e) {
         err_count += 1
