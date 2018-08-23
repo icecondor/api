@@ -7,9 +7,12 @@ let rdb = new db.Db(settings.rqlite)
 rdb.connect(async () => {
   try {
     const filename = process.argv[2]
+    let err_count = 0
+    let promiseq = 0
 
     var lineReader = require('readline').createInterface({input: fs.createReadStream(filename)})
     lineReader.on('line', async function (line) {
+      promiseq += 1
       try {
         line = line.replace(/^\[/, '')
         line = line.replace(/^\]/, '')
@@ -17,12 +20,14 @@ rdb.connect(async () => {
         if(line.length > 0) {
           var act = JSON.parse(line)
           await dbsave(act)
+          promiseq -= 1
         }
       } catch(e) {
-        console.log('bogus:', line, e)
+        err_count += 1
+        console.log('err #'+err_count+' (pq '+promiseq+'):', line.substr(0,30), e)
       }
     })
-    console.log('done')
+    console.log('done', err_count, 'errors', promiseq, 'promiseq')
   } catch (e) {
     console.log(e)
   }
