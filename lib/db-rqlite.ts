@@ -122,9 +122,10 @@ export class Db extends DbBase {
     if (a.type == 'location') {
       let thing: noun.Location = {
         id: a.id || this.new_id("location"),
-        created_at: new Date().toISOString(),
+        created_at: (a.date || a.created_at) || new Date().toISOString(),
+        received_at: a.received_at,
         user_id: a.user_id,
-        date: a.date,
+        device_id: a.device_id,
         latitude: a.latitude,
         longitude: a.longitude,
         accuracy: a.accuracy,
@@ -136,17 +137,32 @@ export class Db extends DbBase {
     if (a.type == 'heartbeat') {
       let thing: noun.Heartbeat = {
         id: a.id || this.new_id("heartbeat"),
-        created_at: new Date().toISOString(),
+        created_at: (a.date || a.created_at) || new Date().toISOString(),
+        received_at: a.received_at,
         user_id: a.user_id,
-        //device_id: 'wha',
+        device_id: a.device_id,
         charging: a.power,
         cell_data: a.celldata,
         wifi_data: a.wifidata,
-        battery_percentage: 0,
-        memory_free: 0,
-        memory_total: 0
+        battery_percentage: a.battery.percentage,
+        memory_free: a.memory.free,
+        memory_total: a.memory.total
       }
       let sql = squel.insert().into("heartbeat").setFields(thing)
+      let result = await this.insert(sql)
+    }
+    if (a.type == 'config') {
+      let thing: noun.Config = {
+        id: a.id || this.new_id("config"),
+        created_at: (a.date || a.created_at) || new Date().toISOString(),
+        received_at: a.received_at,
+        user_id: a.user_id,
+        device_id: a.device_id,
+        recording: a.recording == "on" ? true : false,
+        recording_frequency: a.frequency ? parseFloat(a.frequency)*60 : null,
+        source: a.source || null
+      }
+      let sql = squel.insert().into("config").setFields(thing)
       let result = await this.insert(sql)
     }
     return { errors: 0 }
