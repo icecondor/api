@@ -24,7 +24,7 @@ rdb.connect(async () => {
         }
       } catch(e) {
         err_count += 1
-        console.log('err #'+err_count+' (pq '+promiseq+'):', line.substr(0,30), e)
+        console.log('err #'+err_count+' (pq '+promiseq+'):', line.substr(0,30), e.errno)
       }
     })
     console.log('done', err_count, 'errors', promiseq, 'promiseq')
@@ -35,14 +35,11 @@ rdb.connect(async () => {
 
 async function dbsave(activity) {
   let datefix = ''
-  if (activity.created_at && !activity.received_at) {
+  if (activity.date && !activity.received_at) {
     datefix = 'received from created'
-    activity.received_at = activity.created_at
+    activity.received_at = activity.date
   }
-  if (activity.received_at && !activity.created_at) {
-    datefix = 'created from received'
-    activity.created_at = activity.received_at
-  }
-  console.log('activity', activity.id, activity.type, datefix)
+  if (!activity.date) datefix='missing date!'
+  console.log('activity', activity.id, activity.type, '['+datefix+']')
   let new_user = await rdb.activity_add(activity)
 }
