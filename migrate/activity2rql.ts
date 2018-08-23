@@ -24,7 +24,7 @@ rdb.connect(async () => {
         }
       } catch(e) {
         err_count += 1
-        console.log('err #'+err_count+' (pq '+promiseq+'):', line.substr(0,30), e.errno)
+        console.log('err #'+err_count+' (q '+promiseq+'):', line.substr(0,30), e.errno || e)
       }
     })
     console.log('done', err_count, 'errors', promiseq, 'promiseq')
