@@ -119,11 +119,12 @@ export class Db extends DbBase {
   }
 
   async activity_add(a) {
+    let now = new Date().toISOString()
     if (a.type == 'location') {
       let thing: noun.Location = {
         id: a.id || this.new_id("location"),
-        created_at: (a.date || a.created_at) || new Date().toISOString(),
-        received_at: a.received_at,
+        date: a.date || now,
+        received_at: a.received_at || now,
         user_id: a.user_id,
         device_id: a.device_id,
         latitude: a.latitude,
@@ -137,8 +138,8 @@ export class Db extends DbBase {
     if (a.type == 'heartbeat') {
       let thing: noun.Heartbeat = {
         id: a.id || this.new_id("heartbeat"),
-        created_at: (a.date || a.created_at) || new Date().toISOString(),
-        received_at: a.received_at,
+        date: a.date || now,
+        received_at: a.received_at || now,
         user_id: a.user_id,
         device_id: a.device_id,
         charging: a.power,
@@ -154,8 +155,8 @@ export class Db extends DbBase {
     if (a.type == 'config') {
       let thing: noun.Config = {
         id: a.id || this.new_id("config"),
-        created_at: (a.date || a.created_at) || new Date().toISOString(),
-        received_at: a.received_at,
+        date: a.date || now,
+        received_at: a.received_at || now,
         user_id: a.user_id,
         device_id: a.device_id,
         recording: a.recording == "on" ? true : false,
@@ -186,7 +187,7 @@ export class Db extends DbBase {
         id: row[result.columns.indexOf('id')],
         email: row[result.columns.indexOf('email')],
         username: row[result.columns.indexOf('username')],
-        created_at: row[result.columns.indexOf('createdat')],
+        created_at: row[result.columns.indexOf('created_at')],
       }
       full_user.devices = await this.user_load_devices(full_user.id)
       return full_user
@@ -319,6 +320,7 @@ export class Db extends DbBase {
         type: 'location',
         id: row[result.columns.indexOf('id')],
         user_id: row[result.columns.indexOf('user_id')],
+        device_id: row[result.columns.indexOf('device_id')],
         latitude: parseFloat(row[result.columns.indexOf('latitude')]),
         longitude: parseFloat(row[result.columns.indexOf('longitude')]),
         date: row[result.columns.indexOf('date')],
