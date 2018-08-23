@@ -146,8 +146,8 @@ export class Db extends DbBase {
         cell_data: a.celldata,
         wifi_data: a.wifidata,
         battery_percentage: a.battery.percentage,
-        memory_free: a.memory ? null : a.memory.free,
-        memory_total: a.memory ? null : a.memory.total
+        memory_free: a.memory ? a.memory.free : null,
+        memory_total: a.memory ? a.memory.total : null
       }
       let sql = squel.insert().into("heartbeat").setFields(thing)
       let result = await this.insert(sql)
