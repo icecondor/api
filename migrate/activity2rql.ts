@@ -1,10 +1,19 @@
 require('source-map-support').install()
 import * as db from '../lib/db-rqlite'
 import * as fs from 'fs'
+import * as rethink from 'rethinkdb'
+
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
 
+
+console.log('rql', settings.rqlite)
 let rdb = new db.Db(settings.rqlite)
 rdb.connect(async () => {
+  console.log('rethink', settings.rethinkdb)
+  let conn = await rethink.connect(settings.rethinkdb)
+  var dbs = await rethink.dbList().run(conn)
+  console.log(dbs)
+
   try {
     const filename = process.argv[2]
     let err_count = 0
