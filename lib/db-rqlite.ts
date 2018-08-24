@@ -321,7 +321,7 @@ export class Db extends DbBase {
       .where("user_id = ?", user_id)
       .where("date > ?", start)
       .where("date < ?", stop)
-      .order("date")
+      .order("date", false)
       .limit(count)
     let result = await this.select(sql)
     let locations: noun.Location[] = result.values.map(row =>
