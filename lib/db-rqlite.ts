@@ -170,7 +170,7 @@ export class Db extends DbBase {
   }
 
   async activity_last_date() {
-    let sql = squel.select().from("location").order("date").limit(1)
+    let sql = squel.select().from('location').order('date', 'desc').limit(1)
     console.log(sql.toString())
     let result = await this.select(sql)
     if (result.values.length > 0) {
