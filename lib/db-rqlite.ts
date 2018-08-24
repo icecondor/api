@@ -169,6 +169,15 @@ export class Db extends DbBase {
     return { errors: 0 }
   }
 
+  async activity_last_date() {
+    let sql = squel.select().from("location").order("date").limit(1)
+    console.log(sql.toString())
+    let result = await this.select(sql)
+    if (result.values.length > 0) {
+      return result.values[0][result.columns.indexOf('date')]
+    }
+  }
+
   async find_user_by(e) {
     let sql
     if (e.email_downcase) {

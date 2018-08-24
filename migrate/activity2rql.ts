@@ -13,37 +13,48 @@ rdb.connect(async () => {
   let conn = await rethink.connect(settings.rethinkdb)
   var dbs = await rethink.dbList().run(conn)
   console.log(dbs)
+  conn.use('icecondor')
+//  let act_total = await rethink.table('activities').count().run(conn)
+//  console.log('icecondor activities', act_total)
 
   try {
-    const filename = process.argv[2]
-    let err_count = 0
-    let promiseq = 0
-    let save = 0
-
-    var lineReader = require('readline').createInterface({input: fs.createReadStream(filename)})
-    lineReader.on('line', async function (line) {
-      promiseq += 1
-      try {
-        line = line.replace(/^\[/, '')
-        line = line.replace(/^\]/, '')
-        line = line.replace(/,$/, '')
-        if(line.length > 0) {
-          var act = JSON.parse(line)
-          if (act.type != 'status_report') {
-            await dbsave(act)
-            save += 1
-          }
-        }
-      } catch(e) {
-        err_count += 1
-        console.log('err #'+err_count+' (q '+promiseq+'):', e.errno || e, e.errno ? line.substr(0,30) : line)
-      }
-    })
-    console.log('done', save, 'save', err_count, 'errors', promiseq-save, 'promiseq')
+    let start = new Date(await rdb.activity_last_date() || "2008-08-01")
+    let stop = new Date()
+    while (stop) {
+      console.log('\n** rql start', start)
+      stop = await pull_group(conn, start)
+      console.log('group done', start, stop)
+      start = new Date(stop)
+    }
   } catch (e) {
     console.log(e)
   }
+  console.log('el fin')
 })
+
+async function pull_group(conn, start) {
+    let stop = new Date()
+    let last
+    let limit = 10
+    let save = 0
+    let err_count = 0
+    let cursor = await rethink
+      .table('activities')
+      .between(start.toISOString(),
+               stop.toISOString(),
+                {index: "date",
+                 left_bound:'open',right_bound:'closed'})
+      .orderBy({index: rethink.asc('date')})
+      .limit(limit)
+      .run(conn)
+    let rows = await cursor.toArray()
+    await Promise.all(rows.map(async row => {
+      await dbsave(row)
+      if (!last || row.date > last) last = row.date
+    })).catch(e => console.log('promise all err', e))
+    console.log('done', save, 'save', err_count, 'errors', last, 'last')
+    return last
+}
 
 async function dbsave(activity) {
   let datefix = ''
@@ -52,6 +63,6 @@ async function dbsave(activity) {
     activity.received_at = activity.date
   }
   if (!activity.date) datefix='missing date!'
-  console.log('activity', activity.id, activity.type, '['+datefix+']')
+  console.log('activity', activity.id, activity.date, activity.type, '['+datefix+']')
   let new_user = await rdb.activity_add(activity)
 }
