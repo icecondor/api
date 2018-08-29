@@ -5,7 +5,6 @@ import * as rethink from 'rethinkdb'
 
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
 
-
 console.log('rql', settings.rqlite)
 let rdb = new db.Db(settings.rqlite)
 rdb.connect(async () => {
