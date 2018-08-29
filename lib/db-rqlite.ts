@@ -84,27 +84,29 @@ export class Db extends DbBase {
   }
 
   async table_create(sql) {
-    return await this.dbgo(sql, this.api.table.create)
+    return await this.dbgo(sql, this.api.table.create, {})
   }
 
   async select(sql) {
-    return await this.dbgo(sql, this.api.select)
+    return await this.dbgo(sql, this.api.select, {})
   }
 
   async insert(sql) {
-    return await this.dbgo(sql, this.api.insert)
+    return await this.dbgo(sql, this.api.insert, {transaction: true})
   }
 
   async update(sql) {
-    return await this.dbgo(sql, this.api.update)
+    return await this.dbgo(sql, this.api.update, {transaction: true})
   }
 
-  async dbgo(sql, dbmethod) {
-    let r = await dbmethod(sql.toString())
+  async dbgo(statements, dbmethod, params) {
+    const sqls = statements instanceof Array ? statements : [statements]
+    let r = await dbmethod(sqls.map(sql => sql.toString()), params)
     let result = r.body.results[0]
     if (result.error) {
-      console.log(sql.toString())
-      console.log(result)
+      for (const sql of statements) console.log('dbgo sql', sql.toString())
+      console.log('dbgo err', result.error)
+      return new Error("dbgo sql error throw "+result.error)
     }
     if (!result.values) {
       result.values = []
@@ -201,7 +203,7 @@ export class Db extends DbBase {
       full_user.devices = await this.user_load_devices(full_user.id)
       return full_user
     } else {
-      return Promise.reject({ err: "find_user_by not found for "+sql.toString() })
+      return Promise.reject({ err: "find_user_by reject values==0: "+sql.toString() })
     }
   }
 
@@ -249,6 +251,7 @@ export class Db extends DbBase {
     try {
       return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
     } catch (e) {
+      console.log('ensure_user/find user by CATCH', e)
       // not found
       console.log('ensure_user creating', u.email)
       let user: noun.User = await this.create_user(u)
@@ -264,6 +267,7 @@ export class Db extends DbBase {
         console.log('adding', u.friends.length, 'friends')
         for (const friend of u.friends) await this.user_add_friend(user.id, friend)
       }
+
       return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
     }
   }

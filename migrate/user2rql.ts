@@ -19,12 +19,21 @@ rdb.connect(async () => {
     // at once
     const cursor = await rethink.table('users').run(conn)
     const users = await cursor.toArray()
-    users.map(async (user,idx) => {
-      console.log(idx+'/'+users.length, user.email)
-      await rdb.ensure_user(user)
-    })
+    for (const user of users) {
+      try {
+        console.log('user2rql START', user.username, user.email)
+        const eu = await rdb.ensure_user(user)
+        if (eu.error) {
+          console.log('user2rql result error', eu.error)
+        } else {
+          console.log('user2rql GOOD', eu.username, eu.email)
+        }
+      } catch(e) {
+        console.log('user2rql', user.email, 'CATCH', e)
+      }
+    }
 
-    console.log('done')
+    console.log('*** done', users.length, 'rethink users')
   } catch (e) {
     console.log(e)
   }
