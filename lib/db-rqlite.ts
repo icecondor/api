@@ -104,7 +104,7 @@ export class Db extends DbBase {
     let r = await dbmethod(sqls.map(sql => sql.toString()), params)
     let result = r.body.results[0]
     if (result.error) {
-      for (const sql of statements) console.log('dbgo sql', sql.toString())
+      for (const sql of sqls) console.log('dbgo sql', sql.toString())
       console.log('dbgo err', result.error)
       return new Error("dbgo sql error throw "+result.error)
     }
@@ -210,7 +210,7 @@ export class Db extends DbBase {
   async user_load_devices(user_id) {
     let sql = squel.select().from("device").where("user_id = ?", user_id)
     let result = await this.select(sql)
-    return result.values.map(row => row[result.columns.indexOf('id')])
+    return result.values.map(row => row[result.columns.indexOf('device_id')])
   }
 
   async user_add_access(user_id, key) {
@@ -228,14 +228,20 @@ export class Db extends DbBase {
   }
 
   async user_add_friend(user_id, friend_id) {
-    let new_friendship: noun.Friendship = {}
+    let new_friendship: noun.Friendship = {
+      id: this.new_id("friendship"),
+      user_id: user_id,
+      friend_user_id: friend_id,
+      created_at: new Date().toISOString()
+    }
     let sql = squel.insert().into('friendship').setFields(new_friendship)
     await this.insert(sql) // best effort
   }
 
   async user_add_device(user_id, device_id) {
     let new_device: noun.Device = {
-      id: device_id,
+      id: this.new_id("device"),
+      device_id: device_id,
       created_at: new Date().toISOString(),
       user_id: user_id
     }
@@ -245,13 +251,13 @@ export class Db extends DbBase {
   }
 
   async user_find_device(user_id, device_id) {
+
   }
 
   async ensure_user(u) {
     try {
       return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
     } catch (e) {
-      console.log('ensure_user/find user by CATCH', e)
       // not found
       console.log('ensure_user creating', u.email)
       let user: noun.User = await this.create_user(u)
@@ -260,7 +266,7 @@ export class Db extends DbBase {
         for(const device_id of u.devices) await this.user_add_device(user.id, device_id)
       }
       if (u.access) {
-        console.log('adding', Object.keys(u.access).length, 'keys')
+        console.log('adding', Object.keys(u.access).length, 'access keys')
         for (const key of Object.keys(u.access)) await this.user_add_access(user.id, key)
       }
       if (u.friends) {

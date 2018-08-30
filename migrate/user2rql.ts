@@ -21,7 +21,6 @@ rdb.connect(async () => {
     const users = await cursor.toArray()
     for (const user of users) {
       try {
-        console.log('user2rql START', user.username, user.email)
         const eu = await rdb.ensure_user(user)
         if (eu.error) {
           console.log('user2rql result error', eu.error)
@@ -30,6 +29,7 @@ rdb.connect(async () => {
         }
       } catch(e) {
         console.log('user2rql', user.email, 'CATCH', e)
+        process.exit(1)
       }
     }
 
