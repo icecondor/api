@@ -25,7 +25,11 @@ rdb.connect(async () => {
         if (eu.error) {
           console.log('user2rql result error', eu.error)
         } else {
-          console.log('user2rql GOOD', eu.username, eu.email)
+          if(user.email == eu.email) {
+            console.log('user2rql GOOD', eu.username, eu.email)
+          } else {
+            console.log('user2rql mismatch', user.email, eu.email)
+          }
         }
       } catch(e) {
         console.log('user2rql', user.email, 'CATCH', e)

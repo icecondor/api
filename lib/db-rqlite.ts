@@ -101,6 +101,7 @@ export class Db extends DbBase {
 
   async dbgo(statements, dbmethod, params) {
     const sqls = statements instanceof Array ? statements : [statements]
+    //for (const sql of sqls) console.log('dbgo sql', sql.toString())
     let r = await dbmethod(sqls.map(sql => sql.toString()), params)
     let result = r.body.results[0]
     if (result.error) {
@@ -259,18 +260,19 @@ export class Db extends DbBase {
       return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
     } catch (e) {
       // not found
-      console.log('ensure_user creating', u.email)
-      let user: noun.User = await this.create_user(u)
+      console.log('ensure_user creating', u.email, u.id)
+      await this.create_user(u)
+      let user: noun.User = await this.find_user_by({ email_downcase: u.email.toLowerCase() })
       if (u.devices) {
-         console.log('adding', u.devices.length, 'devices')
+        if (u.devices.length > 0) console.log('adding', u.devices.length, 'devices')
         for(const device_id of u.devices) await this.user_add_device(user.id, device_id)
       }
       if (u.access) {
-        console.log('adding', Object.keys(u.access).length, 'access keys')
+        if (Object.keys(u.access).length > 0) console.log('adding', Object.keys(u.access).length, 'access keys')
         for (const key of Object.keys(u.access)) await this.user_add_access(user.id, key)
       }
       if (u.friends) {
-        console.log('adding', u.friends.length, 'friends')
+        if (u.friends.length > 0) console.log('adding', u.friends.length, 'friends')
         for (const friend of u.friends) await this.user_add_friend(user.id, friend)
       }
 
@@ -286,14 +288,7 @@ export class Db extends DbBase {
       created_at: u.created_at || new Date().toISOString()
     }
     let sql = squel.insert().into("user").setFields(new_user)
-    let r = await this.api.insert(sql.toString())
-    let result = r.body.results[0]
-    if (result.error) {
-      return Promise.reject(result.error)
-    } else {
-      //this.user_add_device(new_user.id, u.devices[0])
-      return this.find_user_by({ id: new_user.id })
-    }
+    await this.insert(sql)
   }
 
   async get_user(user_id: string) {
