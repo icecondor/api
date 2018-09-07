@@ -1,7 +1,9 @@
 import * as fs from 'fs'
+import * as path from 'path'
 // import * as levelup from 'levelup'
 // import * as lmdb from 'zetta-lmdb'
 import * as lmdb from 'node-lmdb'
+import * as mkdirp from 'mkdirp'
 
 import { Db as DbBase } from './db'
 import * as noun from './nouns'
@@ -40,7 +42,7 @@ export class Db extends DbBase {
 
   async connect(onConnect) {
     this.api = new lmdb.Env()
-    this.storage_path = "./datalake"
+    this.storage_path = "./datalake/"
     this.mkdir(this.storage_path)
     this.mkdir(this.settings.path)
     this.api.open(this.settings)
@@ -57,11 +59,22 @@ export class Db extends DbBase {
   async ensure_schema() {
   }
 
-  async set(value) {
+  async save(value) {
+    console.log('save', value)
+    this.saveFile(value)
+
     //username, date, device_id,
-    let key
+    let key = '' //makeKey(value, 'idx1')
     //if (value instanceof noun.Location) key = [value.username,value.date,value.device_id].join(':')
-    console.log('kv set value.name', value.name)
+    console.log('save value.name', value.prototype)
+  }
+
+  saveFile(value) {
+    console.log('filepath', this.storage_path, 'i', value.id, 'i2', typeof value.id, (value.id).substr('-','/'))
+    var filepath = this.storage_path+value.id.replace(/-/g,'/')
+    mkdirp.sync(path.dirname(filepath))
+    console.log('filepath', filepath)
+    fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
 // model stuff
@@ -79,7 +92,7 @@ export class Db extends DbBase {
         accuracy: a.accuracy,
         provider: a.provider
       }
-      let result = this.set(thing)
+      let result = this.save(thing)
     }
     if (a.type == 'heartbeat') {
       let thing: noun.Heartbeat = {

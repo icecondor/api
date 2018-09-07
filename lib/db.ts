@@ -1,3 +1,4 @@
+import * as uuid from 'node-uuid'
 import { ulid } from 'ulid'
 
 export abstract class Db {
@@ -11,6 +12,7 @@ export abstract class Db {
   }
 
   new_id(tableName: string) {
-    return (tableName + '-' + ulid()).toLowerCase()
+    const uniqid = uuid.v4() // ulid()
+    return (tableName + '-' + uniqid).toLowerCase()
   }
 }
