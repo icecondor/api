@@ -12,7 +12,7 @@ let db_name = 'icecondor'
 let schema = {
   'user': {
     indexes: ['username',
-      ['email_downcase', ''],
+      'email_downcase',
       ['friends', ['friends'], { multi: true }]
     ]
   },
@@ -32,6 +32,7 @@ let schema = {
 
 export class Db extends DbBase {
   api: any
+  db: any
   storage_path: string
 
   mkdir(dir: string) {
@@ -47,6 +48,7 @@ export class Db extends DbBase {
     this.mkdir(this.storage_path)
     this.mkdir(this.settings.path)
     this.api.open(this.settings)
+    this.db = this.api.openDbi({name: "icecondor", create: true})
     await this.ensure_schema()
     await onConnect()
   }
@@ -67,8 +69,10 @@ export class Db extends DbBase {
       for (const index of indexes) {
         //username, date, device_id,
         let key = this.makeKey(index,value)
-        //if (value instanceof noun.Location) key = [value.username,value.date,value.device_id].join(':')
         console.log('save index', index, 'key', key, 'value.type', value.type)
+        var txn = this.api.beginTxn()
+        txn.putString(this.db, key, value.id)
+        txn.commit()
       }
     } else {
       console.log('warning: no index defined for', value.type)
@@ -80,7 +84,7 @@ export class Db extends DbBase {
       return value[index]
     }
     if (Array.isArray(index)) {
-      return "array index"
+      return index[1].map(i => value[i]).join(':')
     }
   }
 
