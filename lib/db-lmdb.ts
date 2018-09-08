@@ -12,7 +12,7 @@ let db_name = 'icecondor'
 let schema = {
   'user': {
     indexes: ['username',
-      'email_downcase',
+      'email',
       ['friends', ['friends'], { multi: true }]
     ]
   },
@@ -69,13 +69,35 @@ export class Db extends DbBase {
       for (const index of indexes) {
         //username, date, device_id,
         let key = this.makeKey(index,value)
-        console.log('save index', index, 'key', key, 'value.type', value.type)
-        var txn = this.api.beginTxn()
-        txn.putString(this.db, key, value.id)
-        txn.commit()
+        if (key) {
+          console.log('SAVE', value.type, 'index', index, key+"="+value.id)
+          var txn = this.api.beginTxn()
+          txn.putString(this.db, key, value.id)
+          txn.commit()
+        } else {
+          console.log('save failed for', value.type, 'index', index)
+        }
       }
     } else {
       console.log('warning: no index defined for', value.type)
+    }
+  }
+
+  get(type, indexName, key) {
+    let id
+    if (indexName == 'id') {
+      id = key
+    } else {
+      //find id
+    }
+
+    if(id) {
+      let data = this.loadFile(id)
+      if (data) {
+        return JSON.parse(data)
+      }
+    } else {
+      console.log('get fail. no id for index', indexName, key)
     }
   }
 
@@ -84,15 +106,26 @@ export class Db extends DbBase {
       return value[index]
     }
     if (Array.isArray(index)) {
-      return index[1].map(i => value[i]).join(':')
+      let values = index[1].map(i => value[i])
+      if(values.every(i => i)) {
+        return values.join(':')
+      } else {
+        console.log('warning: index', index, 'creation failed due to missing values')
+      }
     }
   }
 
   saveFile(value) {
     var filepath = this.storage_path+value.id.replace(/-/g,'/')
     mkdirp.sync(path.dirname(filepath))
-    console.log('filepath', filepath)
+    console.log('file save', filepath)
     fs.writeFileSync(filepath, JSON.stringify(value))
+  }
+
+  loadFile(id) {
+    var filepath = this.storage_path+id.replace(/-/g,'/')
+    console.log('file load', filepath)
+    return fs.readFileSync(filepath, 'utf8')
   }
 
 // model stuff
@@ -158,36 +191,37 @@ export class Db extends DbBase {
   }
 
   async find_user_by(e) {
-    let sql
+    let index, key
     if (e.email_downcase) {
-      //sql = squel.select().from("user").where("email = ? collate nocase", e.email_downcase)
+      index = 'email_downcase'
+      key = e.email_downcase
     }
     if (e.username) {
-      //sql = squel.select().from("user").where("username = ?", e.username)
+      index ='username'
+      key = e.username
     }
     if (e.id) {
-      //sql = squel.select().from("user").where("id = ?", e.id)
+      index ='id'
+      key = e.id
     }
-    let result = {values: [], columns: []} //await this.select(sql)
-    if (result.values.length > 0) {
-      let row = result.values[0]
+    let user: any = this.get('user', index, key)
+    if (user) {
       let full_user: any = {
-        id: row[result.columns.indexOf('id')],
-        email: row[result.columns.indexOf('email')],
-        username: row[result.columns.indexOf('username')],
-        created_at: row[result.columns.indexOf('created_at')],
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        created_at: user.created_at,
       }
       full_user.devices = await this.user_load_devices(full_user.id)
       return full_user
     } else {
-      return Promise.reject({ err: "find_user_by reject values==0: "+sql.toString() })
+      return Promise.reject({ err: "find_user_by reject "+index+" "+key })
     }
   }
 
   async user_load_devices(user_id) {
     //let sql = squel.select().from("device").where("user_id = ?", user_id)
-    let result = {}//await this.select(sql)
-    //return result.values.map(row => row[result.columns.indexOf('device_id')])
+    return [] //result.values.map(row => row[result.columns.indexOf('device_id')])
   }
 
   async user_add_access(user_id, key) {
@@ -240,7 +274,7 @@ export class Db extends DbBase {
     } catch (e) {
       // not found
       console.log('ensure_user creating', u.email, u.id)
-      //await this.create_user(u)
+      await this.create_user(u)
       let user: noun.User = await this.find_user_by({ email_downcase: u.email.toLowerCase() })
       if (u.devices) {
         if (u.devices.length > 0) console.log('adding', u.devices.length, 'devices')
@@ -267,8 +301,7 @@ export class Db extends DbBase {
       username: u.username,
       created_at: u.created_at || new Date().toISOString()
     }
-    //let sql = squel.insert().into("user").setFields(new_user)
-    //await this.insert(sql)
+    this.save(new_user)
   }
 
   async get_user(user_id: string) {
