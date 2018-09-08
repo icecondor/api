@@ -16,7 +16,9 @@ let schema = {
       ['friends', ['friends'], { multi: true }]
     ]
   },
-  'heartbeat': {},
+  'heartbeat': {
+    indexes: []
+  },
   'location': {
     indexes: ['date',
       'user_id',
@@ -48,7 +50,7 @@ export class Db extends DbBase {
     this.mkdir(this.storage_path)
     this.mkdir(this.settings.path)
     this.api.open(this.settings)
-    this.db = this.api.openDbi({name: "icecondor", create: true})
+    this.db = {}
     await this.ensure_schema()
     await onConnect()
   }
@@ -60,22 +62,39 @@ export class Db extends DbBase {
   }
 
   async ensure_schema() {
+    for (const typeName in schema) {
+      for (const index of schema[typeName].indexes) {
+        let indexName = Array.isArray(index) ? index[0] : index
+        let dbname = this.dbName(typeName, indexName)
+        this.db[dbname] = this.api.openDbi({name: dbname, create: true})
+        var txn = this.api.beginTxn()
+        let cursor = new lmdb.Cursor(txn, this.db[dbname])
+        let count = 0
+        for (var found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) { count += 1 }
+        txn.commit()
+        console.log('opened index', dbname, count)
+      }
+    }
   }
+
+  dbName(typeName, indexName) { return typeName+'.'+indexName }
 
   async save(value) {
     this.saveFile(value)
-    var indexes = schema[value.type].indexes
+    let typeName = value.type
+    var indexes = schema[typeName].indexes
     if (indexes) {
-      for (const index of indexes) {
-        //username, date, device_id,
-        let key = this.makeKey(index,value)
+      for (const indexName of indexes) {
+        let key = this.makeKey(indexName, value)
         if (key) {
-          console.log('SAVE', value.type, 'index', index, key+"="+value.id)
+          let dbname = this.dbName(typeName, indexName)
+          console.log('SAVE', dbname, key+"="+value.id)
           var txn = this.api.beginTxn()
-          txn.putString(this.db, key, value.id)
+          console.log('db', this.db[dbname])
+          txn.putString(this.db[dbname], key, value.id)
           txn.commit()
         } else {
-          console.log('save failed for', value.type, 'index', index)
+          console.log('save failed for', value.type, 'index', indexName)
         }
       }
     } else {
@@ -83,12 +102,17 @@ export class Db extends DbBase {
     }
   }
 
-  get(type, indexName, key) {
+  get(typeName, indexName, key) {
     let id
     if (indexName == 'id') {
       id = key
     } else {
-      //find id
+      let dbname = this.dbName(typeName, indexName)
+      var txn = this.api.beginTxn()
+      console.log('GET', dbname, key)
+      id = txn.getString(this.db[dbname], key)
+      if(!id) { console.log('get fail', dbname, key, 'is null') }
+      txn.commit()
     }
 
     if(id) {
@@ -97,7 +121,7 @@ export class Db extends DbBase {
         return JSON.parse(data)
       }
     } else {
-      console.log('get fail. no id for index', indexName, key)
+      console.log('get fail. no id for index', typeName, indexName, key)
     }
   }
 
@@ -193,7 +217,7 @@ export class Db extends DbBase {
   async find_user_by(e) {
     let index, key
     if (e.email_downcase) {
-      index = 'email_downcase'
+      index = 'email'
       key = e.email_downcase
     }
     if (e.username) {
