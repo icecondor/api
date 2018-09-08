@@ -12,6 +12,6 @@ export abstract class Db {
   }
 
   new_id() {
-    return ulid()
+    return uuid.v4()
   }
 }

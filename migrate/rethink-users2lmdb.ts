@@ -23,7 +23,7 @@ db.connect(async () => {
           console.log('user2rql result error', eu.error)
         } else {
           if(user.email == eu.email) {
-            console.log('user2rql GOOD', eu.username, eu.email)
+            console.log('user2rql GOOD', eu.email)
           } else {
             console.log('user2rql save FAIL', user.email, eu.email)
           }

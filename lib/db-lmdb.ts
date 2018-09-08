@@ -12,7 +12,8 @@ import * as noun from './nouns'
 let db_name = 'icecondor'
 let schema = {
   'user': {
-    indexes: ['username',
+    indexes: [
+      'username',
       'email',
       ['friends', ['friends'], { multi: true }]
     ]
@@ -21,16 +22,23 @@ let schema = {
     indexes: []
   },
   'location': {
-    indexes: ['date',
+    indexes: [
+      'date',
       'user_id',
       ['user_id_date', ['user_id', 'date']]
     ]
   },
   'fence': {
-    indexes: ['user_id',
+    indexes: [
+      'user_id',
       ['geojson', ['geojson'], { geo: true }]]
   },
-  'rule': { indexes: ['user_id', 'fence_id'] }
+  'rule': {
+    indexes: [
+      'user_id',
+      'fence_id'
+    ]
+  }
 }
 
 export class Db extends DbBase {
@@ -77,12 +85,6 @@ export class Db extends DbBase {
         let dbname = this.dbName(typeName, indexName)
         this.api.openDbi({name: dbname, create: true}).drop()
         this.db[dbname] = this.api.openDbi({name: dbname, create: true})
-        var txn = this.api.beginTxn()
-        let cursor = new lmdb.Cursor(txn, this.db[dbname])
-        let count = 0
-        for (var found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) { count += 1 }
-        txn.commit()
-        console.log('opened index', dbname, count)
       }
     }
   }
@@ -93,7 +95,6 @@ export class Db extends DbBase {
     walk.filesSync(this.storage_path, (dir, filename, stat) => {
       let p1 = dir.substr(this.storage_path.length+1)
       let id = p1.replace(/\//g, '-')+'-'+filename
-      console.log(p1, dir, filename, id)
       let value = JSON.parse(this.loadFile(id))
       this.saveIndexes(value)
     })
@@ -115,9 +116,12 @@ export class Db extends DbBase {
         let dbname = this.dbName(typeName, indexName)
         let key = this.makeKey(index, value)
         if (key) {
-          console.log('SAVE', dbname, key+"="+value.id)
           var txn = this.api.beginTxn()
-          txn.putString(this.db[dbname], key, value.id)
+          var testValues = txn.getString(this.db[dbname], key)
+          if(!testValues) {
+            console.log('SAVE', dbname, key+"="+value.id)
+            txn.putString(this.db[dbname], key, value.id)
+          }
           txn.commit()
         } else {
           console.log('key generation failed for index', dbname)
@@ -151,6 +155,17 @@ export class Db extends DbBase {
     }
   }
 
+  getLast(typeName, indexName) {
+      let dbname = this.dbName(typeName, indexName)
+      let txn = this.api.beginTxn()
+      let cursor = new lmdb.Cursor(txn, this.db[dbname])
+      let last
+      for (let found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) {last = found}
+      console.log('GETLAST', dbname, last)
+      txn.commit()
+      return last
+  }
+
   makeKey(index, value) {
     if (typeof index == 'string') {
       return value[index]
@@ -166,7 +181,7 @@ export class Db extends DbBase {
   }
 
   saveFile(value) {
-    var filepath = this.storage_path+value.id.replace(/-/g,'/')
+    var filepath = this.storage_path+'/'+value.id.replace(/-/g,'/')
     mkdirp.sync(path.dirname(filepath))
     console.log('file save', filepath)
     fs.writeFileSync(filepath, JSON.stringify(value))
@@ -230,12 +245,13 @@ export class Db extends DbBase {
     return { errors: 0 }
   }
 
-  async activity_last_date() {
+  activity_last_date() {
     //let sql = squel.select().from('location').order('date', false).limit(1)
-    let result = {}//await this.select(sql)
+    //let result = await this.select(sql)
     //if (result.values.length > 0) {
       //return result.values[0][result.columns.indexOf('date')]
     //}
+    return this.getLast('location', 'date')
   }
 
   async find_user_by(e) {
