@@ -10,23 +10,24 @@ import * as noun from './nouns'
 
 let db_name = 'icecondor'
 let schema = {
-  'users': {
+  'user': {
     indexes: ['username',
       ['email_downcase', ''],
       ['friends', ['friends'], { multi: true }]
     ]
   },
-  'activities': {
+  'heartbeat': {},
+  'location': {
     indexes: ['date',
       'user_id',
       ['user_id_date', ['user_id', 'date']]
     ]
   },
-  'fences': {
+  'fence': {
     indexes: ['user_id',
       ['geojson', ['geojson'], { geo: true }]]
   },
-  'rules': { indexes: ['user_id', 'fence_id'] }
+  'rule': { indexes: ['user_id', 'fence_id'] }
 }
 
 export class Db extends DbBase {
@@ -60,13 +61,27 @@ export class Db extends DbBase {
   }
 
   async save(value) {
-    let type = value.id.split('-')[0]
     this.saveFile(value)
+    var indexes = schema[value.type].indexes
+    if (indexes) {
+      for (const index of indexes) {
+        //username, date, device_id,
+        let key = this.makeKey(index,value)
+        //if (value instanceof noun.Location) key = [value.username,value.date,value.device_id].join(':')
+        console.log('save index', index, 'key', key, 'value.type', value.type)
+      }
+    } else {
+      console.log('warning: no index defined for', value.type)
+    }
+  }
 
-    //username, date, device_id,
-    let key = '' //makeKey(value, 'idx1')
-    //if (value instanceof noun.Location) key = [value.username,value.date,value.device_id].join(':')
-    console.log('save value.name', value.prototype)
+  makeKey(index, value) {
+    if (typeof index == 'string') {
+      return value[index]
+    }
+    if (Array.isArray(index)) {
+      return "array index"
+    }
   }
 
   saveFile(value) {
@@ -96,7 +111,8 @@ export class Db extends DbBase {
     }
     if (a.type == 'heartbeat') {
       let thing: noun.Heartbeat = {
-        id: a.id || this.new_id("heartbeat"),
+        id: a.id || this.new_id(),
+        type: "heartbeat",
         date: a.date || now,
         received_at: a.received_at || now,
         user_id: a.user_id,
@@ -113,7 +129,8 @@ export class Db extends DbBase {
     }
     if (a.type == 'config') {
       let thing: noun.Config = {
-        id: a.id || this.new_id("config"),
+        id: a.id || this.new_id(),
+        type: "config",
         date: a.date || now,
         received_at: a.received_at || now,
         user_id: a.user_id,
@@ -171,7 +188,8 @@ export class Db extends DbBase {
 
   async user_add_access(user_id, key) {
     let new_access: noun.Access = {
-      id: this.new_id("access"),
+      id: this.new_id(),
+      type: "access",
       created_at: new Date().toISOString(),
       user_id: user_id,
     }
@@ -185,7 +203,8 @@ export class Db extends DbBase {
 
   async user_add_friend(user_id, friend_id) {
     let new_friendship: noun.Friendship = {
-      id: this.new_id("friendship"),
+      id: this.new_id(),
+      type: "friendship",
       user_id: user_id,
       friend_user_id: friend_id,
       created_at: new Date().toISOString()
@@ -196,7 +215,8 @@ export class Db extends DbBase {
 
   async user_add_device(user_id, device_id) {
     let new_device: noun.Device = {
-      id: this.new_id("device"),
+      id: this.new_id(),
+      type: "device",
       device_id: device_id,
       created_at: new Date().toISOString(),
       user_id: user_id
@@ -237,7 +257,8 @@ export class Db extends DbBase {
 
   async create_user(u) {
     let new_user: noun.User = {
-      id: u.id || this.new_id("user"),
+      id: u.id || this.new_id(),
+      type: "user",
       email: u.email,
       username: u.username,
       created_at: u.created_at || new Date().toISOString()

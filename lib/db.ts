@@ -11,9 +11,7 @@ export abstract class Db {
     this.settings = settings
   }
 
-  new_id(tableName: string) {
-    //const uniqid = uuid.v4()
-    //return [tableName.toLowerCase(), uniqid].join('-')
+  new_id() {
     return ulid()
   }
 }
