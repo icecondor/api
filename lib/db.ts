@@ -12,7 +12,8 @@ export abstract class Db {
   }
 
   new_id(tableName: string) {
-    const uniqid = uuid.v4() // ulid()
-    return (tableName + '-' + uniqid).toLowerCase()
+    //const uniqid = uuid.v4()
+    //return [tableName.toLowerCase(), uniqid].join('-')
+    return ulid()
   }
 }

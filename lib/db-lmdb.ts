@@ -60,7 +60,7 @@ export class Db extends DbBase {
   }
 
   async save(value) {
-    console.log('save', value)
+    let type = value.id.split('-')[0]
     this.saveFile(value)
 
     //username, date, device_id,
@@ -70,7 +70,6 @@ export class Db extends DbBase {
   }
 
   saveFile(value) {
-    console.log('filepath', this.storage_path, 'i', value.id, 'i2', typeof value.id, (value.id).substr('-','/'))
     var filepath = this.storage_path+value.id.replace(/-/g,'/')
     mkdirp.sync(path.dirname(filepath))
     console.log('filepath', filepath)
@@ -82,7 +81,8 @@ export class Db extends DbBase {
     let now = new Date().toISOString()
     if (a.type == 'location') {
       let thing: noun.Location = {
-        id: a.id || this.new_id("location"),
+        id: a.id || this.new_id(),
+        type: 'location',
         date: a.date || now,
         received_at: a.received_at || now,
         user_id: a.user_id,
