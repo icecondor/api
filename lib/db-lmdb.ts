@@ -4,6 +4,7 @@ import * as path from 'path'
 // import * as lmdb from 'zetta-lmdb'
 import * as lmdb from 'node-lmdb'
 import * as mkdirp from 'mkdirp'
+import * as walk from 'fs-walk'
 
 import { Db as DbBase } from './db'
 import * as noun from './nouns'
@@ -46,12 +47,13 @@ export class Db extends DbBase {
 
   async connect(onConnect) {
     this.api = new lmdb.Env()
-    this.storage_path = "./datalake/"
+    this.storage_path = path.resolve("./datalake/")
     this.mkdir(this.storage_path)
     this.mkdir(this.settings.path)
     this.api.open(this.settings)
     this.db = {}
     await this.ensure_schema()
+    this.syncIndexes()
     await onConnect()
   }
 
@@ -64,7 +66,7 @@ export class Db extends DbBase {
   async ensure_schema() {
     for (const typeName in schema) {
       for (const index of schema[typeName].indexes) {
-        let indexName = Array.isArray(index) ? index[0] : index
+        let indexName = this.indexName(index)
         let dbname = this.dbName(typeName, indexName)
         this.db[dbname] = this.api.openDbi({name: dbname, create: true})
         var txn = this.api.beginTxn()
@@ -77,14 +79,32 @@ export class Db extends DbBase {
     }
   }
 
+  indexName(index) { return Array.isArray(index) ? index[0] : index }
+
+  syncIndexes() {
+    walk.filesSync(this.storage_path, (dir, filename, stat) => {
+      let p1 = dir.substr(this.storage_path.length)
+      let id = p1.replace(/\//g, '-')+'-'+filename
+      console.log(dir, filename, id)
+      let value = JSON.parse(this.loadFile(id))
+      console.log(value)
+      this.saveIndexes(value)
+    })
+  }
+
   dbName(typeName, indexName) { return typeName+'.'+indexName }
 
-  async save(value) {
+  save(value) {
     this.saveFile(value)
+    this.saveIndexes(value)
+  }
+
+  saveIndexes(value) {
     let typeName = value.type
     var indexes = schema[typeName].indexes
     if (indexes) {
-      for (const indexName of indexes) {
+      for (const index of indexes) {
+        let indexName = this.indexName(index)
         let key = this.makeKey(indexName, value)
         if (key) {
           let dbname = this.dbName(typeName, indexName)
