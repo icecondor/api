@@ -58,6 +58,13 @@ export class Db extends DbBase {
   }
 
   async schema_dump() {
+    for(const dbName in this.db) {
+      let db = this.db[dbName]
+      var txn = this.api.beginTxn()
+      let stat = db.stat(txn)
+      txn.commit()
+      console.log('index', dbName, 'count', stat.entryCount)
+    }
   }
 
   changes(onChange) {
@@ -68,6 +75,7 @@ export class Db extends DbBase {
       for (const index of schema[typeName].indexes) {
         let indexName = this.indexName(index)
         let dbname = this.dbName(typeName, indexName)
+        this.api.openDbi({name: dbname, create: true}).drop()
         this.db[dbname] = this.api.openDbi({name: dbname, create: true})
         var txn = this.api.beginTxn()
         let cursor = new lmdb.Cursor(txn, this.db[dbname])
@@ -83,11 +91,10 @@ export class Db extends DbBase {
 
   syncIndexes() {
     walk.filesSync(this.storage_path, (dir, filename, stat) => {
-      let p1 = dir.substr(this.storage_path.length)
+      let p1 = dir.substr(this.storage_path.length+1)
       let id = p1.replace(/\//g, '-')+'-'+filename
-      console.log(dir, filename, id)
+      console.log(p1, dir, filename, id)
       let value = JSON.parse(this.loadFile(id))
-      console.log(value)
       this.saveIndexes(value)
     })
   }
@@ -167,7 +174,7 @@ export class Db extends DbBase {
   }
 
   loadFile(id) {
-    var filepath = this.storage_path+id.replace(/-/g,'/')
+    var filepath = this.storage_path+'/'+id.replace(/-/g,'/')
     console.log('file load', filepath)
     return fs.readFileSync(filepath, 'utf8')
   }
