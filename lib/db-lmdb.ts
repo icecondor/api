@@ -112,20 +112,19 @@ export class Db extends DbBase {
     if (indexes) {
       for (const index of indexes) {
         let indexName = this.indexName(index)
-        let key = this.makeKey(indexName, value)
+        let dbname = this.dbName(typeName, indexName)
+        let key = this.makeKey(index, value)
         if (key) {
-          let dbname = this.dbName(typeName, indexName)
           console.log('SAVE', dbname, key+"="+value.id)
           var txn = this.api.beginTxn()
-          console.log('db', this.db[dbname])
           txn.putString(this.db[dbname], key, value.id)
           txn.commit()
         } else {
-          console.log('save failed for', value.type, 'index', indexName)
+          console.log('key generation failed for index', dbname)
         }
       }
     } else {
-      console.log('warning: no index defined for', value.type)
+      console.log('warning: no indexes defined for', value.type)
     }
   }
 
@@ -212,8 +211,7 @@ export class Db extends DbBase {
         memory_free: a.memory ? a.memory.free : null,
         memory_total: a.memory ? a.memory.total : null
       }
-      //let sql = squel.insert().into("heartbeat").setFields(thing)
-      //let result = await this.insert(sql)
+      let result = this.save(thing)
     }
     if (a.type == 'config') {
       let thing: noun.Config = {
@@ -227,8 +225,7 @@ export class Db extends DbBase {
         recording_frequency: a.frequency ? parseFloat(a.frequency)*60 : null,
         source: a.source || null
       }
-      //let sql = squel.insert().into("config").setFields(thing)
-      //let result = await this.insert(sql)
+      let result = this.save(thing)
     }
     return { errors: 0 }
   }
