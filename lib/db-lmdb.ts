@@ -177,41 +177,36 @@ export class Db extends DbBase {
   }
 
   getBetween(typeName, indexName, start, end) {
-    console.log('GETBETWEEN start', typeName, indexName, start, end)
     let startkeyList = Array.isArray(start) ? [start] : start
     let startkey = startkeyList.join(':')
     let dbname = this.dbName(typeName, indexName)
     let txn = this.api.beginTxn()
     let cursor = new lmdb.Cursor(txn, this.db[dbname])
-    let results = []
+    let keys = []
     let firstKey = cursor.goToRange(startkey)
-    console.log('GETBETWEEN loopprep', dbname, firstKey)
     if(firstKey != null) {
       let endkeyList = Array.isArray(end) ? [end] : end
       let endkey = endkeyList.join(':')
       let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
-      console.log('GETBETWEEN endtest1', endkey, indexName, schema[typeName].indexes, schemakeyList)
-      //let endkeyKey = cursor.goToRange(endkey)
       let nextKey = firstKey
       while (nextKey !== null) {
-        console.log('GETBETWEEN win', startkey, endkey, nextKey, endkeyList.length, schemakeyList.length)
         if(endkeyList.length < schemakeyList.length) {
           if(endkey == nextKey.substr(0, endkey.length)) {
-            results.push(nextKey)
+            keys.push(nextKey)
             nextKey = cursor.goToNext()
           } else {
             nextKey = null
           }
         } else {
           if(nextKey <= endkey) {
-            results.push(nextKey)
+            keys.push(nextKey)
           }
           nextKey = cursor.goToNext()
         }
       }
     }
     cursor.close()
-    console.log('GETBETWEEN end', dbname, results.length, 'results')
+    let results = keys.map(r => r.split(':').pop())
     txn.commit()
     return results
   }
@@ -330,8 +325,8 @@ export class Db extends DbBase {
   }
 
   user_load_devices(user_id) {
-    let devices = this.getBetween('device', 'idid_date', [user_id], [user_id])
-    return devices.map(d => {id: d})
+    let device_ids = this.getBetween('device', 'idid_date', [user_id], [user_id])
+    return device_ids
   }
 
   async user_add_access(user_id, key) {

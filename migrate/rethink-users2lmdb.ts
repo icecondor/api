@@ -29,7 +29,6 @@ db.connect(async () => {
             console.log('ensure user', eu)
             fails += 1
           }
-          console.log(eu)
         }
       } catch(e) {
         console.log('user2lmdb', user.email, 'CATCH', e)
