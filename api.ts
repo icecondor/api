@@ -42,7 +42,7 @@ db.connect(function() {
   db.changes(function(cursor) {
     cursor.on("data", activity_added)
   })
-}).catch((e) => { console.log('EXIT', e); process.exit(1) })
+})
 
 function influxWrite(module, value) {
   request({

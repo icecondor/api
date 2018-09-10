@@ -206,9 +206,8 @@ export class Db extends DbBase {
       }
     }
     cursor.close()
-    let results = keys.map(r => r.split(':').pop())
     txn.commit()
-    return results
+    return keys
   }
 
   makeKey(index, value) {
@@ -325,7 +324,8 @@ export class Db extends DbBase {
   }
 
   user_load_devices(user_id) {
-    let device_ids = this.getBetween('device', 'idid_date', [user_id], [user_id])
+    let keys = this.getBetween('device', 'idid_date', [user_id], [user_id])
+    let device_ids = keys.map(r => r.split(':').pop())
     return device_ids
   }
 
