@@ -211,7 +211,7 @@ export class Db extends DbBase {
       }
     }
     cursor.close()
-    console.log('GETBETWEEN end', dbname, start, startkey, end, endkey, results.length, 'results')
+    console.log('GETBETWEEN end', dbname, results.length, 'results')
     txn.commit()
     return results
   }
