@@ -182,7 +182,7 @@ export class Db extends DbBase {
     let dbname = this.dbName(typeName, indexName)
     let txn = this.api.beginTxn()
     let cursor = new lmdb.Cursor(txn, this.db[dbname])
-    let keys = []
+    let kvs = {}
     let firstKey = cursor.goToRange(startkey)
     if(firstKey != null) {
       let endkeyList = Array.isArray(end) ? [end] : end
@@ -192,14 +192,14 @@ export class Db extends DbBase {
       while (nextKey !== null) {
         if(endkeyList.length < schemakeyList.length) {
           if(endkey == nextKey.substr(0, endkey.length)) {
-            keys.push(nextKey)
+            kvs[nextKey] = txn.getString(this.db[dbname], nextKey)
             nextKey = cursor.goToNext()
           } else {
             nextKey = null
           }
         } else {
           if(nextKey <= endkey) {
-            keys.push(nextKey)
+            kvs[nextKey] = txn.getString(this.db[dbname], nextKey)
           }
           nextKey = cursor.goToNext()
         }
@@ -207,7 +207,7 @@ export class Db extends DbBase {
     }
     cursor.close()
     txn.commit()
-    return keys
+    return kvs
   }
 
   makeKey(index, value) {
@@ -324,8 +324,8 @@ export class Db extends DbBase {
   }
 
   user_load_devices(user_id) {
-    let keys = this.getBetween('device', 'idid_date', [user_id], [user_id])
-    let device_ids = keys.map(r => r.split(':').pop())
+    let kvs = this.getBetween('device', 'idid_date', [user_id], [user_id])
+    let device_ids = Object.keys(kvs).map(r => r.split(':').pop())
     return device_ids
   }
 
@@ -460,6 +460,9 @@ export class Db extends DbBase {
       })
     return locations
     */
+    let kvs = this.getBetween('location', 'user_id_date', [user_id], [user_id])
+    console.log('location kvs', kvs)
+    return Object.values({a: 12, b:13})
   }
 }
 
