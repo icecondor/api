@@ -53,13 +53,24 @@ export class Db extends DbBase {
   }
 
   async connect(onConnect) {
+    this.pathFix(this.settings, 'path')
+    this.pathFix(this.settings.lmdb, 'path')
     this.api = new lmdb.Env()
-    this.mkdir(path.resolve(this.settings.path))
-    this.mkdir(path.resolve(this.settings.lmdb.path))
+    this.mkdir(this.settings.path)
+    this.mkdir(this.settings.lmdb.path)
     this.api.open(this.settings.lmdb)
     this.db = {}
     this.ensure_schema()
     await onConnect()
+  }
+
+  pathFix(obj, attr) {
+    var spath = obj[attr]
+    var longpath = path.resolve(spath)
+    if(longpath != spath) {
+      obj[attr] = longpath
+      console.log('warning: fixed up path', spath, '=>', longpath)
+    }
   }
 
   changes(onChange) {
