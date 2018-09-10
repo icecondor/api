@@ -57,7 +57,7 @@ export class Db extends DbBase {
     }
   }
 
-  async connect(onConnect) {
+  connect(onConnect) {
     this.pathFix(this.settings, 'path')
     this.pathFix(this.settings.lmdb, 'path')
     this.api = new lmdb.Env()
@@ -66,7 +66,7 @@ export class Db extends DbBase {
     this.api.open(this.settings.lmdb)
     this.db = {}
     this.ensure_schema()
-    return await onConnect()
+    return onConnect()
   }
 
   pathFix(obj, attr) {
