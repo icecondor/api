@@ -110,7 +110,7 @@ export class Db extends DbBase {
     walk.filesSync(this.settings.path, (dir, filename, stat) => {
       let p1 = dir.substr(this.settings.path.length+1)
       let id = p1.replace(/\//g, '-')+'-'+filename
-      let value = JSON.parse(this.loadFile(id))
+      let value = this.loadFile(id)
       this.saveIndexes(value)
     })
   }
@@ -157,10 +157,7 @@ export class Db extends DbBase {
     }
 
     if(id) {
-      let data = this.loadFile(id)
-      if (data) {
-        return JSON.parse(data)
-      }
+      return this.loadFile(id)
     } else {
       console.log('get fail. no id for index', typeName, indexName, key)
     }
@@ -234,8 +231,10 @@ export class Db extends DbBase {
 
   loadFile(id) {
     var filepath = this.settings.path+'/'+id.replace(/-/g,'/')
-    console.log('file load', filepath)
-    return fs.readFileSync(filepath, 'utf8')
+    let json = fs.readFileSync(filepath, 'utf8')
+    let data = JSON.parse(json)
+    console.log('file load', data.type, filepath)
+    return data
   }
 
 // model stuff
@@ -461,8 +460,7 @@ export class Db extends DbBase {
     return locations
     */
     let kvs = this.getBetween('location', 'user_id_date', [user_id], [user_id])
-    console.log('location kvs', kvs)
-    return Object.values({a: 12, b:13})
+    return Object.keys(kvs).map(k => kvs[k])
   }
 }
 
