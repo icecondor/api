@@ -15,7 +15,7 @@ let schema = {
     indexes: [
       'username',
       'email',
-      ['friends', ['friends'], { multi: true }]
+      //['friends', ['friends'], { multi: true }]
     ]
   },
   'heartbeat': {
@@ -60,9 +60,23 @@ export class Db extends DbBase {
     this.mkdir(this.settings.path)
     this.api.open(this.settings)
     this.db = {}
-    await this.ensure_schema()
-    this.syncIndexes()
+    this.ensure_schema()
     await onConnect()
+  }
+
+  changes(onChange) {
+  }
+
+  ensure_schema(resync: boolean = false) {
+    for (const typeName in schema) {
+      for (const index of schema[typeName].indexes) {
+        let indexName = this.indexName(index)
+        let dbname = this.dbName(typeName, indexName)
+        if (resync) this.api.openDbi({name: dbname, create: true}).drop()
+        this.db[dbname] = this.api.openDbi({name: dbname, create: true})
+      }
+    }
+    if (resync) this.syncIndexes()
   }
 
   async schema_dump() {
@@ -75,19 +89,6 @@ export class Db extends DbBase {
     }
   }
 
-  changes(onChange) {
-  }
-
-  async ensure_schema() {
-    for (const typeName in schema) {
-      for (const index of schema[typeName].indexes) {
-        let indexName = this.indexName(index)
-        let dbname = this.dbName(typeName, indexName)
-        this.api.openDbi({name: dbname, create: true}).drop()
-        this.db[dbname] = this.api.openDbi({name: dbname, create: true})
-      }
-    }
-  }
 
   indexName(index) { return Array.isArray(index) ? index[0] : index }
 
@@ -119,7 +120,7 @@ export class Db extends DbBase {
           var txn = this.api.beginTxn()
           var testValues = txn.getString(this.db[dbname], key)
           if(!testValues) {
-            console.log('SAVE', dbname, key+"="+value.id)
+            console.log('PUT', dbname, key, value.id)
             txn.putString(this.db[dbname], key, value.id)
           }
           txn.commit()
@@ -141,7 +142,6 @@ export class Db extends DbBase {
       var txn = this.api.beginTxn()
       console.log('GET', dbname, key)
       id = txn.getString(this.db[dbname], key)
-      if(!id) { console.log('get fail', dbname, key, 'is null') }
       txn.commit()
     }
 
@@ -167,23 +167,24 @@ export class Db extends DbBase {
   }
 
   makeKey(index, value) {
+    let key_parts
     if (typeof index == 'string') {
-      return value[index]
+      key_parts = [value[index]]
     }
     if (Array.isArray(index)) {
-      let values = index[1].map(i => value[i])
-      if(values.every(i => i)) {
-        return values.join(':')
-      } else {
-        console.log('warning: index', index, 'creation failed due to missing values')
-      }
+      key_parts = index[1].map(i => value[i])
+    }
+    if(key_parts.every(i => i)) {
+      return key_parts.map(part => part.toLowerCase()).join(':')
+    } else {
+      console.log('warning: index', index, 'creation failed due to missing values in', value)
     }
   }
 
   saveFile(value) {
     var filepath = this.storage_path+'/'+value.id.replace(/-/g,'/')
     mkdirp.sync(path.dirname(filepath))
-    console.log('file save', filepath)
+    console.log('file save', value.id, filepath)
     fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
@@ -256,9 +257,9 @@ export class Db extends DbBase {
 
   async find_user_by(e) {
     let index, key
-    if (e.email_downcase) {
+    if (e.email_downcase || e.email) {
       index = 'email'
-      key = e.email_downcase
+      key = (e.email_downcase || e.email).toLowerCase()
     }
     if (e.username) {
       index ='username'
@@ -334,7 +335,7 @@ export class Db extends DbBase {
 
   async ensure_user(u) {
     try {
-      return await this.find_user_by({ email_downcase: u.email.toLowerCase() })
+      return await this.find_user_by({ email_downcase: u.email })
     } catch (e) {
       // not found
       console.log('ensure_user creating', u.email, u.id)
@@ -353,7 +354,7 @@ export class Db extends DbBase {
         for (const friend of u.friends) await this.user_add_friend(user.id, friend)
       }
 
-      return {}//await this.find_user_by({ email_downcase: u.email.toLowerCase() })
+      return this.find_user_by({ email: u.email })
     }
   }
 

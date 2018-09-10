@@ -23,10 +23,11 @@ db.connect(async () => {
       console.log('\n** lmdb start', start)
       stop = await pull_group(conn, start)
       console.log('group done', start, stop)
+      db.schema_dump()
       start = new Date(stop)
     }
   } catch (e) {
-    console.log(e)
+    console.log('while loop stopped:', e)
   }
   console.log('el fin')
 })
@@ -35,7 +36,6 @@ async function pull_group(conn, start) {
     let stop = new Date()
     let last
     let limit = 10
-    let save = 0
     let err_count = 0
     let cursor = await rethink
       .table('activities')
@@ -51,7 +51,7 @@ async function pull_group(conn, start) {
       await dbsave(row)
       if (!last || row.date > last) last = row.date
     })).catch(e => console.log('promise all err', e))
-    console.log('done', save, 'save', err_count, 'errors', last, 'last')
+    console.log(rows.length, 'rows', err_count, 'errors', last, 'last')
     return last
 }
 
@@ -63,5 +63,8 @@ async function dbsave(activity) {
   }
   if (!activity.date) datefix='missing date!'
   console.log('activity', activity.id, activity.date, activity.type, '['+datefix+']')
-  let new_user = await db.activity_add(activity)
+  let result = await db.activity_add(activity)
+  if (result.errors > 0) {
+    throw "dbsave failed on "+activity.id
+  }
 }

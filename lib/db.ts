@@ -1,5 +1,5 @@
 import * as uuid from 'node-uuid'
-import { ulid } from 'ulid'
+//import { ulid } from 'ulid'
 
 export abstract class Db {
   settings: any

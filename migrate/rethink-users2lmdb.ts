@@ -12,6 +12,7 @@ db.connect(async () => {
   let conn = await rethink.connect(settings.rethinkdb)
   var dbs = await rethink.dbList().run(conn)
   console.log(dbs)
+  let fails = 0
   conn.use('icecondor')
   try {
     const cursor = await rethink.table('users').run(conn)
@@ -20,21 +21,22 @@ db.connect(async () => {
       try {
         const eu = await db.ensure_user(user)
         if (eu.error) {
-          console.log('user2rql result error', eu.error)
+          console.log('user2lmdb result error', eu.error)
         } else {
-          if(user.email == eu.email) {
-            console.log('user2rql GOOD', eu.email)
-          } else {
-            console.log('user2rql save FAIL', user.email, eu.email)
+          if(user.id != eu.id) {
+            console.log('user2lmdb save FAIL', user.email, eu.email)
+            console.log('rethink user', user)
+            console.log('ensure user', eu)
+            fails += 1
           }
         }
       } catch(e) {
-        console.log('user2rql', user.email, 'CATCH', e)
+        console.log('user2lmdb', user.email, 'CATCH', e)
         process.exit(1)
       }
     }
 
-    console.log('*** done', users.length, 'rethink users')
+    console.log('*** done', users.length, 'rethink users', fails, 'save fails')
   } catch (e) {
     console.log(e)
   }
