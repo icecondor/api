@@ -209,10 +209,10 @@ export class Db extends DbBase {
           nextKey = cursor.goToNext()
         }
       }
-      cursor.close()
-      console.log('GETBETWEEN end', dbname, start, startkey, end, endkey, results.length, 'results')
-      txn.commit()
     }
+    cursor.close()
+    console.log('GETBETWEEN end', dbname, start, startkey, end, endkey, results.length, 'results')
+    txn.commit()
     return results
   }
 
