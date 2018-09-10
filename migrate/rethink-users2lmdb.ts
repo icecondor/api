@@ -19,7 +19,7 @@ db.connect(async () => {
     const users = await cursor.toArray() // all at once
     for (const user of users) {
       try {
-        const eu = db.ensure_user(user)
+        const eu = await db.ensure_user(user)
         if (eu.error) {
           console.log('user2lmdb result error', eu.error)
         } else {

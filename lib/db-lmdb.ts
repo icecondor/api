@@ -294,7 +294,7 @@ export class Db extends DbBase {
     return this.getLast('location', 'date')
   }
 
-  find_user_by(e) {
+  async find_user_by(e) {
     let index, key
     if (e.email_downcase || e.email) {
       index = 'email'
@@ -371,14 +371,14 @@ export class Db extends DbBase {
 
   }
 
-  ensure_user(u) {
+  async ensure_user(u) {
     try {
       return this.find_user_by({ email_downcase: u.email })
     } catch (e) {
       // not found
       console.log('ensure_user creating', u.email, u.id)
       this.create_user(u)
-      let user: noun.User = this.find_user_by({ email_downcase: u.email.toLowerCase() })
+      let user: noun.User = await this.find_user_by({ email_downcase: u.email.toLowerCase() })
       if (u.devices) {
         if (u.devices.length > 0) console.log('adding', u.devices.length, 'devices')
         for(const device_id of u.devices) this.user_add_device(user.id, device_id)
