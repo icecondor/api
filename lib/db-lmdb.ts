@@ -54,8 +54,8 @@ export class Db extends DbBase {
 
   async connect(onConnect) {
     this.api = new lmdb.Env()
-    this.mkdir(this.settings.path)
-    this.mkdir(this.settings.lmdb.path)
+    this.mkdir(path.resolve(this.settings.path))
+    this.mkdir(path.resolve(this.settings.lmdb.path))
     this.api.open(this.settings.lmdb)
     this.db = {}
     this.ensure_schema()
