@@ -14,7 +14,7 @@ let schema = {
   'user': {
     indexes: [
       'username',
-      'email',
+      'email'
       //['friends', ['friends'], { multi: true }]
     ]
   },
@@ -44,7 +44,6 @@ let schema = {
 export class Db extends DbBase {
   api: any
   db: any
-  storage_path: string
 
   mkdir(dir: string) {
     if (!fs.existsSync(dir)) {
@@ -55,10 +54,9 @@ export class Db extends DbBase {
 
   async connect(onConnect) {
     this.api = new lmdb.Env()
-    this.storage_path = path.resolve("./datalake/")
-    this.mkdir(this.storage_path)
     this.mkdir(this.settings.path)
-    this.api.open(this.settings)
+    this.mkdir(this.settings.lmdb.path)
+    this.api.open(this.settings.lmdb)
     this.db = {}
     this.ensure_schema()
     await onConnect()
@@ -93,8 +91,8 @@ export class Db extends DbBase {
   indexName(index) { return Array.isArray(index) ? index[0] : index }
 
   syncIndexes() {
-    walk.filesSync(this.storage_path, (dir, filename, stat) => {
-      let p1 = dir.substr(this.storage_path.length+1)
+    walk.filesSync(this.settings.path, (dir, filename, stat) => {
+      let p1 = dir.substr(this.settings.path.length+1)
       let id = p1.replace(/\//g, '-')+'-'+filename
       let value = JSON.parse(this.loadFile(id))
       this.saveIndexes(value)
@@ -182,14 +180,14 @@ export class Db extends DbBase {
   }
 
   saveFile(value) {
-    var filepath = this.storage_path+'/'+value.id.replace(/-/g,'/')
+    var filepath = this.settings.path+'/'+value.id.replace(/-/g,'/')
     mkdirp.sync(path.dirname(filepath))
     console.log('file save', value.id, filepath)
     fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
   loadFile(id) {
-    var filepath = this.storage_path+'/'+id.replace(/-/g,'/')
+    var filepath = this.settings.path+'/'+id.replace(/-/g,'/')
     console.log('file load', filepath)
     return fs.readFileSync(filepath, 'utf8')
   }
