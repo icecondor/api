@@ -66,7 +66,7 @@ export class Db extends DbBase {
     this.api.open(this.settings.lmdb)
     this.db = {}
     this.ensure_schema()
-    await onConnect()
+    return await onConnect()
   }
 
   pathFix(obj, attr) {
