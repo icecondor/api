@@ -18,6 +18,11 @@ let schema = {
       //['friends', ['friends'], { multi: true }]
     ]
   },
+  'device': {
+    indexes: [
+      ['idid_date', ['user_id', 'device_id']]
+    ]
+  },
   'heartbeat': {
     indexes: []
   },
@@ -127,11 +132,8 @@ export class Db extends DbBase {
         let key = this.makeKey(index, value)
         if (key) {
           var txn = this.api.beginTxn()
-          var testValues = txn.getString(this.db[dbname], key)
-          if(!testValues) {
-            console.log('PUT', dbname, key, value.id)
-            txn.putString(this.db[dbname], key, value.id)
-          }
+          console.log('PUT', dbname, key, value.id)
+          txn.putString(this.db[dbname], key, value.id)
           txn.commit()
         } else {
           console.log('key generation failed for index', dbname)
@@ -165,14 +167,53 @@ export class Db extends DbBase {
   }
 
   getLast(typeName, indexName) {
-      let dbname = this.dbName(typeName, indexName)
-      let txn = this.api.beginTxn()
-      let cursor = new lmdb.Cursor(txn, this.db[dbname])
-      let last
-      for (let found = cursor.goToFirst(); found !== null; found = cursor.goToNext()) {last = found}
-      console.log('GETLAST', dbname, last)
+    let dbname = this.dbName(typeName, indexName)
+    let txn = this.api.beginTxn()
+    let cursor = new lmdb.Cursor(txn, this.db[dbname])
+    let last = cursor.goToLast()
+    cursor.close()
+    txn.commit()
+    return last
+  }
+
+  getBetween(typeName, indexName, start, end) {
+    console.log('GETBETWEEN start', typeName, indexName, start, end)
+    let startkeyList = Array.isArray(start) ? [start] : start
+    let startkey = startkeyList.join(':')
+    let dbname = this.dbName(typeName, indexName)
+    let txn = this.api.beginTxn()
+    let cursor = new lmdb.Cursor(txn, this.db[dbname])
+    let results = []
+    let firstKey = cursor.goToRange(startkey)
+    console.log('GETBETWEEN loopprep', dbname, firstKey)
+    if(firstKey != null) {
+      let endkeyList = Array.isArray(end) ? [end] : end
+      let endkey = endkeyList.join(':')
+      let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
+      console.log('GETBETWEEN endtest1', endkey, indexName, schema[typeName].indexes, schemakeyList)
+      //let endkeyKey = cursor.goToRange(endkey)
+      let nextKey = firstKey
+      while (nextKey !== null) {
+        console.log('GETBETWEEN win', startkey, endkey, nextKey, endkeyList.length, schemakeyList.length)
+        if(endkeyList.length < schemakeyList.length) {
+          if(endkey == nextKey.substr(0, endkey.length)) {
+            results.push(nextKey)
+            nextKey = cursor.goToNext()
+          } else {
+            nextKey = null
+          }
+        } else {
+          if(nextKey <= endkey) {
+            results.push(nextKey)
+          }
+          nextKey = cursor.goToNext()
+        }
+      }
+      cursor.close()
+      console.log('GETBETWEEN end', dbname, start, startkey, end, endkey, results.length, 'results')
       txn.commit()
-      return last
+    }
+    return results
   }
 
   makeKey(index, value) {
@@ -256,15 +297,10 @@ export class Db extends DbBase {
   }
 
   activity_last_date() {
-    //let sql = squel.select().from('location').order('date', false).limit(1)
-    //let result = await this.select(sql)
-    //if (result.values.length > 0) {
-      //return result.values[0][result.columns.indexOf('date')]
-    //}
     return this.getLast('location', 'date')
   }
 
-  async find_user_by(e) {
+  find_user_by(e) {
     let index, key
     if (e.email_downcase || e.email) {
       index = 'email'
@@ -286,16 +322,16 @@ export class Db extends DbBase {
         username: user.username,
         created_at: user.created_at,
       }
-      full_user.devices = await this.user_load_devices(full_user.id)
+      full_user.devices = this.user_load_devices(full_user.id)
       return full_user
     } else {
-      return Promise.reject({ err: "find_user_by reject "+index+" "+key })
+      throw "find_user_by reject "+index+" "+key
     }
   }
 
-  async user_load_devices(user_id) {
-    //let sql = squel.select().from("device").where("user_id = ?", user_id)
-    return [] //result.values.map(row => row[result.columns.indexOf('device_id')])
+  user_load_devices(user_id) {
+    let devices = this.getBetween('device', 'idid_date', [user_id], [user_id])
+    return devices.map(d => {id: d})
   }
 
   async user_add_access(user_id, key) {
@@ -333,41 +369,39 @@ export class Db extends DbBase {
       created_at: new Date().toISOString(),
       user_id: user_id
     }
-    //let sql = squel.insert().into("device").setFields(new_device)
-    //await this.insert(sql) // best effort
-    return this.user_find_device(user_id, device_id)
+    return this.save(new_device)
   }
 
   async user_find_device(user_id, device_id) {
 
   }
 
-  async ensure_user(u) {
+  ensure_user(u) {
     try {
-      return await this.find_user_by({ email_downcase: u.email })
+      return this.find_user_by({ email_downcase: u.email })
     } catch (e) {
       // not found
       console.log('ensure_user creating', u.email, u.id)
-      await this.create_user(u)
-      let user: noun.User = await this.find_user_by({ email_downcase: u.email.toLowerCase() })
+      this.create_user(u)
+      let user: noun.User = this.find_user_by({ email_downcase: u.email.toLowerCase() })
       if (u.devices) {
         if (u.devices.length > 0) console.log('adding', u.devices.length, 'devices')
-        for(const device_id of u.devices) await this.user_add_device(user.id, device_id)
+        for(const device_id of u.devices) this.user_add_device(user.id, device_id)
       }
       if (u.access) {
         if (Object.keys(u.access).length > 0) console.log('adding', Object.keys(u.access).length, 'access keys')
-        for (const key of Object.keys(u.access)) await this.user_add_access(user.id, key)
+        for (const key of Object.keys(u.access)) this.user_add_access(user.id, key)
       }
       if (u.friends) {
         if (u.friends.length > 0) console.log('adding', u.friends.length, 'friends')
-        for (const friend of u.friends) await this.user_add_friend(user.id, friend)
+        for (const friend of u.friends) this.user_add_friend(user.id, friend)
       }
 
       return this.find_user_by({ email: u.email })
     }
   }
 
-  async create_user(u) {
+  create_user(u) {
     let new_user: noun.User = {
       id: u.id || this.new_id(),
       type: "user",
