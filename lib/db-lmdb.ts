@@ -13,8 +13,8 @@ let db_name = 'icecondor'
 let schema = {
   'user': {
     indexes: [
-      'username',
-      'email'
+      ['username', ['username'], {unique: true}],
+      ['email', ['email'], {unique: true}]
       //['friends', ['friends'], { multi: true }]
     ]
   },
@@ -28,20 +28,20 @@ let schema = {
   },
   'location': {
     indexes: [
-      'date',
-      'user_id',
+      ['date', ['date']],
+      ['user_id', ['user_id']],
       ['user_id_date', ['user_id', 'date']]
     ]
   },
   'fence': {
     indexes: [
-      'user_id',
+      ['user_id', ['user_id']],
       ['geojson', ['geojson'], { geo: true }]]
   },
   'rule': {
     indexes: [
-      'user_id',
-      'fence_id'
+      ['user_id', ['user_id']],
+      ['fence_id', ['fence_id']],
     ]
   }
 }
@@ -84,8 +84,7 @@ export class Db extends DbBase {
   ensure_schema(resync: boolean = false) {
     for (const typeName in schema) {
       for (const index of schema[typeName].indexes) {
-        let indexName = this.indexName(index)
-        let dbname = this.dbName(typeName, indexName)
+        let dbname = this.dbName(typeName, index[0])
         if (resync) this.api.openDbi({name: dbname, create: true}).drop()
         this.db[dbname] = this.api.openDbi({name: dbname, create: true})
       }
@@ -103,8 +102,6 @@ export class Db extends DbBase {
     }
   }
 
-
-  indexName(index) { return Array.isArray(index) ? index[0] : index }
 
   syncIndexes() {
     walk.filesSync(this.settings.path, (dir, filename, stat) => {
@@ -127,20 +124,33 @@ export class Db extends DbBase {
     var indexes = schema[typeName].indexes
     if (indexes) {
       for (const index of indexes) {
-        let indexName = this.indexName(index)
-        let dbname = this.dbName(typeName, indexName)
-        let key = this.makeKey(index, value)
-        if (key) {
-          var txn = this.api.beginTxn()
-          console.log('PUT', dbname, key, value.id)
-          txn.putString(this.db[dbname], key, value.id)
-          txn.commit()
-        } else {
-          console.log('key generation failed for index', dbname)
-        }
+        this.put(typeName, index[0], value)
       }
     } else {
       console.log('warning: no indexes defined for', value.type)
+    }
+  }
+
+  findIndex(typeName, indexName) {
+    var indexes = schema[typeName].indexes
+    if (indexes) {
+      for (const index of indexes) {
+        if (index[0] == indexName) return index
+      }
+    }
+  }
+
+  put(typeName, indexName, value) {
+    let index = this.findIndex(typeName, indexName)
+    let dbname = this.dbName(typeName, index[0])
+    let key = this.makeKey(index, value)
+    if (key) {
+      var txn = this.api.beginTxn()
+      console.log('PUT', dbname, key, '->', value.id)
+      txn.putString(this.db[dbname], key, value.id)
+      txn.commit()
+    } else {
+      console.log('Warning: key generation failed for index', dbname)
     }
   }
 
@@ -151,8 +161,8 @@ export class Db extends DbBase {
     } else {
       let dbname = this.dbName(typeName, indexName)
       var txn = this.api.beginTxn()
-      console.log('GET', dbname, key)
       id = txn.getString(this.db[dbname], key)
+      console.log('GET', dbname, key, '->', id)
       txn.commit()
     }
 
@@ -209,23 +219,16 @@ export class Db extends DbBase {
 
   makeKey(index, value) {
     let key_parts
-    if (typeof index == 'string') {
-      key_parts = [value[index]]
-    }
-    if (Array.isArray(index)) {
-      key_parts = index[1].map(i => value[i])
-    }
+    key_parts = index[1].map(i => value[i])
     if(key_parts.every(i => i)) {
       return key_parts.map(part => part.toLowerCase()).join(':')
-    } else {
-      console.log('warning: index', index, 'creation failed due to missing values in', value)
     }
   }
 
   saveFile(value) {
     var filepath = this.settings.path+'/'+value.id.replace(/-/g,'/')
     mkdirp.sync(path.dirname(filepath))
-    console.log('file save', value.id, filepath)
+    console.log('file save', value.type, value.id, filepath)
     fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
@@ -372,7 +375,7 @@ export class Db extends DbBase {
 
   async ensure_user(u) {
     try {
-      return this.find_user_by({ email_downcase: u.email })
+      return await this.find_user_by({ email_downcase: u.email })
     } catch (e) {
       // not found
       console.log('ensure_user creating', u.email, u.id)

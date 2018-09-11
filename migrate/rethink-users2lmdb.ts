@@ -37,6 +37,7 @@ db.connect(async () => {
     }
 
     console.log('*** done', users.length, 'rethink users', fails, 'save fails')
+    await db.schema_dump()
   } catch (e) {
     console.log(e)
   }
