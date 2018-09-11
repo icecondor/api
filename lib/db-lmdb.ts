@@ -20,7 +20,7 @@ let schema = {
   },
   'device': {
     indexes: [
-      ['idid_date', ['user_id', 'device_id']]
+      ['idid_date', ['user_id', 'device_id'], {}]
     ]
   },
   'heartbeat': {
@@ -28,20 +28,20 @@ let schema = {
   },
   'location': {
     indexes: [
-      ['date', ['date']],
-      ['user_id', ['user_id']],
-      ['user_id_date', ['user_id', 'date']]
+      ['date', ['date'], {}],
+      ['user_id', ['user_id'], {}],
+      ['user_id_date', ['user_id', 'date'], {}]
     ]
   },
   'fence': {
     indexes: [
-      ['user_id', ['user_id']],
+      ['user_id', ['user_id'], {}],
       ['geojson', ['geojson'], { geo: true }]]
   },
   'rule': {
     indexes: [
-      ['user_id', ['user_id']],
-      ['fence_id', ['fence_id']],
+      ['user_id', ['user_id'], {}],
+      ['fence_id', ['fence_id'], {}],
     ]
   }
 }
@@ -145,6 +145,12 @@ export class Db extends DbBase {
     let dbname = this.dbName(typeName, index[0])
     let key = this.makeKey(index, value)
     if (key) {
+      if (index[2].unique) {
+        let exists = this.get(typeName, indexName, key)
+        if(exists) {
+          throw "type "+typeName+" index "+index[0]+" exists for "+key
+        }
+      }
       var txn = this.api.beginTxn()
       console.log('PUT', dbname, key, '->', value.id)
       txn.putString(this.db[dbname], key, value.id)
@@ -168,8 +174,6 @@ export class Db extends DbBase {
 
     if(id) {
       return this.loadFile(id)
-    } else {
-      console.log('get fail. no id for index', typeName, indexName, key)
     }
   }
 
@@ -375,6 +379,7 @@ export class Db extends DbBase {
 
   async ensure_user(u) {
     try {
+      console.log('ensure_user checking', u.email, u.id)
       return await this.find_user_by({ email_downcase: u.email })
     } catch (e) {
       // not found
