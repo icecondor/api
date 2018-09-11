@@ -188,7 +188,7 @@ export class Db extends DbBase {
     return last
   }
 
-  getIdxBetween(typeName, indexName, start, end) {
+  getIdxBetween(typeName, indexName, start, end, count?) {
     let startkeyList = Array.isArray(start) ? [start] : start
     let startkey = startkeyList.join(':')
     let dbname = this.dbName(typeName, indexName)
@@ -215,6 +215,7 @@ export class Db extends DbBase {
           }
           nextKey = cursor.goToNext()
         }
+        if(count && Object.keys(kvs).length == count) nextKey = null
       }
     }
     cursor.close()
@@ -454,7 +455,7 @@ export class Db extends DbBase {
     let result = await this.select(sql)
     return locations
     */
-    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id], [user_id])
+    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id], [user_id], count)
     return Object.keys(kvs).map(k => {
       return this.get('location', 'id', kvs[k])
     })
