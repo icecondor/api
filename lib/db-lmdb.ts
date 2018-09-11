@@ -198,7 +198,7 @@ export class Db extends DbBase {
     let kvs = {}
     let firstKey = cursor.goToRange(startkey)
     if(firstKey != null) {
-      let endkeyList = Array.isArray(end) ? [end] : end
+      let endkeyList = Array.isArray(end) ? end : [end]
       let endKey = endkeyList.join(':')
       let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
       console.log('getIdxBetween comparison', 'endkeyList', endkeyList, 'schemakeyList', schemakeyList,
