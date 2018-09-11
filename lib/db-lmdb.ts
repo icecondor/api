@@ -189,7 +189,7 @@ export class Db extends DbBase {
   }
 
   getIdxBetween(typeName, indexName, start, end, count?: number, order?: boolean) {
-    let startkeyList = Array.isArray(start) ? [start] : start
+    let startkeyList = Array.isArray(start) ? start: [start]
     let startKey = startkeyList.join(':')
     let endkeyList = Array.isArray(end) ? end : [end]
     let endKey = endkeyList.join(':')
