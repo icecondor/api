@@ -232,6 +232,7 @@ export class Db extends DbBase {
 
   idxKeyCompare(kvs, startKey, endKey, count, txn, cursor, db, descending) {
     let nextKey = cursor.goToRange(startKey)
+    console.log('idxKeycompare startKey', startKey, 'nextKey', nextKey)
     if(descending) {
       console.log('idxKeycompare reverse first key attempt', endKey)
       // simulate goToRange in reverse
