@@ -472,7 +472,7 @@ export class Db extends DbBase {
     let result = await this.select(sql)
     return locations
     */
-    let desc = order == "desc" ? true : false
+    let desc = order == "newest" ? true : false
     console.log('getIdxBetween order', order, desc)
 
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id], [user_id], count, desc)
