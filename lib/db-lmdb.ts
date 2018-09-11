@@ -201,6 +201,7 @@ export class Db extends DbBase {
       let endkeyList = Array.isArray(end) ? [end] : end
       let endKey = endkeyList.join(':')
       let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
+      console.log('getIdxBetween comparison', endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare")
       if(endkeyList.length < schemakeyList.length) {
         if(order) {
           throw "order not available for prefix match"
