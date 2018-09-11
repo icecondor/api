@@ -54,6 +54,7 @@ export class Db extends DbBase {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir)
       console.log('warning: created', dir)
+      return true
     }
   }
 
@@ -62,10 +63,10 @@ export class Db extends DbBase {
     this.pathFix(this.settings.lmdb, 'path')
     this.api = new lmdb.Env()
     this.mkdir(this.settings.path)
-    this.mkdir(this.settings.lmdb.path)
+    let resync = this.mkdir(this.settings.lmdb.path)
     this.api.open(this.settings.lmdb)
     this.db = {}
-    this.ensure_schema()
+    this.ensure_schema(resync)
     return onConnect()
   }
 
