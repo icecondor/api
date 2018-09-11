@@ -13,14 +13,14 @@ let db_name = 'icecondor'
 let schema = {
   'user': {
     indexes: [
-      ['username', ['username'], {unique: true}],
-      ['email', ['email'], {unique: true}]
+      ['username', ['username'], {unique: true, lowercase: true}],
+      ['email', ['email'], {unique: true, lowercase: true}]
       //['friends', ['friends'], { multi: true }]
     ]
   },
   'device': {
     indexes: [
-      ['idid_date', ['user_id', 'device_id'], {}]
+      ['user_id_did', ['user_id', 'device_id'], {}]
     ]
   },
   'heartbeat': {
@@ -257,7 +257,7 @@ export class Db extends DbBase {
     let key_parts
     key_parts = index[1].map(i => value[i])
     if(key_parts.every(i => i)) {
-      return key_parts.map(part => part.toLowerCase()).join(':')
+      return key_parts.map(part => index[2].lowercase ? part.toLowerCase() : part).join(':')
     }
   }
 
@@ -362,7 +362,7 @@ export class Db extends DbBase {
   }
 
   user_load_devices(user_id) {
-    let kvs = this.getIdxBetween('device', 'idid_date', [user_id], [user_id])
+    let kvs = this.getIdxBetween('device', 'user_id_did', [user_id], [user_id])
     let device_ids = Object.keys(kvs).map(r => r.split(':').pop())
     return device_ids
   }
