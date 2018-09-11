@@ -461,7 +461,7 @@ export class Db extends DbBase {
     return {}
   }
 
-  async find_locations_for(user_id, start, stop, count, type, order) {
+  async find_locations_for(user_id: string, start:string, stop:string, count:number, type:string, order:string) {
     /*
     let sql = squel.select()
       .from("location")
@@ -476,7 +476,8 @@ export class Db extends DbBase {
     let desc = order == "newest" ? true : false
     console.log('getIdxBetween order', order, desc)
 
-    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id], [user_id], count, desc)
+    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
+                                                             [user_id, stop], count, desc)
     return Object.keys(kvs).map(k => {
       return this.get('location', 'id', kvs[k])
     })
