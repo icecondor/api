@@ -188,39 +188,56 @@ export class Db extends DbBase {
     return last
   }
 
-  getIdxBetween(typeName, indexName, start, end, count?) {
+  getIdxBetween(typeName, indexName, start, end, count?: number, order?: boolean) {
     let startkeyList = Array.isArray(start) ? [start] : start
     let startkey = startkeyList.join(':')
     let dbname = this.dbName(typeName, indexName)
+    let db = this.db[dbname]
     let txn = this.api.beginTxn()
-    let cursor = new lmdb.Cursor(txn, this.db[dbname])
+    let cursor = new lmdb.Cursor(txn, db)
     let kvs = {}
     let firstKey = cursor.goToRange(startkey)
     if(firstKey != null) {
       let endkeyList = Array.isArray(end) ? [end] : end
-      let endkey = endkeyList.join(':')
+      let endKey = endkeyList.join(':')
       let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
-      let nextKey = firstKey
-      while (nextKey !== null) {
-        if(endkeyList.length < schemakeyList.length) {
-          if(endkey == nextKey.substr(0, endkey.length)) {
-            kvs[nextKey] = txn.getString(this.db[dbname], nextKey)
-            nextKey = cursor.goToNext()
-          } else {
-            nextKey = null
-          }
+      if(endkeyList.length < schemakeyList.length) {
+        if(order) {
+          throw "order not available for prefix match"
         } else {
-          if(nextKey <= endkey) {
-            kvs[nextKey] = txn.getString(this.db[dbname], nextKey)
-          }
-          nextKey = cursor.goToNext()
+          this.idxPrefixMatch(kvs, firstKey, endKey, count, txn, cursor, db)
         }
-        if(count && Object.keys(kvs).length == count) nextKey = null
+      } else {
+        this.idxKeyCompare(kvs, firstKey, endKey, count, txn, cursor, db, order)
       }
     }
     cursor.close()
     txn.commit()
     return kvs
+  }
+
+  idxPrefixMatch(kvs, nextKey, endKey, count, txn, cursor, db) {
+    while (nextKey !== null) {
+      if(endKey == nextKey.substr(0, endKey.length)) {
+        kvs[nextKey] = txn.getString(db, nextKey)
+        nextKey = cursor.goToNext()
+      } else {
+        nextKey = null
+      }
+      if(count && Object.keys(kvs).length == count) nextKey = null
+    }
+  }
+
+  idxKeyCompare(kvs, nextKey, endKey, count, txn, cursor, db, order) {
+    while (nextKey !== null) {
+      if(nextKey <= endKey) {
+        kvs[nextKey] = txn.getString(db, nextKey)
+        nextKey = cursor.goToNext()
+      } else {
+        nextKey = null
+      }
+      if(count && Object.keys(kvs).length == count) nextKey = null
+    }
   }
 
   makeKey(index, value) {
