@@ -188,7 +188,7 @@ export class Db extends DbBase {
     return last
   }
 
-  getBetween(typeName, indexName, start, end) {
+  getIdxBetween(typeName, indexName, start, end) {
     let startkeyList = Array.isArray(start) ? [start] : start
     let startkey = startkeyList.join(':')
     let dbname = this.dbName(typeName, indexName)
@@ -331,7 +331,7 @@ export class Db extends DbBase {
   }
 
   user_load_devices(user_id) {
-    let kvs = this.getBetween('device', 'idid_date', [user_id], [user_id])
+    let kvs = this.getIdxBetween('device', 'idid_date', [user_id], [user_id])
     let device_ids = Object.keys(kvs).map(r => r.split(':').pop())
     return device_ids
   }
@@ -454,22 +454,12 @@ export class Db extends DbBase {
       .order("date", false)
       .limit(count)
     let result = await this.select(sql)
-    let locations: noun.Location[] = result.values.map(row =>
-      ({
-        type: 'location',
-        id: row[result.columns.indexOf('id')],
-        user_id: row[result.columns.indexOf('user_id')],
-        device_id: row[result.columns.indexOf('device_id')],
-        latitude: parseFloat(row[result.columns.indexOf('latitude')]),
-        longitude: parseFloat(row[result.columns.indexOf('longitude')]),
-        date: row[result.columns.indexOf('date')],
-        accuracy: parseFloat(row[result.columns.indexOf('accuracy')]),
-        provider: row[result.columns.indexOf('provider')],
-      })
     return locations
     */
-    let kvs = this.getBetween('location', 'user_id_date', [user_id], [user_id])
-    return Object.keys(kvs).map(k => kvs[k])
+    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id], [user_id])
+    return Object.keys(kvs).map(k => {
+      return this.get('location', 'id', kvs[k])
+    })
   }
 }
 
