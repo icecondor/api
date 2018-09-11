@@ -231,7 +231,14 @@ export class Db extends DbBase {
   }
 
   idxKeyCompare(kvs, startKey, endKey, count, txn, cursor, db, descending) {
-    let nextKey = cursor.goToRange(descending ? endKey : startKey)
+    let nextKey = cursor.goToRange(startKey)
+    if(descending) {
+      // simulate goToRange in reverse
+      nextKey = cursor.goToKey(endKey)
+      if(!nextKey) {
+        nextKey = cursor.goToPrev()
+      }
+    }
     while (nextKey !== null) {
       if(descending ? nextKey >= startKey : nextKey <= endKey) {
         kvs[nextKey] = txn.getString(db, nextKey)
