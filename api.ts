@@ -539,9 +539,11 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   //db.count_locations_for(user_id, start, stop, count, type, order)
   //  .then(function(qcount){}) // stream helper
   let timer = new Date()
+  start = start || new Date("2008-08-01").toISOString()
+  stop = stop || new Date().toISOString()
   db.find_locations_for(user_id, start, stop, count, type, order)
     .then(function(locations) {
-      console.log('send_last_locations', user_id, start, '-', stop, locations.length, 'points')
+      console.log('send_last_locations', user_id, start, '-', stop, locations.length+'/'+count, 'points')
       locations.forEach(function(location) {
         location_fences_load(location).then(function(location) {
           influxWrite('send_last_locations', (new Date()).getTime() - timer.getTime())
