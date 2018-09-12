@@ -123,7 +123,7 @@ export class Db extends DbBase {
   saveIndexes(value) {
     let typeName = value.type
     let scheme = schema[typeName]
-    if (indexes) {
+    if (scheme) {
       var indexes = scheme.indexes
       for (const index of indexes) {
         this.put(typeName, index[0], value)
