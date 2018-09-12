@@ -269,7 +269,7 @@ export class Db extends DbBase {
   }
 
   loadFile(id) {
-    var filepath = this.settings.path+'/'+id.replace(/-/g,'/')
+    var filepath = this.settings.path+'/'+id //.replace(/-/g,'/')
     let json = fs.readFileSync(filepath, 'utf8')
     let data = JSON.parse(json)
     console.log('file load', data.type, filepath)
