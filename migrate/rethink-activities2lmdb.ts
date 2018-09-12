@@ -22,7 +22,7 @@ db.connect(async () => {
     while (stop) {
       console.log('\n** lmdb start', start)
       let time = new Date()
-      let limit = 1000
+      let limit = 10000
       stop = await pull_group(conn, start, limit)
       let delay_sec = (new Date().getTime() - time.getTime())/limit
       console.log('group done', start, stop, delay_sec+"s", (limit/delay_sec).toFixed(0), "rows per sec")
