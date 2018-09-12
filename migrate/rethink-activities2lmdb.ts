@@ -22,7 +22,7 @@ db.connect(async () => {
     while (stop) {
       console.log('\n** lmdb start', start)
       let time = new Date()
-      stop = await pull_group(conn, start)
+      stop = await pull_group(conn, start, 1000)
       console.log('group done', start, stop, (new Date().getTime() - time.getTime())/1000+"s")
       db.schema_dump()
       start = new Date(stop)
@@ -33,10 +33,9 @@ db.connect(async () => {
   console.log('el fin')
 })
 
-async function pull_group(conn, start) {
+async function pull_group(conn, start, limit: number) {
     let stop = new Date()
     let last
-    let limit = 10
     let err_count = 0
     let cursor = await rethink
       .table('activities')
