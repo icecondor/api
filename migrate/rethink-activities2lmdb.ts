@@ -25,7 +25,7 @@ db.connect(async () => {
       let limit = 1000
       stop = await pull_group(conn, start, limit)
       let delay_sec = (new Date().getTime() - time.getTime())/limit
-      console.log('group done', start, stop, delay_sec+"s", limit/delay_sec+" rows per sec")
+      console.log('group done', start, stop, delay_sec+"s", parseInt(limit/delay_sec)+" rows per sec")
       db.schema_dump()
       start = new Date(stop)
     }
