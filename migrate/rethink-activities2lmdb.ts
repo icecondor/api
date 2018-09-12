@@ -52,7 +52,7 @@ async function pull_group(conn, start, limit: number) {
     await Promise.all(rows.map(async row => {
       await dbsave(row)
       if (!last || row.date > last) last = row.date
-    })).catch(e => console.log('promise all err', e))
+    }))
     console.log(rows.length, 'rows', err_count, 'errors', last, 'last')
     return last
 }
