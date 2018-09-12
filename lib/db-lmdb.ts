@@ -26,6 +26,9 @@ let schema = {
   'heartbeat': {
     indexes: []
   },
+  'config': {
+    indexes: []
+  },
   'location': {
     indexes: [
       ['date', ['date'], {}],
