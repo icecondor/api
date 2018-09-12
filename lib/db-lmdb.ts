@@ -97,14 +97,19 @@ export class Db extends DbBase {
   }
 
   async schema_dump() {
+    let ramtotal = 0
     for(const dbName in this.db) {
       let db = this.db[dbName]
       var txn = this.api.beginTxn()
       let stat = db.stat(txn)
       txn.commit()
-      console.log('index', dbName, 'count', stat.entryCount)
+      let ram = stat.pageSize*(stat.treeBranchPageCount+stat.treeLeafPageCount)
+      ramtotal += ram
+      console.log('index', dbName, stat.entryCount, 'entries', (ram/1024/1024).toFixed(1), 'MB')
     }
+    console.log('ram total', (ramtotal/1024/1024).toFixed(1), 'MB')
   }
+
 
 
   syncIndexes() {
