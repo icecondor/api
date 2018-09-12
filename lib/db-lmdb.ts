@@ -156,9 +156,12 @@ export class Db extends DbBase {
     let key = this.makeKey(index, value)
     if (key) {
       if (index[2].unique) {
+        let orig = value[key]
         let exists = this.get(typeName, indexName, key)
         if(exists) {
-          throw "type "+typeName+" index "+index[0]+" exists for "+key
+          if (exists != orig) {
+            throw "type "+typeName+" index "+index[0]+" key "+key+" is "+exists+" (should be"+orig+")"
+          }
         }
       }
       var txn = this.api.beginTxn()
