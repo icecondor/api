@@ -57,14 +57,13 @@ async function pull_group(conn, start) {
 
 async function dbsave(activity) {
   let datefix = ''
-  if (activity.date && !activity.received_at) {
-    datefix = 'received from created'
-    activity.received_at = activity.date
-  }
-  if (!activity.date) datefix='missing date!'
-  console.log('activity', activity.id, activity.date, activity.type, '['+datefix+']')
-  let result = await db.activity_add(activity)
-  if (result.errors > 0) {
-    throw "dbsave failed on "+activity.id
+  if (activity.date) {
+    //console.log('activity', activity.id, activity.date, activity.type, '['+datefix+']')
+    let result = await db.activity_add(activity)
+    if (result.errors > 0) {
+      throw "dbsave failed on "+activity.id
+    }
+  } else {
+    console.log('SKIP '+activity.id+' missing date!')
   }
 }

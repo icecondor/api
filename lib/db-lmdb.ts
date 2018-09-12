@@ -153,7 +153,7 @@ export class Db extends DbBase {
         }
       }
       var txn = this.api.beginTxn()
-      console.log('PUT', dbname, key, '->', value.id)
+      //console.log('PUT', dbname, key, '->', value.id)
       txn.putString(this.db[dbname], key, value.id)
       txn.commit()
     } else {
