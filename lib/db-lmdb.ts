@@ -129,7 +129,7 @@ export class Db extends DbBase {
         this.put(typeName, index[0], value)
       }
     } else {
-      console.log('warning: no schema for', value.type)
+      console.log('warning: no schema for', value.type, value.id)
     }
   }
 
