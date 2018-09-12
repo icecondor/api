@@ -156,11 +156,10 @@ export class Db extends DbBase {
     let key = this.makeKey(index, value)
     if (key) {
       if (index[2].unique) {
-        let orig = value[key]
         let exists = this.get(typeName, indexName, key)
         if(exists) {
-          if (exists != orig) {
-            throw "type "+typeName+" index "+index[0]+" key "+key+" is "+exists+" (should be"+orig+")"
+          if (exists != value.id) {
+            throw "type "+typeName+" index "+index[0]+" key "+key+" is "+exists+" (should be"+value.id+")"
           }
         }
       }
@@ -168,6 +167,7 @@ export class Db extends DbBase {
       //console.log('PUT', dbname, key, '->', value.id)
       txn.putString(this.db[dbname], key, value.id)
       txn.commit()
+      return value.id
     } else {
       console.log('Warning: key generation failed for index', dbname)
     }
@@ -184,10 +184,7 @@ export class Db extends DbBase {
       console.log('GET', dbname, key, '->', id)
       txn.commit()
     }
-
-    if(id) {
-      return this.loadFile(id)
-    }
+    return id
   }
 
   getLast(typeName, indexName) {
@@ -358,8 +355,9 @@ export class Db extends DbBase {
       index ='id'
       key = e.id
     }
-    let user: any = this.get('user', index, key)
-    if (user) {
+    let user_id = this.get('user', index, key)
+    if (user_id) {
+      let user = this.loadFile(user_id)
       let full_user: any = {
         id: user.id,
         email: user.email,
@@ -495,7 +493,7 @@ export class Db extends DbBase {
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
                                                              [user_id, stop], count, desc)
     return Object.keys(kvs).map(k => {
-      return this.get('location', 'id', kvs[k])
+      return this.loadFile(kvs[k])
     })
   }
 }
