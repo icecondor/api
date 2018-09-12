@@ -5,7 +5,7 @@ import * as rethink from 'rethinkdb'
 
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
 
-console.log('lmdb', settings.storage)
+console.log('storage', settings.storage)
 let db = new Db.Db(settings.storage)
 db.connect(async () => {
   console.log('rethink', settings.rethinkdb)

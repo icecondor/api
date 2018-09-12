@@ -122,13 +122,14 @@ export class Db extends DbBase {
 
   saveIndexes(value) {
     let typeName = value.type
-    var indexes = schema[typeName].indexes
+    let schema = schema[typeName]
     if (indexes) {
+      var indexes = schema.indexes
       for (const index of indexes) {
         this.put(typeName, index[0], value)
       }
     } else {
-      console.log('warning: no indexes defined for', value.type)
+      console.log('warning: no schema for', value.type)
     }
   }
 
