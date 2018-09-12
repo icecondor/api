@@ -124,7 +124,7 @@ export class Db extends DbBase {
     let typeName = value.type
     let scheme = schema[typeName]
     if (scheme) {
-      var indexes = scheme.indexes
+      let indexes = scheme.indexes
       for (const index of indexes) {
         this.put(typeName, index[0], value)
       }
