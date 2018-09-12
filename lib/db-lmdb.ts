@@ -105,7 +105,8 @@ export class Db extends DbBase {
       txn.commit()
       let ram = stat.pageSize*(stat.treeBranchPageCount+stat.treeLeafPageCount)
       ramtotal += ram
-      console.log('index', dbName, stat.entryCount, 'entries', (ram/1024/1024).toFixed(1), 'MB')
+      console.log('index', dbName, stat.entryCount, 'entries', (ram/1024/1024).toFixed(1)+'mb',
+                     (ram/stat.entryCount).toFixed(0), 'b/each')
     }
     console.log('ram total', (ramtotal/1024/1024).toFixed(1), 'MB')
   }
