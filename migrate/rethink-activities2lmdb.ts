@@ -22,8 +22,10 @@ db.connect(async () => {
     while (stop) {
       console.log('\n** lmdb start', start)
       let time = new Date()
-      stop = await pull_group(conn, start, 1000)
-      console.log('group done', start, stop, (new Date().getTime() - time.getTime())/1000+"s")
+      let limit = 1000
+      stop = await pull_group(conn, start, limit)
+      let delay_sec = (new Date().getTime() - time.getTime())/limit
+      console.log('group done', start, stop, delay_sec+"s", limit/delay_sec+" rows per sec")
       db.schema_dump()
       start = new Date(stop)
     }
