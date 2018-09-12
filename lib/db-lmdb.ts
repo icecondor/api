@@ -262,9 +262,9 @@ export class Db extends DbBase {
   }
 
   saveFile(value) {
-    var filepath = this.settings.path+'/'+value.id.replace(/-/g,'/')
-    mkdirp.sync(path.dirname(filepath))
-    console.log('file save', value.type, value.id, filepath)
+    var filepath = this.settings.path+'/'+value.id //.replace(/-/g,'/')
+    //mkdirp.sync(path.dirname(filepath))
+    //console.log('file save', value.type, value.id, filepath)
     fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
