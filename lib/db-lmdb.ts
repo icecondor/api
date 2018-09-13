@@ -315,7 +315,7 @@ export class Db extends DbBase {
         charging: a.power,
         cell_data: a.celldata,
         wifi_data: a.wifidata,
-        battery_percentage: a.battery.percentage,
+        battery_percentage: a.battery ? a.battery.percentage : null,
         memory_free: a.memory ? a.memory.free : null,
         memory_total: a.memory ? a.memory.total : null
       }
