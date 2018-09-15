@@ -24,10 +24,10 @@ let schema = {
     ]
   },
   'heartbeat': {
-    indexes: []
+    indexes: [['id', ['id'], {}]]
   },
   'config': {
-    indexes: []
+    indexes: [['id', ['id'], {}]]
   },
   'location': {
     indexes: [
