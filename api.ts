@@ -106,9 +106,9 @@ function client_dispatch(me, msg) {
   }
 }
 
-function activity_added(activity_chg) {
-  if (activity_chg.new_val && activity_chg.new_val.type === "location") {
-    pump_location(activity_chg.new_val)
+function activity_added(change) {
+  if (change.index == 'location.user_id_date') {
+    pump_location(change.new_val)
   }
 }
 
