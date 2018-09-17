@@ -52,6 +52,7 @@ let schema = {
 export class Db extends DbBase {
   api: any
   db: any
+  onChange: any
 
   mkdir(dir: string) {
     if (!fs.existsSync(dir)) {
@@ -83,6 +84,7 @@ export class Db extends DbBase {
   }
 
   changes(onChange) {
+    this.onChange = onChange
   }
 
   ensure_schema(resync: boolean = false) {
@@ -168,6 +170,7 @@ export class Db extends DbBase {
       //console.log('PUT', dbname, key, '->', value.id)
       txn.putString(this.db[dbname], key, value.id)
       txn.commit()
+      this.onChange({index: dbname, key: key, new_val: value})
       return value.id
     } else {
       console.log('Warning: key generation failed for index', dbname)
