@@ -39,9 +39,7 @@ db.connect(function() {
   server.on('error', function(e) { console.log('net.sever err', e) })
   server.listen(settings.api.listen_port)
 
-  db.changes(function(cursor) {
-    cursor.on("data", activity_added)
-  })
+  db.changes(activity_added)
 })
 
 function influxWrite(module, value) {
