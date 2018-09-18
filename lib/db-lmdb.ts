@@ -23,6 +23,12 @@ let schema = {
       ['user_id_did', ['user_id', 'device_id'], {}]
     ]
   },
+  'friendship': {
+    indexes: [['user_id', ['user_id'], {}]]
+  },
+  'access': {
+    indexes: [['user_id', ['user_id'], {}]]
+  },
   'heartbeat': {
     indexes: [['id', ['id'], {}]]
   },
@@ -117,9 +123,10 @@ export class Db extends DbBase {
 
   syncIndexes() {
     walk.filesSync(this.settings.path, (dir, filename, stat) => {
-      let p1 = dir.substr(this.settings.path.length+1)
-      let id = p1.replace(/\//g, '-')+'-'+filename
-      let value = this.loadFile(id)
+//      let p1 = dir.substr(this.settings.path.length+1)
+//      let id = p1.replace(/\//g, '-')+'-'+filename
+      console.log('sync walk', 'dir', dir, 'filename', filename)
+      let value = this.loadFile(filename)
       this.saveIndexes(value)
     })
   }
@@ -170,7 +177,7 @@ export class Db extends DbBase {
       //console.log('PUT', dbname, key, '->', value.id)
       txn.putString(this.db[dbname], key, value.id)
       txn.commit()
-      this.onChange({index: dbname, key: key, new_val: value})
+      if (this.onChange) this.onChange({index: dbname, key: key, new_val: value})
       return value.id
     } else {
       console.log('Warning: key generation failed for index', dbname)
@@ -285,7 +292,7 @@ export class Db extends DbBase {
     var filepath = this.settings.path+'/'+id //.replace(/-/g,'/')
     let json = fs.readFileSync(filepath, 'utf8')
     let data = JSON.parse(json)
-    console.log('file load', data.type, filepath)
+    console.log('file loaded', data.type, filepath)
     return data
   }
 
@@ -382,14 +389,13 @@ export class Db extends DbBase {
   }
 
   async user_add_access(user_id, key) {
-    let new_access: noun.Access = {
+    let access: noun.Access = {
       id: this.new_id(),
       type: "access",
       created_at: new Date().toISOString(),
       user_id: user_id,
     }
-    //let sql = squel.insert().into('access').setFields(new_access)
-    //await this.insert(sql) // best effort
+    this.save(access)
     return this.user_find_access(user_id, key)
   }
 
@@ -397,15 +403,14 @@ export class Db extends DbBase {
   }
 
   async user_add_friend(user_id, friend_id) {
-    let new_friendship: noun.Friendship = {
+    let friendship: noun.Friendship = {
       id: this.new_id(),
       type: "friendship",
       user_id: user_id,
       friend_user_id: friend_id,
       created_at: new Date().toISOString()
     }
-    //let sql = squel.insert().into('friendship').setFields(new_friendship)
-    //await this.insert(sql) // best effort
+    this.save(friendship)
   }
 
   async user_add_device(user_id, device_id) {
