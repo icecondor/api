@@ -125,7 +125,7 @@ export class Db extends DbBase {
     let groupSize = 1000
     let fileCount = 0
     let now = new Date()
-    walk.filesSync(this.settings.path, (dir, filename, stat) => {
+    for (const filename of fs.readdirSync(this.settings.path)) {
       fileCount += 1
       if(fileCount % groupSize == 0) {
         let elapsed = (new Date).getTime() - now.getTime()
@@ -135,7 +135,7 @@ export class Db extends DbBase {
       }
       let value = this.loadFile(filename)
       this.saveIndexes(value)
-    })
+    }
   }
 
   dbName(typeName, indexName) { return typeName+'.'+indexName }
