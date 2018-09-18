@@ -24,21 +24,20 @@ let schema = {
     ]
   },
   'friendship': {
-    indexes: [['user_id', ['user_id'], {}]]
+    indexes: [['user_id_friend_id', ['user_id', 'friend_user_id'], {}]]
   },
   'access': {
-    indexes: [['user_id', ['user_id'], {}]]
+    indexes: [['user_id_id', ['user_id', 'id'], {}]]
   },
   'heartbeat': {
-    indexes: [['id', ['id'], {}]]
+    indexes: [['user_id_id', ['user_id', 'id'], {}]]
   },
   'config': {
-    indexes: [['id', ['id'], {}]]
+    indexes: [['user_id_id', ['user_id', 'id'], {}]]
   },
   'location': {
     indexes: [
       ['date', ['date'], {}],
-      ['user_id', ['user_id'], {}],
       ['user_id_date', ['user_id', 'date'], {}]
     ]
   },
@@ -122,10 +121,18 @@ export class Db extends DbBase {
 
 
   syncIndexes() {
+    console.log('** Sync walk begin')
+    let groupSize = 1000
+    let fileCount = 0
+    let now = new Date()
     walk.filesSync(this.settings.path, (dir, filename, stat) => {
-//      let p1 = dir.substr(this.settings.path.length+1)
-//      let id = p1.replace(/\//g, '-')+'-'+filename
-      console.log('sync walk', 'dir', dir, 'filename', filename)
+      fileCount += 1
+      if(fileCount % groupSize == 0) {
+        let elapsed = (new Date).getTime() - now.getTime()
+        console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec')
+        fileCount = 0
+        now = new Date()
+      }
       let value = this.loadFile(filename)
       this.saveIndexes(value)
     })
@@ -192,7 +199,7 @@ export class Db extends DbBase {
       let dbname = this.dbName(typeName, indexName)
       var txn = this.api.beginTxn()
       id = txn.getString(this.db[dbname], key)
-      console.log('GET', dbname, key, '->', id)
+      //console.log('GET', dbname, key, '->', id)
       txn.commit()
     }
     return id
@@ -292,7 +299,7 @@ export class Db extends DbBase {
     var filepath = this.settings.path+'/'+id //.replace(/-/g,'/')
     let json = fs.readFileSync(filepath, 'utf8')
     let data = JSON.parse(json)
-    console.log('file loaded', data.type, filepath)
+    //console.log('file loaded', data.type, filepath)
     return data
   }
 
