@@ -4,7 +4,7 @@ import * as path from 'path'
 // import * as lmdb from 'zetta-lmdb'
 import * as lmdb from 'node-lmdb'
 import * as mkdirp from 'mkdirp'
-import * as walk from 'fs-walk'
+import * as filewalker from 'filewalker'
 
 import { Db as DbBase } from './db'
 import * as noun from './nouns'
@@ -118,24 +118,32 @@ export class Db extends DbBase {
     console.log('ram total', (ramtotal/1024/1024).toFixed(1), 'MB')
   }
 
-
-
   syncIndexes() {
     console.log('** Sync walk begin')
     let groupSize = 1000
     let fileCount = 0
     let now = new Date()
-    for (const filename of fs.readdirSync(this.settings.path)) {
-      fileCount += 1
-      if(fileCount % groupSize == 0) {
-        let elapsed = (new Date).getTime() - now.getTime()
-        console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec')
-        fileCount = 0
-        now = new Date()
-      }
-      let value = this.loadFile(filename)
-      this.saveIndexes(value)
-    }
+    let that = this // this get munged in filewalker
+    filewalker(this.settings.path)
+      .on('file', function(filename, s) {
+        console.log('file: %s, %d bytes', filename, s.size);
+        fileCount += 1
+        if(fileCount % groupSize == 0) {
+          let elapsed = (new Date).getTime() - now.getTime()
+          console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec')
+          fileCount = 0
+          now = new Date()
+        }
+        let value = that.loadFile(filename)
+        that.saveIndexes(value)
+      })
+      .on('error', function(err) {
+        console.error(err);
+      })
+      .on('done', function() {
+        console.log('%d dirs, %d files, %d bytes', this.dirs, this.files, this.bytes);
+      })
+    .walk();
   }
 
   dbName(typeName, indexName) { return typeName+'.'+indexName }

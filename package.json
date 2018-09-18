@@ -4,6 +4,7 @@
   "description": "location recording and processing for icecondor.com",
   "dependencies": {
     "bluebird": "2.2.*",
+    "filewalker": "^0.1.3",
     "forever": "0.11.*",
     "fs-walk": "0.0.2",
     "geojson-area": "~0.2.0",
