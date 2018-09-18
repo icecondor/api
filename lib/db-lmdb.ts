@@ -27,7 +27,7 @@ let schema = {
     indexes: [['user_id_friend_id', ['user_id', 'friend_user_id'], {}]]
   },
   'access': {
-    indexes: [['user_id_id', ['user_id', 'id'], {}]]
+    indexes: [['user_id_key', ['user_id', 'key'], {}]]
   },
   'heartbeat': {
     indexes: [['user_id_id', ['user_id', 'id'], {}]]
@@ -228,8 +228,6 @@ export class Db extends DbBase {
 
     let kvs = {}
     let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
-    console.log('getIdxBetween comparison', 'endkeyList', endkeyList, 'schemakeyList', schemakeyList,
-                 endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare")
     if(endkeyList.length < schemakeyList.length) {
       if(order) {
         throw "descending order not available for prefix match"
@@ -241,6 +239,9 @@ export class Db extends DbBase {
     }
     cursor.close()
     txn.commit()
+    console.log('getIdxBetween', typeName, 'endkeyList', endkeyList, 'schemakeyList', schemakeyList,
+                 endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare",
+                 Object.keys(kvs).length, 'found')
     return kvs
   }
 
@@ -383,6 +384,8 @@ export class Db extends DbBase {
         created_at: user.created_at,
       }
       full_user.devices = this.user_load_devices(full_user.id)
+      full_user.friends = this.user_load_friends(full_user.id)
+      full_user.access = this.user_load_access(full_user.id)
       return full_user
     } else {
       throw "find_user_by reject "+index+" "+key
@@ -391,17 +394,34 @@ export class Db extends DbBase {
 
   user_load_devices(user_id) {
     let kvs = this.getIdxBetween('device', 'user_id_did', [user_id], [user_id])
-    let device_ids = Object.keys(kvs).map(r => r.split(':').pop())
+    let device_ids = Object.keys(kvs).map(k => k.split(':').pop())
     return device_ids
   }
 
-  async user_add_access(user_id, key) {
+  user_load_friends(user_id) {
+    let kvs = this.getIdxBetween('friendship', 'user_id_friend_id', [user_id], [user_id])
+    let friend_ids = Object.keys(kvs).map(k => k.split(':').pop())
+    return friend_ids
+  }
+
+  user_load_access(user_id) {
+    let kvs = this.getIdxBetween('access', 'user_id_key', [user_id], [user_id])
+    let access_data = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
+    let access = access_data.reduce((m,kv) => {m[kv['key']] = {created_at: kv['created_at'], scopes: ['read']}; return m}, {})
+    return access
+  }
+
+  async user_add_access(user_id, key, value) {
+    console.log('user_add_access', user_id, key, value)
     let access: noun.Access = {
       id: this.new_id(),
       type: "access",
-      created_at: new Date().toISOString(),
+      created_at: new Date(value.created_at).toISOString(),
+      expires_at: value.expires_at ? new Date(value.expires_at).toISOString() : null,
       user_id: user_id,
+      key: key
     }
+    console.log('user_add_access =', access)
     this.save(access)
     return this.user_find_access(user_id, key)
   }
@@ -450,7 +470,7 @@ export class Db extends DbBase {
       }
       if (u.access) {
         if (Object.keys(u.access).length > 0) console.log('adding', Object.keys(u.access).length, 'access keys')
-        for (const key of Object.keys(u.access)) this.user_add_access(user.id, key)
+        for (const key of Object.keys(u.access)) this.user_add_access(user.id, key, u.access[key])
       }
       if (u.friends) {
         if (u.friends.length > 0) console.log('adding', u.friends.length, 'friends')
