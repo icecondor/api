@@ -119,7 +119,7 @@ export class Db extends DbBase {
   }
 
   syncIndexes() {
-    console.log('** Sync walk begin')
+    console.log('** Sync walk begin on', this.settings.path)
     let groupSize = 1000
     let fileCount = 0
     let now = new Date()
