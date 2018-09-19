@@ -22,7 +22,7 @@ function ws_connect(socket) {
 
   socket.on('close', function() {
     console.log('websocket closed. closing api');
-    for(const api in apis) api.end()
+    for(const api of apis) api.end()
   })
 }
 
