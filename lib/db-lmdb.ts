@@ -4,7 +4,7 @@ import * as path from 'path'
 // import * as lmdb from 'zetta-lmdb'
 import * as lmdb from 'node-lmdb'
 import * as mkdirp from 'mkdirp'
-import * as filewalker from 'filewalker'
+import * as Reader from 'native-readdir-stream'
 
 import { Db as DbBase } from './db'
 import * as noun from './nouns'
@@ -24,7 +24,10 @@ let schema = {
     ]
   },
   'friendship': {
-    indexes: [['user_id_friend_id', ['user_id', 'friend_user_id'], {}]]
+    indexes: [
+      ['user_id_friend_id', ['user_id', 'friend_user_id'], {}],
+      ['friend_id_user_id', ['friend_user_id', 'user_id'], {}]
+    ]
   },
   'access': {
     indexes: [['user_id_key', ['user_id', 'key'], {}]]
@@ -124,9 +127,10 @@ export class Db extends DbBase {
     let fileCount = 0
     let now = new Date()
     let that = this // this get munged in filewalker
-    filewalker(this.settings.path)
-      .on('file', function(filename, s) {
-        console.log('file: %s, %d bytes', filename, s.size);
+
+    new Reader(this.settings.path)
+      .on('data', function (filename) {
+        if(filename == "." || filename == "..") return
         fileCount += 1
         if(fileCount % groupSize == 0) {
           let elapsed = (new Date).getTime() - now.getTime()
@@ -137,13 +141,12 @@ export class Db extends DbBase {
         let value = that.loadFile(filename)
         that.saveIndexes(value)
       })
-      .on('error', function(err) {
-        console.error(err);
+      .once('end', function () {
+        console.log('sync end')
       })
-      .on('done', function() {
-        console.log('%d dirs, %d files, %d bytes', this.dirs, this.files, this.bytes);
+      .once('error', function (error) {
+        console.log('!!sync error', error)
       })
-    .walk();
   }
 
   dbName(typeName, indexName) { return typeName+'.'+indexName }
@@ -505,7 +508,10 @@ export class Db extends DbBase {
   }
 
   async friending_me(user_id: string) {
-    return []
+    let kvs = this.getIdxBetween('friendship', 'friend_id_user_id', [user_id], [user_id])
+    let friend_ids = Object.keys(kvs).map(k => k.split(':').pop())
+    console.log('people friending', user_id, 'are', friend_ids)
+    return friend_ids
   }
 
   async fence_list(user_id) {
