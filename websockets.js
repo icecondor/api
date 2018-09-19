@@ -2,12 +2,14 @@ var net = require('net')
 var wsock = require('websock')
 var settings = require('./settings')
 var apis = []
+var openCount = 0
 
 wsock.listen(settings.websockets.listen_port, ws_connect);
 console.log("websockets listening on " + settings.websockets.listen_port)
 
 function ws_connect(socket) {
-  console.log('websockets open. connecting to api on ' + settings.api.listen_port);
+  openCount += 1
+  console.log('websockets #'+openCount+' open. connecting to api on ' + settings.api.listen_port);
   var sockApi = relayTo(socket, 'localhost', settings.api.listen_port)
   if (sockApi) {
     apis.push(sockApi)
@@ -21,6 +23,7 @@ function ws_connect(socket) {
   })
 
   socket.on('close', function() {
+    openCount -= 1
     console.log('websocket closed. closing api');
     for(const api of apis) api.end()
   })
