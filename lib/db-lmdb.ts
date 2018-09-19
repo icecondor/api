@@ -70,7 +70,7 @@ export class Db extends DbBase {
     }
   }
 
-  connect(onConnect) {
+  async connect(onConnect) {
     this.pathFix(this.settings, 'path')
     this.pathFix(this.settings.lmdb, 'path')
     this.api = new lmdb.Env()
@@ -78,7 +78,7 @@ export class Db extends DbBase {
     let resync = this.mkdir(this.settings.lmdb.path)
     this.api.open(this.settings.lmdb)
     this.db = {}
-    this.ensure_schema(resync)
+    await this.ensure_schema(resync)
     return onConnect()
   }
 
@@ -95,7 +95,7 @@ export class Db extends DbBase {
     this.onChange = onChange
   }
 
-  ensure_schema(resync: boolean = false) {
+  async ensure_schema(resync: boolean = false) {
     for (const typeName in schema) {
       for (const index of schema[typeName].indexes) {
         let dbname = this.dbName(typeName, index[0])
@@ -103,7 +103,7 @@ export class Db extends DbBase {
         this.db[dbname] = this.api.openDbi({name: dbname, create: true})
       }
     }
-    if (resync) this.syncIndexes()
+    if (resync) await this.syncIndexes()
   }
 
   async schema_dump() {
@@ -121,20 +121,21 @@ export class Db extends DbBase {
     console.log('ram total', (ramtotal/1024/1024).toFixed(1), 'MB')
   }
 
-  syncIndexes() {
+  async syncIndexes() {
     console.log('** Sync walk begin on', this.settings.path)
     let groupSize = 1000
     let fileCount = 0
     let now = new Date()
     let that = this // this get munged in filewalker
 
-    new Reader(this.settings.path)
+    return new Promise((res, rej) => {
+      new Reader(this.settings.path)
       .on('data', function (filename) {
         if(filename == "." || filename == "..") return
         fileCount += 1
         if(fileCount % groupSize == 0) {
           let elapsed = (new Date).getTime() - now.getTime()
-          console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec')
+          console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec', fileCount, 'done')
           fileCount = 0
           now = new Date()
         }
@@ -143,10 +144,13 @@ export class Db extends DbBase {
       })
       .once('end', function () {
         console.log('sync end')
+        res()
       })
       .once('error', function (error) {
         console.log('!!sync error', error)
+        rej(error)
       })
+    })
   }
 
   dbName(typeName, indexName) { return typeName+'.'+indexName }
