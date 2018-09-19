@@ -508,6 +508,14 @@ export class Db extends DbBase {
     return []
   }
 
+  async fence_list(user_id) {
+    return { toArray: () => Promise.resolve([]) } // quack like rethinkdb
+  }
+
+  async fence_get(id) {
+    return {} // fence
+  }
+
   async fences_intersect(point) {
     return { toArray: () => Promise.resolve([]) } // quack like rethinkdb
   }
