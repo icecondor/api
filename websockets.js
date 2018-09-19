@@ -1,15 +1,34 @@
-var net = require('net');
-var wsock = require('websock');
-var settings = require('./settings');
+var net = require('net')
+var wsock = require('websock')
+var settings = require('./settings')
+var apis = []
 
 wsock.listen(settings.websockets.listen_port, ws_connect);
 console.log("websockets listening on " + settings.websockets.listen_port)
 
 function ws_connect(socket) {
-  console.log('ws_connect')
-  var apiSocket = new net.Socket();
-
   console.log('websockets open. connecting to api on ' + settings.api.listen_port);
+  var sockApi = relayTo(socket, 'localhost', settings.api.listen_port)
+  if (sockApi) {
+    apis.push(sockApi)
+
+    socket.on('message', function(data) {
+      console.log('['+apis.length+']<-ws ' + data)
+      for(const api in aps) api.write(data + "\n")
+    })
+
+    socket.on('close', function() {
+      console.log('websocket closed. closing api');
+      for(const api in aps) api.end()
+    })
+  } else {
+    console.log('api socket open fail! closing client.')
+    socket.end()
+  }
+}
+
+function relayto(socket, host, port) {
+  var apiSocket = new net.Socket();
 
   apiSocket.on('data', function(data) {
     console.log(socket.address + '-> ' + data)
@@ -22,16 +41,10 @@ function ws_connect(socket) {
     socket.end()
   })
 
-  apiSocket.connect(settings.api.listen_port, "localhost")
+  apiSocket.on('close', function() {
+    socket.end()
+  })
+  apiSocket.connect(port, host)
 
-  socket.on('message', function(data) {
-    console.log('<-ws ' + data)
-    apiSocket.write(data + "\n")
-  });
-
-  socket.on('close', function() {
-    apiSocket.end();
-    console.log('websockets close');
-  });
-
+  return apiSocket
 }
