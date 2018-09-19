@@ -10,12 +10,7 @@ console.log("websockets listening on " + settings.websockets.listen_port)
 function ws_connect(socket) {
   openCount += 1
   console.log('websockets #'+openCount+' open. connecting to api on ' + settings.api.listen_port);
-  var sockApi = relayTo(socket, 'localhost', settings.api.listen_port)
-  if (sockApi) {
-    apis.push(sockApi)
-  } else {
-    console.log('api socket open fail!')
-  }
+  apiAdd(socket, 'localhost', settings.api.listen_port)
 
   socket.on('message', function(data) {
     console.log('['+apis.length+']<-ws ' + data)
@@ -27,6 +22,15 @@ function ws_connect(socket) {
     console.log('websocket closed. '+openCount+' remaining.');
     for(const api of apis) api.end()
   })
+}
+
+function apiAdd(socket, host, port) {
+  var sockApi = relayTo(socket, host, port)
+  if (sockApi) {
+    apis.push(sockApi)
+  } else {
+    console.log('api socket open fail for', host+':'+port)
+  }
 }
 
 function relayTo(socket, host, port) {
