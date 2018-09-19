@@ -125,6 +125,7 @@ export class Db extends DbBase {
     console.log('** Sync walk begin on', this.settings.path)
     let groupSize = 1000
     let fileCount = 0
+    let fileTotal = 0
     let now = new Date()
     let that = this // this get munged in filewalker
 
@@ -133,9 +134,10 @@ export class Db extends DbBase {
       .on('data', function (filename) {
         if(filename == "." || filename == "..") return
         fileCount += 1
+        fileTotal += 1
         if(fileCount % groupSize == 0) {
           let elapsed = (new Date).getTime() - now.getTime()
-          console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec', fileCount, 'done')
+          console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec', fileTotal, 'done')
           fileCount = 0
           now = new Date()
         }
