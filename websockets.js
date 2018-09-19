@@ -14,7 +14,7 @@ function ws_connect(socket) {
 
     socket.on('message', function(data) {
       console.log('['+apis.length+']<-ws ' + data)
-      for(const api in aps) api.write(data + "\n")
+      for(const api of apis) api.write(data + "\n")
     })
 
     socket.on('close', function() {
@@ -27,7 +27,7 @@ function ws_connect(socket) {
   }
 }
 
-function relayto(socket, host, port) {
+function relayTo(socket, host, port) {
   var apiSocket = new net.Socket();
 
   apiSocket.on('data', function(data) {
