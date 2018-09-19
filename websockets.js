@@ -24,7 +24,7 @@ function ws_connect(socket) {
 
   socket.on('close', function() {
     openCount -= 1
-    console.log('websocket closed. closing api');
+    console.log('websocket closed. '+openCount+' remaining.');
     for(const api of apis) api.end()
   })
 }
