@@ -31,7 +31,7 @@ function relayto(socket, host, port) {
   var apiSocket = new net.Socket();
 
   apiSocket.on('data', function(data) {
-    console.log(socket.address + '-> ' + data)
+    console.log(':'+socket.connection._peername.port+'-> '+data)
     socket.send(data)
   })
 
