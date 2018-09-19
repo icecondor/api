@@ -11,20 +11,19 @@ function ws_connect(socket) {
   var sockApi = relayTo(socket, 'localhost', settings.api.listen_port)
   if (sockApi) {
     apis.push(sockApi)
-
-    socket.on('message', function(data) {
-      console.log('['+apis.length+']<-ws ' + data)
-      for(const api of apis) api.write(data + "\n")
-    })
-
-    socket.on('close', function() {
-      console.log('websocket closed. closing api');
-      for(const api in aps) api.end()
-    })
   } else {
-    console.log('api socket open fail! closing client.')
-    socket.end()
+    console.log('api socket open fail!')
   }
+
+  socket.on('message', function(data) {
+    console.log('['+apis.length+']<-ws ' + data)
+    for(const api of apis) api.write(data + "\n")
+  })
+
+  socket.on('close', function() {
+    console.log('websocket closed. closing api');
+    for(const api in aps) api.end()
+  })
 }
 
 function relayTo(socket, host, port) {
@@ -42,8 +41,10 @@ function relayTo(socket, host, port) {
   })
 
   apiSocket.on('close', function() {
+    console.log('api '+host+' closed. closing client');
     socket.end()
   })
+
   apiSocket.connect(port, host)
 
   return apiSocket
