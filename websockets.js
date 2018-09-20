@@ -10,7 +10,7 @@ function ws_connect(socket) {
   var apis = []
   openCount += 1
   console.log('websockets #'+openCount+' open.')
-  apiAdd(socket, 'localhost', settings.api.listen_port)
+  apiAdd(apis, socket, 'localhost', settings.api.listen_port)
 
   socket.on('message', function(data) {
     console.log('['+apis.length+']<-ws ' + data)
@@ -24,7 +24,7 @@ function ws_connect(socket) {
   })
 }
 
-function apiAdd(socket, host, port) {
+function apiAdd(apis, socket, host, port) {
   console.log('connecting to api on ' + settings.api.listen_port);
   var sockApi = relayTo(socket, host, port)
   if (sockApi) {
