@@ -525,7 +525,10 @@ export class Db extends DbBase {
   }
 
   async fence_list(user_id) {
-    return { toArray: () => Promise.resolve([]) } // quack like rethinkdb
+    let kvs = this.getIdxBetween('fence', 'user_id_id', [user_id], [user_id])
+    let values = kvs.map(k => kvs[k])
+    console.log('fence_list says', user_id, values)
+    return { toArray: () => Promise.resolve(values) } // quack like rethinkdb
   }
 
   async fence_add(fence) {
