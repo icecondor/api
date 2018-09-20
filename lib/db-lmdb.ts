@@ -46,13 +46,12 @@ let schema = {
   },
   'fence': {
     indexes: [
-      ['user_id', ['user_id'], {}],
-      ['geojson', ['geojson'], { geo: true }]]
+      ['user_id_id', ['user_id', 'id'], {}]
+    ]
   },
   'rule': {
     indexes: [
-      ['user_id', ['user_id'], {}],
-      ['fence_id', ['fence_id'], {}],
+      ['user_id_id', ['user_id', 'id'], {}]
     ]
   }
 }
@@ -529,12 +528,31 @@ export class Db extends DbBase {
     return { toArray: () => Promise.resolve([]) } // quack like rethinkdb
   }
 
+  async fence_add(fence) {
+    // fence.id = uuid.v4().substr(0, 18)
+    // fence.created_at = new Date()
+    // fence.name = msg.params.name
+    // fence.user_id = client.flags.authenticated.user_id
+    fence.type = 'fence'
+    this.save(fence)
+    return { inserted: 1 } // quack like rethinkdb
+  }
+
+  async fence_update(fence) {
+    // name, geojson, area
+  }
+
   async fence_get(id) {
-    return {} // fence
+    return this.loadFile(id)
   }
 
   async fences_intersect(point) {
     return { toArray: () => Promise.resolve([]) } // quack like rethinkdb
+  }
+
+  async rule_add(rule) {
+    rule.type = 'rule'
+    this.save(rule)
   }
 
   async update_user_latest(user_id: string, latest) {
