@@ -1,13 +1,13 @@
 var net = require('net')
 var wsock = require('websock')
 var settings = require('./settings')
-var apis = []
 var openCount = 0
 
 wsock.listen(settings.websockets.listen_port, ws_connect);
 console.log("websockets listening on " + settings.websockets.listen_port)
 
 function ws_connect(socket) {
+  var apis = []
   openCount += 1
   console.log('websockets #'+openCount+' open.')
   apiAdd(socket, 'localhost', settings.api.listen_port)
