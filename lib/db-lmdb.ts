@@ -522,7 +522,6 @@ export class Db extends DbBase {
   async friending_me(user_id: string) {
     let kvs = this.getIdxBetween('friendship', 'friend_id_user_id', [user_id], [user_id])
     let friend_ids = Object.keys(kvs).map(k => k.split(':').pop())
-    console.log('people friending', user_id, 'are', friend_ids)
     return friend_ids
   }
 
