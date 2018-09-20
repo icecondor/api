@@ -15,7 +15,6 @@ let schema = {
     indexes: [
       ['username', ['username'], {unique: true, lowercase: true}],
       ['email', ['email'], {unique: true, lowercase: true}]
-      //['friends', ['friends'], { multi: true }]
     ]
   },
   'device': {
@@ -33,14 +32,14 @@ let schema = {
     indexes: [['user_id_key', ['user_id', 'key'], {}]]
   },
   'heartbeat': {
-    indexes: [['user_id_id', ['user_id', 'id'], {}]]
+    indexes: [['user_id', ['user_id'], {multi: true}]]
   },
   'config': {
     indexes: [['user_id_id', ['user_id', 'id'], {}]]
   },
   'location': {
     indexes: [
-      ['date', ['date'], {}],
+      ['date', ['date'], {multi: true}],
       ['user_id_date', ['user_id', 'date'], {}]
     ]
   },
@@ -60,6 +59,7 @@ export class Db extends DbBase {
   api: any
   db: any
   onChange: any
+  keySeperator = '/' // - used by uuid, : used by isotime
 
   mkdir(dir: string) {
     if (!fs.existsSync(dir)) {
@@ -183,25 +183,35 @@ export class Db extends DbBase {
     }
   }
 
-  put(typeName, indexName, value) {
+  makeKey(index, value) {
+    let key_parts
+    key_parts = index[1].map(i => value[i])
+    if (index[2].multi) key_parts.push(value.id)
+    if(key_parts.every(i => i)) {
+      return key_parts.map(part => index[2].lowercase ? part.toLowerCase() : part).join(this.keySeperator)
+    }
+  }
+
+  put(typeName, indexName, record) {
     let index = this.findIndex(typeName, indexName)
     let dbname = this.dbName(typeName, index[0])
-    let key = this.makeKey(index, value)
+    let key = this.makeKey(index, record)
     if (key) {
       if (index[2].unique) {
         let exists = this.get(typeName, indexName, key)
         if(exists) {
-          if (exists != value.id) {
-            throw "type "+typeName+" index "+index[0]+" key "+key+" is "+exists+" (should be"+value.id+")"
+          if (exists != record.id) {
+            throw "type "+typeName+" index "+index[0]+" key "+key+" is "+exists+" (should be"+record.id+")"
           }
         }
       }
       var txn = this.api.beginTxn()
-      //console.log('PUT', dbname, key, '->', value.id)
-      txn.putString(this.db[dbname], key, value.id)
+      let value = index[2].multi ? null : record.id
+      //console.log('PUT', dbname, key, '->', value)
+      txn.putString(this.db[dbname], key, value)
       txn.commit()
-      if (this.onChange) this.onChange({index: dbname, key: key, new_val: value})
-      return value.id
+      if (this.onChange) this.onChange({index: dbname, key: key, new_val: record})
+      return record.id
     } else {
       console.log('Warning: key generation failed for index', dbname)
     }
@@ -233,9 +243,9 @@ export class Db extends DbBase {
 
   getIdxBetween(typeName, indexName, start, end, count?: number, order?: boolean) {
     let startkeyList = Array.isArray(start) ? start: [start]
-    let startKey = startkeyList.join(':')
+    let startKey = startkeyList.join(this.keySeperator)
     let endkeyList = Array.isArray(end) ? end : [end]
-    let endKey = endkeyList.join(':')
+    let endKey = endkeyList.join(this.keySeperator)
 
     let dbname = this.dbName(typeName, indexName)
     let db = this.db[dbname]
@@ -294,14 +304,6 @@ export class Db extends DbBase {
         nextKey = null
       }
       if(count && Object.keys(kvs).length == count) nextKey = null
-    }
-  }
-
-  makeKey(index, value) {
-    let key_parts
-    key_parts = index[1].map(i => value[i])
-    if(key_parts.every(i => i)) {
-      return key_parts.map(part => index[2].lowercase ? part.toLowerCase() : part).join(':')
     }
   }
 
@@ -373,7 +375,9 @@ export class Db extends DbBase {
   }
 
   activity_last_date() {
-    return this.getLast('location', 'date')
+    let key = this.getLast('location', 'date')
+    console.log('activity_last_date', key)
+    return key ? key.split(this.keySeperator).shift() : null
   }
 
   async find_user_by(e) {
@@ -410,13 +414,13 @@ export class Db extends DbBase {
 
   user_load_devices(user_id) {
     let kvs = this.getIdxBetween('device', 'user_id_did', [user_id], [user_id])
-    let device_ids = Object.keys(kvs).map(k => k.split(':').pop())
+    let device_ids = Object.keys(kvs).map(k => k.split(this.keySeperator).pop())
     return device_ids
   }
 
   user_load_friends(user_id) {
     let kvs = this.getIdxBetween('friendship', 'user_id_friend_id', [user_id], [user_id])
-    let friend_ids = Object.keys(kvs).map(k => k.split(':').pop())
+    let friend_ids = Object.keys(kvs).map(k => k.split(this.keySeperator).pop())
     return friend_ids
   }
 
@@ -520,7 +524,7 @@ export class Db extends DbBase {
 
   async friending_me(user_id: string) {
     let kvs = this.getIdxBetween('friendship', 'friend_id_user_id', [user_id], [user_id])
-    let friend_ids = Object.keys(kvs).map(k => k.split(':').pop())
+    let friend_ids = Object.keys(kvs).map(k => k.split(this.keySeperator).pop())
     return friend_ids
   }
 
@@ -578,6 +582,15 @@ export class Db extends DbBase {
     //sql = sql.where("id = ?", user_id)
     //let result = await this.update(sql)
     return {}
+  }
+
+  async find_locations(start, stop, count:number, desc: boolean) {
+    let kvs = this.getIdxBetween('location', 'date', [start],
+                                                     [stop], count, desc)
+    return Object.keys(kvs).map(k => {
+      let key = k.split(this.keySeperator).pop()
+      return this.loadFile(key)
+    })
   }
 
   async find_locations_for(user_id: string, start, stop, count:number, type:string, order:string) {
