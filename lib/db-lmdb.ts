@@ -526,7 +526,7 @@ export class Db extends DbBase {
 
   async fence_list(user_id) {
     let kvs = this.getIdxBetween('fence', 'user_id_id', [user_id], [user_id])
-    let values = Object.keys(kvs).map(k => kvs[k])
+    let values = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
     console.log('fence_list says', user_id, values)
     return { toArray: () => Promise.resolve(values) } // quack like rethinkdb
   }
@@ -556,6 +556,13 @@ export class Db extends DbBase {
   async rule_add(rule) {
     rule.type = 'rule'
     this.save(rule)
+  }
+
+  async rule_list(user_id) {
+    let kvs = this.getIdxBetween('rule', 'user_id_id', [user_id], [user_id])
+    let values = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
+    console.log('rule_list says', user_id, values)
+    return { toArray: () => Promise.resolve(values) } // quack like rethinkdb
   }
 
   async update_user_latest(user_id: string, latest) {
