@@ -130,6 +130,7 @@ function friendly_fences_for(location, friends: string[]) {
 function rules_for(user_id, fence_id) {
   return db.rule_list(user_id).then(function(cursor) {
     var rules = cursor.toArray()
+    console.log('rules_for', user_id, fence_id, rules.length, 'rules count')
     rules = rules.filter(function(rule) {
       return rule.fence_id === fence_id
     })
