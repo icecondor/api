@@ -12,7 +12,7 @@ import * as rethink from 'rethinkdb'
 import * as geojsonArea from 'geojson-area'
 import * as request from 'request'
 import * as turfhelp from '@turf/helpers'
-import * as turf from '@turf/boolean-point-in-polygon'
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 
 // local
 let major_version = 2
@@ -115,13 +115,16 @@ function activity_added(change) {
 }
 
 function friendly_fences_for(location, friends: string[]) {
-  return db.fences_intersect(rethink.point(location.longitude, location.latitude))
-    .then(function(cursor) {
-      return cursor.toArray().then(fences => {
-        var friendly_fences = fences.filter(fence => friends.indexOf(fence.user_id) != -1)
-        return friendly_fences
-      })
+  let pt = turfhelp.point([location.longitude, location.latitude])
+  return Promise.all(friends.map(friend_id => {
+    return db.fence_list(friend_id).then(function(cursor) {
+      return cursor.toArray().then(fences =>
+        fences.filter(fence => {
+          let poly = turfhelp.polygon(fence.coordinates)
+          return booleanPointInPolygon(pt, poly)
+        }))
     })
+  }))
 }
 
 function rules_for(user_id, fence_id) {
