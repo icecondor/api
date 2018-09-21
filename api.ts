@@ -11,6 +11,8 @@ import * as moment from 'moment'
 import * as rethink from 'rethinkdb'
 import * as geojsonArea from 'geojson-area'
 import * as request from 'request'
+import * as turfhelp from '@turf/helpers'
+import * as turf from '@turf/boolean-point-in-polygon'
 
 // local
 let major_version = 2
