@@ -120,7 +120,7 @@ function friendly_fences_for(location, friends: string[]) {
     return db.fence_list(friend_id).then(function(cursor) {
       return cursor.toArray().then(fences =>
         fences.filter(fence => {
-          let poly = turfhelp.polygon(fence.coordinates)
+          let poly = turfhelp.polygon(fence.geojson.coordinates)
           return booleanPointInPolygon(pt, poly)
         }))
     })
