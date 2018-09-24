@@ -531,7 +531,6 @@ export class Db extends DbBase {
   async fence_list(user_id) {
     let kvs = this.getIdxBetween('fence', 'user_id_id', [user_id], [user_id])
     let values = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
-    console.log('fence_list says', user_id, values)
     return { toArray: () => Promise.resolve(values) } // quack like rethinkdb
   }
 
