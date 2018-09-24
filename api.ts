@@ -124,7 +124,7 @@ function friendly_fences_for(location, friends: string[]) {
           return booleanPointInPolygon(pt, poly)
         }))
     })
-  }))
+  })).then(fencemap => [].concat.apply([], fencemap))
 }
 
 function rules_for(user_id, fence_id) {
