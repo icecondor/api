@@ -610,7 +610,6 @@ function process_auth_session(client, msg) {
   } else {
     server.find_session(msg.params.device_key).then(function(session) {
       if (session) {
-        console.log("session loaded:", JSON.stringify(session))
         if (session.email) {
           client_auth_check(client, msg, session)
         } else {
