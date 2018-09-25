@@ -197,15 +197,16 @@ export class Db extends DbBase {
     let dbname = this.dbName(typeName, index[0])
     let key = this.makeKey(index, record)
     if (key) {
+      var txn = this.api.beginTxn()
       if (index[2].unique) {
         let exists = this.get(typeName, indexName, key)
         if(exists) {
           if (exists != record.id) {
+            txn.abort()
             throw "type "+typeName+" index "+index[0]+" key "+key+" is "+exists+" (should be"+record.id+")"
           }
         }
       }
-      var txn = this.api.beginTxn()
       let value = index[2].multi ? null : record.id
       //console.log('PUT', dbname, key, '->', value)
       txn.putString(this.db[dbname], key, value)
