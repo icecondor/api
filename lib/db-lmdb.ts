@@ -408,6 +408,7 @@ export class Db extends DbBase {
       full_user.devices = this.user_load_devices(full_user.id)
       full_user.friends = this.user_load_friends(full_user.id)
       full_user.access = this.user_load_access(full_user.id)
+      console.log('find_user_by', e, 'DONE')
       return full_user
     } else {
       throw "find_user_by reject "+index+" "+key
