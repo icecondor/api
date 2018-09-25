@@ -225,7 +225,7 @@ export class Db extends DbBase {
       id = key
     } else {
       let dbname = this.dbName(typeName, indexName)
-      var txn = this.api.beginTxn()
+      var txn = this.api.beginTxn({ readOnly: true })
       id = txn.getString(this.db[dbname], key)
       //console.log('GET', dbname, key, '->', id)
       txn.commit()
