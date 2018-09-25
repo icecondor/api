@@ -285,8 +285,8 @@ function activityValid(location) {
 function user_latest_freshen(location) {
   return db.get_user(location.user_id).then(function(user) {
     db.friending_me(user.id)
-      .then(function(friends) {
-        var me_and_friends = [user.id].concat(friends.map(f => f.id))
+      .then(function(friend_ids) {
+        var me_and_friends = [user.id].concat(friend_ids)
         newer_user_location(user, location)
           .then(function(last_location: any) {
             friendly_fences_for(last_location, me_and_friends)
@@ -448,9 +448,9 @@ function process_stream_follow(client, msg) {
     if (client.flags.authenticated) {
       msg.params.id = client.flags.authenticated.user_id
       stream_follow_user(stream_id, client, msg) // follow me too
-      db.friending_me(client.flags.authenticated.user_id).then(function(friends) {
-        friends.forEach(function(friend) {
-          msg.params.id = friend.id
+      db.friending_me(client.flags.authenticated.user_id).then(function(friend_ids) {
+        friend_ids.forEach(function(friend_id) {
+          msg.params.id = friend_id
           stream_follow_user(stream_id, client, msg)
         })
       })
@@ -653,7 +653,7 @@ function client_auth_check(client, msg, session) {
 
 function client_auth_trusted(client, session) {
   client.flags.authenticated = session
-  clog(client, "logged in user id " + session.user_id.substr(0, 8))
+  clog(client, "logged in user id " + session.user_id.substr(-3, 3))
 }
 
 function user_new(email, device_id) {

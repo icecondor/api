@@ -568,7 +568,7 @@ export class Db extends DbBase {
   }
 
   async update_user_latest(user_id: string, latest) {
-    console.log('update_user_latest', user_id, latest)
+    console.log('update_user_latest[noop]', user_id, latest)
   }
 
   async update_user_by(user_id, params) {
