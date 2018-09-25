@@ -269,7 +269,7 @@ export class Db extends DbBase {
     txn.commit()
     console.log('getIdxBetween', typeName, schemakeyList, startkeyList, '<->', endkeyList,
                  endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare",
-                 Object.keys(kvs).length+'/'+count, 'found')
+                 Object.keys(kvs).length+(count ? '/'+count : ''), 'found')
     return kvs
   }
 
