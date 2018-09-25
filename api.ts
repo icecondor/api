@@ -254,8 +254,12 @@ function process_activity_add(client, msg) {
               message: "saved",
               id: msg.params.id
             })
-            clog(client, 'activity ' + msg.params.type)
             if (msg.params.type === 'location') {
+              clog(client, 'activity ' + msg.params.type)
+              user_latest_freshen(msg.params)
+            }
+            if (msg.params.type === 'config') {
+              clog(client, 'activity ' + msg.params.type + ' recording '+msg.params.recording)
               user_latest_freshen(msg.params)
             }
           } else {
@@ -652,7 +656,7 @@ function client_auth_check(client, msg, session) {
 
 function client_auth_trusted(client, session) {
   client.flags.authenticated = session
-  clog(client, "logged in user id " + session.user_id.substr(-3, 3))
+  clog(client, "logged in user id " + session.user_id.substr(-8))
 }
 
 function user_new(email, device_id) {
