@@ -50,7 +50,8 @@ let schema = {
   },
   'rule': {
     indexes: [
-      ['user_id_id', ['user_id', 'id'], {}]
+      ['user_id_id', ['user_id', 'id'], {}],
+      ['fence_id_id', ['fence_id', 'id'], {}]
     ]
   }
 }
@@ -576,6 +577,12 @@ export class Db extends DbBase {
 
   async rule_list(user_id) {
     let kvs = this.getIdxBetween('rule', 'user_id_id', [user_id], [user_id])
+    let values = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
+    return { toArray: () => Promise.resolve(values) } // quack like rethinkdb
+  }
+
+  async rule_list_by_fence(fence_id) {
+    let kvs = this.getIdxBetween('rule', 'fence_id_id', [fence_id], [fence_id])
     let values = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
     return { toArray: () => Promise.resolve(values) } // quack like rethinkdb
   }
