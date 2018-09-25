@@ -267,7 +267,7 @@ export class Db extends DbBase {
     }
     cursor.close()
     txn.commit()
-    console.log('getIdxBetween', typeName, schemakeyList, 'start', startkeyList, 'end', endkeyList,
+    console.log('getIdxBetween', typeName, schemakeyList, startkeyList, '<->', endkeyList,
                  endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare",
                  Object.keys(kvs).length, 'found')
     return kvs
@@ -528,8 +528,7 @@ export class Db extends DbBase {
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
                                                              [user_id, stop], 1, true)
-    console.log('get_user', user_id, 'location.used_id_date kvs', JSON.stringify(kvs))
-    user.latest = { location_id: kvs[0]}
+    user.latest = { location_id: kvs[Object.keys(kvs)[0]]}
     return user
   }
 
@@ -604,10 +603,8 @@ export class Db extends DbBase {
 
   async find_locations_for(user_id: string, start, stop, count:number, type:string, order:string) {
     let desc = order == "newest" ? true : false
-    console.log('getIdxBetween', 'start', typeof start, 'stop', typeof stop)
     if(typeof start != "string") start = start.toISOString()
     if(typeof stop != "string") stop = stop.toISOString()
-    console.log('getIdxBetween', 'start', typeof start, 'stop', typeof stop)
 
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
                                                              [user_id, stop], count, desc)
