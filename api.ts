@@ -180,7 +180,7 @@ function progress_report() {
 
 function clog(client, msg) {
   var parts = []
-  parts.push(moment().format())
+  parts.push(new Date().toISOString())
   if (client.flags.authenticated) {
     var id_id = client.flags.authenticated.device_id.substr(0, 8) + ':' +
       client.flags.authenticated.user_id.substr(0, 8)

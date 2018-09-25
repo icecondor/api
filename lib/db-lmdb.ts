@@ -257,6 +257,7 @@ export class Db extends DbBase {
     let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
     if(endkeyList.length < schemakeyList.length) {
       if(order) {
+        txn.abort()
         throw "descending order not available for prefix match"
       } else {
         this.idxPrefixMatch(kvs, startKey, endKey, count, txn, cursor, db)
@@ -523,8 +524,10 @@ export class Db extends DbBase {
 
   async get_user(user_id: string) {
     let user = await this.find_user_by({ id: user_id })
-    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id],
-                                                             [user_id], 1, true)
+    let start = new Date("2008-08-01").toISOString()
+    let stop = new Date().toISOString()
+    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
+                                                             [user_id, stop], 1, true)
     console.log('get_user', user_id, 'location.used_id_date kvs', JSON.stringify(kvs))
     user.latest = { location_id: kvs[0]}
     return user
