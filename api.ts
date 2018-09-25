@@ -259,7 +259,7 @@ function process_activity_add(client, msg) {
               user_latest_freshen(msg.params)
             }
             if (msg.params.type === 'config') {
-              clog(client, 'activity ' + msg.params.type + ' recording '+msg.params.recording)
+              clog(client, 'activity ' + msg.params.type + ' recording '+msg.params.recording+' '+msg.params.date)
             }
           } else {
             var fail = { message: result.first_error };
