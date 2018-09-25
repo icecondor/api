@@ -382,6 +382,7 @@ export class Db extends DbBase {
   }
 
   async find_user_by(e) {
+    console.log('find_user_by', e)
     let index, key
     if (e.email_downcase || e.email) {
       index = 'email'
