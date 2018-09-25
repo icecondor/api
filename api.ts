@@ -255,7 +255,7 @@ function process_activity_add(client, msg) {
               id: msg.params.id
             })
             if (msg.params.type === 'location') {
-              clog(client, 'activity ' + msg.params.type)
+              clog(client, 'activity ' + msg.params.type + ' ' + msg.params.id + ' ' + msg.params.date)
               user_latest_freshen(msg.params)
             }
             if (msg.params.type === 'config') {
@@ -325,18 +325,12 @@ function user_latest_freshen(location) {
 function newer_user_location(user, location) {
   return new Promise(function(resolve, reject) {
     if (user.latest && user.latest.location_id) {
-      db.loadFile(user.latest.location_id)
-        .then(function(last_location) {
-          if (last_location) {
-            if (location.date > last_location.date) {
-              resolve(last_location)
-            } else {
-              reject()
-            }
-          } else {
-            resolve(location)
-          }
-        })
+      let last_location = db.loadFile(user.latest.location_id)
+      if (location.date > last_location.date) {
+        resolve(last_location)
+      } else {
+        reject()
+      }
     } else {
       resolve(location)
     }
