@@ -236,10 +236,10 @@ export class Db extends DbBase {
     let dbname = this.dbName(typeName, indexName)
     let txn = this.api.beginTxn()
     let cursor = new lmdb.Cursor(txn, this.db[dbname])
-    let last = cursor.goToLast()
+    let value = cursor.goToLast()
     cursor.close()
     txn.commit()
-    return last
+    return value
   }
 
   getIdxBetween(typeName, indexName, start, end, count?: number, order?: boolean) {
@@ -520,7 +520,12 @@ export class Db extends DbBase {
   }
 
   async get_user(user_id: string) {
-    return this.find_user_by({ id: user_id })
+    let user = await this.find_user_by({ id: user_id })
+    let kvs = this.getIdxBetween('location', 'user_id_date', [user_id],
+                                                             [user_id], 1, true)
+    console.log('get_user', user_id, 'location.used_id_date kvs', JSON.stringify(kvs))
+    user.latest = { location_id: kvs[0]}
+    return user
   }
 
   async friending_me(user_id: string) {
