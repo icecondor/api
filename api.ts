@@ -326,6 +326,7 @@ function newer_user_location(user, location) {
   return new Promise(function(resolve, reject) {
     if (user.latest && user.latest.location_id) {
       let last_location = db.loadFile(user.latest.location_id)
+      console.log('newer_user_location', user.username, user.id, location.date, last_location.date)
       if (location.date > last_location.date) {
         resolve(last_location)
       } else {

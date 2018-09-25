@@ -527,8 +527,11 @@ export class Db extends DbBase {
     let start = new Date("2008-08-01").toISOString()
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
-                                                             [user_id, stop], 1, true)
-    user.latest = { location_id: kvs[Object.keys(kvs)[0]]}
+                                                             [user_id, stop], 2, true)
+    let location_keys = Object.keys(kvs)
+    if(location_keys.length == 2) {
+      user.latest = { location_id: kvs[location_keys[1]]}
+    }
     return user
   }
 
