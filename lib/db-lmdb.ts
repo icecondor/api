@@ -215,16 +215,16 @@ export class Db extends DbBase {
         }
       }
       if (del) {
-        let value = index[2].multi ? null : record.id
-        console.log('PUT', dbname, key, '->', value)
-        txn.putString(this.db[dbname], key, value)
-      } else {
         console.log('DEL', dbname, key)
         if(index[2].multi) {
           // TODO
         } else {
           txn.del(this.db[dbname], key)
         }
+      } else {
+        let value = index[2].multi ? null : record.id
+        console.log('PUT', dbname, key, '->', value)
+        txn.putString(this.db[dbname], key, value)
       }
       txn.commit()
       if (this.onChange) this.onChange({index: dbname, key: key, new_val: record})
