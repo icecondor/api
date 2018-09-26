@@ -926,7 +926,9 @@ function process_fence_update(client, msg) {
       if (fence.user_id == client.flags.authenticated.user_id) {
         if (msg.params.name) { fence.name = msg.params.name }
         if (msg.params.geojson) {
-          fence.geojson = JSON.stringify(turfhelp.polygon(msg.params.geojson.geometry))
+          // typescript gets confused on geometry.coordinates.coordinates
+          let turfcoord: any = turfhelp.polygon(msg.params.geojson.geometry).geometry.coordinates
+          fence.geojson = {type: turfcoord.type, coordinates: turfcoord.coordinates}
           fence.area = parseInt(geojsonArea.geometry(msg.params.geojson.geometry))
         }
         db.fence_update(fence).then(function(result) {
