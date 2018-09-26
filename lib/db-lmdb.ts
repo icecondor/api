@@ -215,7 +215,7 @@ export class Db extends DbBase {
         }
       }
       if (del) {
-        console.log('DEL', dbname, key)
+        //console.log('DEL', dbname, key)
         if(index[2].multi) {
           // TODO
         } else {
@@ -223,7 +223,7 @@ export class Db extends DbBase {
         }
       } else {
         let value = index[2].multi ? null : record.id
-        console.log('PUT', dbname, key, '->', value)
+        //console.log('PUT', dbname, key, '->', value)
         txn.putString(this.db[dbname], key, value)
       }
       txn.commit()
