@@ -578,7 +578,7 @@ export class Db extends DbBase {
   }
 
   async fence_update(fence) {
-    // name, geojson, area
+    fence_add(fence)
   }
 
   async fence_get(id) {
