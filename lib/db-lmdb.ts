@@ -162,13 +162,19 @@ export class Db extends DbBase {
     this.saveIndexes(value)
   }
 
-  saveIndexes(value) {
+  del(id) {
+    let value = this.loadFile(id)
+    this.saveIndexes(value, true)
+    this.delFile(value.id)
+  }
+
+  saveIndexes(value, del = false) {
     let typeName = value.type
     let scheme = schema[typeName]
     if (scheme) {
       let indexes = scheme.indexes
       for (const index of indexes) {
-        this.put(typeName, index[0], value)
+        this.put(typeName, index[0], value, del)
       }
     } else {
       console.log('warning: no schema for', value.type, value.id)
@@ -193,7 +199,7 @@ export class Db extends DbBase {
     }
   }
 
-  put(typeName, indexName, record) {
+  put(typeName, indexName, record, del = false) {
     let index = this.findIndex(typeName, indexName)
     let dbname = this.dbName(typeName, index[0])
     let key = this.makeKey(index, record)
@@ -209,8 +215,13 @@ export class Db extends DbBase {
         }
       }
       let value = index[2].multi ? null : record.id
-      //console.log('PUT', dbname, key, '->', value)
-      txn.putString(this.db[dbname], key, value)
+      if (del) {
+        console.log('PUT', dbname, key, '->', value)
+        txn.putString(this.db[dbname], key, value)
+      } else {
+        console.log('DEL', dbname, key)
+        txn.del(this.db[dbname], key)
+      }
       txn.commit()
       if (this.onChange) this.onChange({index: dbname, key: key, new_val: record})
       return record.id
@@ -317,11 +328,15 @@ export class Db extends DbBase {
     fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
+  delFile(id) {
+    var filepath = this.settings.path+'/'+id
+    fs.unlinkSync(filepath)
+  }
+
   loadFile(id) {
     var filepath = this.settings.path+'/'+id //.replace(/-/g,'/')
     let json = fs.readFileSync(filepath, 'utf8')
     let data = JSON.parse(json)
-    //console.log('file loaded', data.type, filepath)
     return data
   }
 
@@ -564,6 +579,10 @@ export class Db extends DbBase {
 
   async fence_get(id) {
     return this.loadFile(id)
+  }
+
+  async fence_del(id) {
+    this.del(id)
   }
 
   async fences_intersect(point) {
