@@ -51,8 +51,8 @@
     "url": "http://github.com/icecondor/api.git"
   },
   "scripts": {
-    "start": "tsc && echo node build/api/api.js && node build/api/api.js",
-    "build": "tsc",
+    "start": "if tsc && echo node build/api/api.js && node build/api/api.js ; then echo ''; fi",
+    "build": "if tsc ; then echo ''; fi",
     "test": "tsc && jest build",
     "format": "tsfmt -r"
   },
