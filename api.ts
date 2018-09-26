@@ -8,7 +8,6 @@ import * as os from 'os'
 
 // npm
 import * as moment from 'moment'
-import * as rethink from 'rethinkdb'
 import * as geojsonArea from 'geojson-area'
 import * as request from 'request'
 import * as turfhelp from '@turf/helpers'
@@ -758,7 +757,7 @@ function process_user_access_del(client, msg) {
   if (client.flags.authenticated) {
     db.find_user_by({ id: client.flags.authenticated.user_id }).then(function(user) {
       if (user.access[msg.params.key]) {
-        user.access[msg.params.key] = rethink.literal()
+        delete user.access[msg.params.key]
         db.update_user_access(client.flags.authenticated.user_id, user.access)
           .then(function(result) {
             protocol.respond_success(client, msg.id, result)
@@ -927,7 +926,7 @@ function process_fence_update(client, msg) {
       if (fence.user_id == client.flags.authenticated.user_id) {
         if (msg.params.name) { fence.name = msg.params.name }
         if (msg.params.geojson) {
-          fence.geojson = rethink.geojson(msg.params.geojson.geometry)
+          fence.geojson = JSON.stringify(turfhelp.polygon(msg.params.geojson.geometry))
           fence.area = parseInt(geojsonArea.geometry(msg.params.geojson.geometry))
         }
         db.fence_update(fence).then(function(result) {
