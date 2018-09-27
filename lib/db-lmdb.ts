@@ -1,7 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
 // import * as levelup from 'levelup'
-// import * as lmdb from 'zetta-lmdb'
 import * as lmdb from 'node-lmdb'
 import * as mkdirp from 'mkdirp'
 import * as Reader from 'native-readdir-stream'
