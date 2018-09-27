@@ -5,10 +5,10 @@ module.exports = (function() {
   var data = {}
   var db_name
 
-  mock._seed = function(_db_name, table_names){
+  mock._seed = function(_db_name, table_names) {
     db_name = _db_name
     data[db_name] = {}
-    for(var idx in table_names) {
+    for (var idx in table_names) {
       var name = table_names[idx]
       data[db_name][name] = tableFactory()
     }
@@ -37,17 +37,17 @@ module.exports = (function() {
     return factoryRunAnswer()
   }
 
-  mock.table = function(name){
+  mock.table = function(name) {
     return data[db_name][name]
   }
 
-  mock.row = function(name){
-    return {downcase: function(){}}
+  mock.row = function(name) {
+    return { downcase: function() { } }
   }
 
   var conn = {}
   conn.use = function(name) {
-    console.log('mock using db '+name)
+    console.log('mock using db ' + name)
     db_name = name
   }
 
@@ -59,7 +59,7 @@ module.exports = (function() {
     data[db_name][table_name]._next_answer_from_inserted()
   }
 
-  function tableFactory(){
+  function tableFactory() {
     var table = {}
     table.next_answers = []
     table.inserted = []
@@ -79,33 +79,34 @@ module.exports = (function() {
 
     table.insert = function(blob) {
       table.inserted.push(blob)
-      return factoryRunAnswer({inserted:1})
+      return factoryRunAnswer({ inserted: 1 })
     }
 
     table.indexList = function() {
       return factoryRunAnswer(table.indexes)
     }
 
-    table.indexCreate = function(name){
+    table.indexCreate = function(name) {
       table.indexes.push(name)
       return factoryRunAnswer()
     }
 
-    table.indexWait = function(){
+    table.indexWait = function() {
       return factoryRunAnswer()
     }
 
-    table.getAll = function(key){
-     return factoryRunAnswer(cursorFactory([]))
+    table.getAll = function(key) {
+      return factoryRunAnswer(cursorFactory([]))
     }
 
     return table
   }
 
-  function factoryRunAnswer(value){
-    return { run: function(a,b){
-        return new Promise(function(resolve, reject){
-          if(b) {b(null, value)}
+  function factoryRunAnswer(value) {
+    return {
+      run: function(a, b) {
+        return new Promise(function(resolve, reject) {
+          if (b) { b(null, value) }
           resolve(value)
         })
       }
@@ -114,14 +115,14 @@ module.exports = (function() {
 
   function cursorFactory(values) {
     var cursor = {}
-    if(Array.isArray(values)) {
+    if (Array.isArray(values)) {
       cursor.values = values
     } else {
       cursor.values = [values]
     }
 
     cursor.toArray = function() {
-      return new Promise(function(resolve, reject){resolve(cursor.values)})
+      return new Promise(function(resolve, reject) { resolve(cursor.values) })
     }
 
     cursor.next = function() {

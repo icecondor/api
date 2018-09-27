@@ -2,38 +2,59 @@
   "name": "icecondor-api",
   "version": "2.1.0",
   "description": "location recording and processing for icecondor.com",
+  "license": "AGPL-1.0-or-later",
+  "engines": {
+    "node": ">=8.11.3 <10"
+  },
   "dependencies": {
+    "@turf/boolean-point-in-polygon": "^6.0.1",
     "bluebird": "2.2.*",
     "forever": "0.11.*",
     "geojson-area": "~0.2.0",
     "jade": "^1.11.0",
-    "mkdirp": "~0.5.1",
-    "moment": "2.*",
+    "mkdirp": "^0.5.1",
+    "moment": "^2.22.2",
+    "mysql": "^2.15.0",
+    "mysql2": "^1.5.3",
     "nano": "0.9.5",
+    "native-readdir": "^1.0.1",
+    "native-readdir-stream": "^1.0.0",
+    "node-lmdb": "^0.6.0",
     "node-uuid": "1.4.*",
     "nodemailer": "^1.1.2",
+    "protobufjs": "^6.8.6",
     "redis": "2.7.*",
     "request": "^2.81.0",
     "rethinkdb": "^1.16.2",
+    "rqlite-js": "0.0.21",
     "sockjs": "0.3.*",
+    "source-map-support": "^0.5.6",
+    "squel": "^5.12.1",
     "stripe": "2.9.*",
     "then-redis": "2.0.*",
+    "ulid": "^2.3.0",
     "websock": "^0.3.19"
   },
   "devDependencies": {
+    "@types/jest": "^23.1.4",
     "@types/node": "^7.0.8",
     "eslint": "^0.17.0",
     "jasmine-node": "1.14.x",
+    "jest": "^23.2.0",
+    "ts-jest": "^23.10.0",
     "ts-node": "^3.0.2",
-    "typescript": "^2.2.2"
+    "typescript": "^3.0.1",
+    "typescript-formatter": "*"
   },
   "repository": {
     "type": "git",
     "url": "http://github.com/icecondor/api.git"
   },
   "scripts": {
-    "start": "tsc && node build/api.js",
-    "test": "jasmine-node spec"
+    "start": "if tsc && echo node build/api/api.js && node build/api/api.js ; then echo ''; fi",
+    "build": "if tsc ; then echo ''; fi",
+    "test": "tsc && jest build",
+    "format": "tsfmt -r"
   },
   "compilerOptions": {
     "typeRoots": [
