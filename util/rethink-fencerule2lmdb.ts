@@ -25,7 +25,7 @@ db.connect(async () => {
           console.log('fence2lmdb fence_add error')
           fails += 1
         }
-      } catch(e) {
+      } catch (e) {
         console.log('fence2lmdb fence_add', fence.id, 'CATCH', e)
         process.exit(1)
       }
@@ -39,7 +39,7 @@ db.connect(async () => {
       try {
         console.log(rule)
         const add = await db.rule_add(rule)
-      } catch(e) {
+      } catch (e) {
         console.log('rule2lmdb', rule, 'CATCH', e)
         process.exit(1)
       }
@@ -50,4 +50,4 @@ db.connect(async () => {
   } catch (e) {
     console.log(e)
   }
-}).catch(e => {console.log(e); process.exit(1)})
+}).catch(e => { console.log(e); process.exit(1) })

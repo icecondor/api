@@ -258,7 +258,7 @@ function process_activity_add(client, msg) {
               user_latest_freshen(msg.params)
             }
             if (msg.params.type === 'config') {
-              clog(client, 'activity ' + msg.params.type + ' recording '+msg.params.recording+' '+msg.params.date)
+              clog(client, 'activity ' + msg.params.type + ' recording ' + msg.params.recording + ' ' + msg.params.date)
             }
           } else {
             var fail = { message: result.first_error };
@@ -547,7 +547,7 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   stop = stop || new Date().toISOString()
   db.find_locations_for(user_id, start, stop, count, type, order)
     .then(function(locations) {
-      console.log('send_last_locations', user_id, start, '-', stop, locations.length+'/'+count, 'points')
+      console.log('send_last_locations', user_id, start, '-', stop, locations.length + '/' + count, 'points')
       locations.forEach(function(location) {
         location_fences_load(location).then(function(location) {
           influxWrite('send_last_locations', (new Date()).getTime() - timer.getTime())
@@ -928,7 +928,7 @@ function process_fence_update(client, msg) {
         if (msg.params.geojson) {
           // typescript gets confused on geometry.coordinates.coordinates
           let turfcoord: any = turfhelp.polygon(msg.params.geojson.geometry).geometry.coordinates
-          fence.geojson = {type: turfcoord.type, coordinates: turfcoord.coordinates}
+          fence.geojson = { type: turfcoord.type, coordinates: turfcoord.coordinates }
           fence.area = parseInt(geojsonArea.geometry(msg.params.geojson.geometry))
         }
         db.fence_update(fence).then(function(result) {

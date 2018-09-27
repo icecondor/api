@@ -23,14 +23,14 @@ db.connect(async () => {
         if (eu.error) {
           console.log('user2lmdb result error', eu.error)
         } else {
-          if(user.id != eu.id) {
+          if (user.id != eu.id) {
             console.log('user2lmdb save FAIL', user.email, eu.email)
             console.log('rethink user', user)
             console.log('ensure user', eu)
             fails += 1
           }
         }
-      } catch(e) {
+      } catch (e) {
         console.log('user2lmdb', user.email, 'CATCH', e)
         process.exit(1)
       }
@@ -41,4 +41,4 @@ db.connect(async () => {
   } catch (e) {
     console.log(e)
   }
-}).catch(e => {console.log(e); process.exit(1)})
+}).catch(e => { console.log(e); process.exit(1) })

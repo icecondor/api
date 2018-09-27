@@ -8,12 +8,11 @@ import * as Reader from 'native-readdir-stream'
 import { Db as DbBase } from './db'
 import * as noun from './nouns'
 
-let db_name = 'icecondor'
 let schema = {
   'user': {
     indexes: [
-      ['username', ['username'], {unique: true, lowercase: true}],
-      ['email', ['email'], {unique: true, lowercase: true}]
+      ['username', ['username'], { unique: true, lowercase: true }],
+      ['email', ['email'], { unique: true, lowercase: true }]
     ]
   },
   'device': {
@@ -31,14 +30,14 @@ let schema = {
     indexes: [['user_id_key', ['user_id', 'key'], {}]]
   },
   'heartbeat': {
-    indexes: [['user_id', ['user_id'], {multi: true}]]
+    indexes: [['user_id', ['user_id'], { multi: true }]]
   },
   'config': {
     indexes: [['user_id_id', ['user_id', 'id'], {}]]
   },
   'location': {
     indexes: [
-      ['date', ['date'], {multi: true}],
+      ['date', ['date'], { multi: true }],
       ['user_id_date', ['user_id', 'date'], {}]
     ]
   },
@@ -84,7 +83,7 @@ export class Db extends DbBase {
   pathFix(obj, attr) {
     var spath = obj[attr]
     var longpath = path.resolve(spath)
-    if(longpath != spath) {
+    if (longpath != spath) {
       obj[attr] = longpath
       console.log('warning: fixed up path', spath, '=>', longpath)
     }
@@ -98,8 +97,8 @@ export class Db extends DbBase {
     for (const typeName in schema) {
       for (const index of schema[typeName].indexes) {
         let dbname = this.dbName(typeName, index[0])
-        if (resync) this.api.openDbi({name: dbname, create: true}).drop()
-        this.db[dbname] = this.api.openDbi({name: dbname, create: true})
+        if (resync) this.api.openDbi({ name: dbname, create: true }).drop()
+        this.db[dbname] = this.api.openDbi({ name: dbname, create: true })
       }
     }
     if (resync) await this.syncIndexes()
@@ -107,17 +106,17 @@ export class Db extends DbBase {
 
   async schema_dump() {
     let ramtotal = 0
-    for(const dbName in this.db) {
+    for (const dbName in this.db) {
       let db = this.db[dbName]
       var txn = this.api.beginTxn()
       let stat = db.stat(txn)
       txn.commit()
-      let ram = stat.pageSize*(stat.treeBranchPageCount+stat.treeLeafPageCount)
+      let ram = stat.pageSize * (stat.treeBranchPageCount + stat.treeLeafPageCount)
       ramtotal += ram
-      console.log('index', dbName, stat.entryCount, 'entries', (ram/1024/1024).toFixed(1)+'mb',
-                     (ram/stat.entryCount).toFixed(0), 'b/each')
+      console.log('index', dbName, stat.entryCount, 'entries', (ram / 1024 / 1024).toFixed(1) + 'mb',
+        (ram / stat.entryCount).toFixed(0), 'b/each')
     }
-    console.log('ram total', (ramtotal/1024/1024).toFixed(1), 'MB')
+    console.log('ram total', (ramtotal / 1024 / 1024).toFixed(1), 'MB')
   }
 
   async syncIndexes() {
@@ -130,31 +129,31 @@ export class Db extends DbBase {
 
     return new Promise((res, rej) => {
       new Reader(this.settings.path)
-      .on('data', function (filename) {
-        if(filename == "." || filename == "..") return
-        fileCount += 1
-        fileTotal += 1
-        if(fileCount % groupSize == 0) {
-          let elapsed = (new Date).getTime() - now.getTime()
-          console.log('** Sync walk', (groupSize/(elapsed/1000)).toFixed(0), 'rows/sec', fileTotal, 'done')
-          fileCount = 0
-          now = new Date()
-        }
-        let value = that.loadFile(filename)
-        that.saveIndexes(value)
-      })
-      .once('end', function () {
-        console.log('sync end')
-        res()
-      })
-      .once('error', function (error) {
-        console.log('!!sync error', error)
-        rej(error)
-      })
+        .on('data', function(filename) {
+          if (filename == "." || filename == "..") return
+          fileCount += 1
+          fileTotal += 1
+          if (fileCount % groupSize == 0) {
+            let elapsed = (new Date).getTime() - now.getTime()
+            console.log('** Sync walk', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec', fileTotal, 'done')
+            fileCount = 0
+            now = new Date()
+          }
+          let value = that.loadFile(filename)
+          that.saveIndexes(value)
+        })
+        .once('end', function() {
+          console.log('sync end')
+          res()
+        })
+        .once('error', function(error) {
+          console.log('!!sync error', error)
+          rej(error)
+        })
     })
   }
 
-  dbName(typeName, indexName) { return typeName+'.'+indexName }
+  dbName(typeName, indexName) { return typeName + '.' + indexName }
 
   save(value) {
     this.saveFile(value)
@@ -193,7 +192,7 @@ export class Db extends DbBase {
     let key_parts
     key_parts = index[1].map(i => value[i])
     if (index[2].multi) key_parts.push(value.id)
-    if(key_parts.every(i => i)) {
+    if (key_parts.every(i => i)) {
       return key_parts.map(part => index[2].lowercase ? part.toLowerCase() : part).join(this.keySeperator)
     }
   }
@@ -206,16 +205,16 @@ export class Db extends DbBase {
       var txn = this.api.beginTxn()
       if (index[2].unique) {
         let exists = this.get(typeName, indexName, key)
-        if(exists) {
+        if (exists) {
           if (exists != record.id) {
             txn.abort()
-            throw "type "+typeName+" index "+index[0]+" key "+key+" is "+exists+" (should be"+record.id+")"
+            throw "type " + typeName + " index " + index[0] + " key " + key + " is " + exists + " (should be" + record.id + ")"
           }
         }
       }
       if (del) {
         //console.log('DEL', dbname, key)
-        if(index[2].multi) {
+        if (index[2].multi) {
           // TODO
         } else {
           txn.del(this.db[dbname], key)
@@ -226,7 +225,7 @@ export class Db extends DbBase {
         txn.putString(this.db[dbname], key, value)
       }
       txn.commit()
-      if (this.onChange) this.onChange({index: dbname, key: key, new_val: record})
+      if (this.onChange) this.onChange({ index: dbname, key: key, new_val: record })
       return record.id
     } else {
       console.log('Warning: key generation failed for index', dbname)
@@ -258,7 +257,7 @@ export class Db extends DbBase {
   }
 
   getIdxBetween(typeName, indexName, start, end, count?: number, order?: boolean) {
-    let startkeyList = Array.isArray(start) ? start: [start]
+    let startkeyList = Array.isArray(start) ? start : [start]
     let startKey = startkeyList.join(this.keySeperator)
     let endkeyList = Array.isArray(end) ? end : [end]
     let endKey = endkeyList.join(this.keySeperator)
@@ -269,9 +268,9 @@ export class Db extends DbBase {
     let cursor = new lmdb.Cursor(txn, db)
 
     let kvs = {}
-    let schemakeyList = schema[typeName].indexes.filter(i => {return i[0] == indexName})[0][1]
-    if(endkeyList.length < schemakeyList.length) {
-      if(order) {
+    let schemakeyList = schema[typeName].indexes.filter(i => { return i[0] == indexName })[0][1]
+    if (endkeyList.length < schemakeyList.length) {
+      if (order) {
         txn.abort()
         throw "descending order not available for prefix match"
       } else {
@@ -283,67 +282,67 @@ export class Db extends DbBase {
     cursor.close()
     txn.commit()
     console.log('getIdxBetween', typeName, schemakeyList, startkeyList, '<->', endkeyList,
-                 endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare",
-                 Object.keys(kvs).length+(count ? '/'+count : ''), 'found')
+      endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare",
+      Object.keys(kvs).length + (count ? '/' + count : ''), 'found')
     return kvs
   }
 
   idxPrefixMatch(kvs, startKey, endKey, count, txn, cursor, db) {
     let nextKey = cursor.goToRange(startKey)
     while (nextKey !== null) {
-      if(endKey == nextKey.substr(0, endKey.length)) {
+      if (endKey == nextKey.substr(0, endKey.length)) {
         kvs[nextKey] = txn.getString(db, nextKey)
         nextKey = cursor.goToNext()
       } else {
         nextKey = null
       }
-      if(count && Object.keys(kvs).length == count) nextKey = null
+      if (count && Object.keys(kvs).length == count) nextKey = null
     }
   }
 
   idxKeyCompare(kvs, startKey, endKey, count, txn, cursor, db, descending) {
     let nextKey = cursor.goToRange(startKey)
     console.log('idxKeycompare startKey', startKey, 'nextKey', nextKey)
-    if(descending) {
+    if (descending) {
       console.log('idxKeycompare reverse first key attempt', endKey)
       // simulate goToRange in reverse
       nextKey = cursor.goToKey(endKey)
-      if(!nextKey) {
+      if (!nextKey) {
         nextKey = cursor.goToPrev()
         console.log('idxKeycompare reverse first key attempt failed. Prev is', nextKey)
       }
     }
     while (nextKey !== null) {
-      if(descending ? nextKey >= startKey : nextKey <= endKey) {
+      if (descending ? nextKey >= startKey : nextKey <= endKey) {
         kvs[nextKey] = txn.getString(db, nextKey)
         nextKey = descending ? cursor.goToPrev() : cursor.goToNext()
       } else {
         nextKey = null
       }
-      if(count && Object.keys(kvs).length == count) nextKey = null
+      if (count && Object.keys(kvs).length == count) nextKey = null
     }
   }
 
   saveFile(value) {
-    var filepath = this.settings.path+'/'+value.id //.replace(/-/g,'/')
+    var filepath = this.settings.path + '/' + value.id //.replace(/-/g,'/')
     //mkdirp.sync(path.dirname(filepath))
     //console.log('file save', value.type, value.id, filepath)
     fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
   delFile(id) {
-    var filepath = this.settings.path+'/'+id
+    var filepath = this.settings.path + '/' + id
     fs.unlinkSync(filepath)
   }
 
   loadFile(id) {
-    var filepath = this.settings.path+'/'+id //.replace(/-/g,'/')
+    var filepath = this.settings.path + '/' + id //.replace(/-/g,'/')
     let json = fs.readFileSync(filepath, 'utf8')
     let data = JSON.parse(json)
     return data
   }
 
-// model stuff
+  // model stuff
   async activity_add(a) {
     let now = new Date().toISOString()
     if (a.type == 'location') {
@@ -387,7 +386,7 @@ export class Db extends DbBase {
         user_id: a.user_id,
         device_id: a.device_id,
         recording: a.recording == "on" ? true : false,
-        recording_frequency: a.frequency ? parseFloat(a.frequency)*60 : null,
+        recording_frequency: a.frequency ? parseFloat(a.frequency) * 60 : null,
         source: a.source || null
       }
       let result = this.save(thing)
@@ -409,11 +408,11 @@ export class Db extends DbBase {
       key = (e.email_downcase || e.email).toLowerCase()
     }
     if (e.username) {
-      index ='username'
+      index = 'username'
       key = e.username
     }
     if (e.id) {
-      index ='id'
+      index = 'id'
       key = e.id
     }
     let user_id = this.get('user', index, key)
@@ -431,7 +430,7 @@ export class Db extends DbBase {
       console.log('find_user_by', e, 'DONE')
       return full_user
     } else {
-      throw "find_user_by reject "+index+" "+key
+      throw "find_user_by reject " + index + " " + key
     }
   }
 
@@ -450,10 +449,12 @@ export class Db extends DbBase {
   user_load_access(user_id) {
     let kvs = this.getIdxBetween('access', 'user_id_key', [user_id], [user_id])
     let access_data = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
-    let access = access_data.reduce((m,kv) => {
-      let rec: any = {created_at: kv['created_at'],
-                 scopes: ['read']}
-      if(kv['expires_at']) rec.expires_at = kv['expires_at']
+    let access = access_data.reduce((m, kv) => {
+      let rec: any = {
+        created_at: kv['created_at'],
+        scopes: ['read']      
+}
+      if (kv['expires_at']) rec.expires_at = kv['expires_at']
       m[kv['key']] = rec
       return m
     }, {})
@@ -515,7 +516,7 @@ export class Db extends DbBase {
       let user: noun.User = await this.find_user_by({ email_downcase: u.email.toLowerCase() })
       if (u.devices) {
         if (u.devices.length > 0) console.log('adding', u.devices.length, 'devices')
-        for(const device_id of u.devices) this.user_add_device(user.id, device_id)
+        for (const device_id of u.devices) this.user_add_device(user.id, device_id)
       }
       if (u.access) {
         if (Object.keys(u.access).length > 0) console.log('adding', Object.keys(u.access).length, 'access keys')
@@ -546,10 +547,10 @@ export class Db extends DbBase {
     let start = new Date("2008-08-01").toISOString()
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
-                                                             [user_id, stop], 2, true)
+      [user_id, stop], 2, true)
     let location_keys = Object.keys(kvs)
-    if(location_keys.length == 2) {
-      user.latest = { location_id: kvs[location_keys[1]]}
+    if (location_keys.length == 2) {
+      user.latest = { location_id: kvs[location_keys[1]] }
     }
     return user
   }
@@ -624,22 +625,22 @@ export class Db extends DbBase {
     return {}
   }
 
-  async find_locations(start, stop, count:number, desc: boolean) {
+  async find_locations(start, stop, count: number, desc: boolean) {
     let kvs = this.getIdxBetween('location', 'date', [start],
-                                                     [stop], count, desc)
+      [stop], count, desc)
     return Object.keys(kvs).map(k => {
       let key = k.split(this.keySeperator).pop()
       return this.loadFile(key)
     })
   }
 
-  async find_locations_for(user_id: string, start, stop, count:number, type:string, order:string) {
+  async find_locations_for(user_id: string, start, stop, count: number, type: string, order: string) {
     let desc = order == "newest" ? true : false
-    if(typeof start != "string") start = start.toISOString()
-    if(typeof stop != "string") stop = stop.toISOString()
+    if (typeof start != "string") start = start.toISOString()
+    if (typeof stop != "string") stop = stop.toISOString()
 
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
-                                                             [user_id, stop], count, desc)
+      [user_id, stop], count, desc)
     return Object.keys(kvs).map(k => {
       return this.loadFile(kvs[k])
     })

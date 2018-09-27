@@ -13,13 +13,13 @@ function ws_connect(socket) {
     apis.push(sockApi)
 
     socket.on('message', function(data) {
-      console.log('['+apis.length+']<-ws ' + data)
-      for(const api in aps) api.write(data + "\n")
+      console.log('[' + apis.length + ']<-ws ' + data)
+      for (const api in aps) api.write(data + "\n")
     })
 
     socket.on('close', function() {
       console.log('websocket closed. closing api');
-      for(const api in aps) api.end()
+      for (const api in aps) api.end()
     })
   } else {
     console.log('api socket open fail! closing client.')
@@ -31,7 +31,7 @@ function relayto(socket, host, port) {
   var apiSocket = new net.Socket();
 
   apiSocket.on('data', function(data) {
-    console.log(':'+socket.connection._peername.port+'-> '+data)
+    console.log(':' + socket.connection._peername.port + '-> ' + data)
     socket.send(data)
   })
 

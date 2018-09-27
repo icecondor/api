@@ -4,20 +4,20 @@ import { Device as DeviceTs } from '../../protobuf/ts/device'
 import { Friendship as FriendshipTs } from '../../protobuf/ts/friendship'
 import { Heartbeat as HeartbeatTs } from '../../protobuf/ts/heartbeat'
 import { Location as LocationTs } from '../../protobuf/ts/location'
-import { User as UserTs} from '../../protobuf/ts/user'
-import { Fence as FenceTs} from '../../protobuf/ts/fence'
-import { Rule as RuleTs} from '../../protobuf/ts/rule'
+import { User as UserTs } from '../../protobuf/ts/user'
+import { Fence as FenceTs } from '../../protobuf/ts/fence'
+import { Rule as RuleTs } from '../../protobuf/ts/rule'
 
 interface Index {
   type: string
 }
 
-export interface Location extends Index, LocationTs {}
-export interface Heartbeat extends Index, HeartbeatTs {}
-export interface Config extends Index, ConfigTs {}
-export interface Access extends Index, AccessTs {}
-export interface Device extends Index, DeviceTs {}
-export interface Friendship extends Index, FriendshipTs {}
-export interface User extends Index, UserTs {}
-export interface Fence extends Index, FenceTs {}
-export interface Rule extends Index, RuleTs {}
+export interface Location extends Index, LocationTs { }
+export interface Heartbeat extends Index, HeartbeatTs { }
+export interface Config extends Index, ConfigTs { }
+export interface Access extends Index, AccessTs { }
+export interface Device extends Index, DeviceTs { }
+export interface Friendship extends Index, FriendshipTs { }
+export interface User extends Index, UserTs { }
+export interface Fence extends Index, FenceTs { }
+export interface Rule extends Index, RuleTs { }

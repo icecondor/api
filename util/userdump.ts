@@ -12,7 +12,7 @@ if (email) {
   let db = new Db.Db(settings.storage)
   db.connect(async () => {
     try {
-      let user = await db.find_user_by({username: email})
+      let user = await db.find_user_by({ username: email })
       console.log(JSON.stringify(user, null, 2))
       let friending = await db.friending_me(user.id)
       console.log(user.friends.length, 'friends', friending.length, 'friending')
