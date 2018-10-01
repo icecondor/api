@@ -397,7 +397,7 @@ export class Db extends DbBase {
 
   activity_count(noun, start, stop) {
     let kvs = this.getIdxBetween(noun, 'date', [start], [stop])
-    console.log(Object.keys(kvs).length)
+    return {type: noun, start: start, stop: stop, count: Object.keys(kvs).length}
   }
 
   activity_last_date() {
