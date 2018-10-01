@@ -257,6 +257,7 @@ export class Db extends DbBase {
   }
 
   getIdxBetween(typeName, indexName, start, end, count?: number, order?: boolean) {
+    let index = this.findIndex(typeName, indexName)
     let startkeyList = Array.isArray(start) ? start : [start]
     let startKey = startkeyList.join(this.keySeperator)
     let endkeyList = Array.isArray(end) ? end : [end]
@@ -268,7 +269,8 @@ export class Db extends DbBase {
     let cursor = new lmdb.Cursor(txn, db)
 
     let kvs = {}
-    let schemakeyList = schema[typeName].indexes.filter(i => { return i[0] == indexName })[0][1]
+    let schemakeyList = index[1]
+    if(index[2].multi) schemakeyList.push('id')
     if (endkeyList.length < schemakeyList.length) {
       if (order) {
         txn.abort()
