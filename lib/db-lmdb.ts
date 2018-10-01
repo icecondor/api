@@ -400,7 +400,6 @@ export class Db extends DbBase {
     let nouns = Object.keys(kvs)
     let lastseen = {}
     for (const id of nouns) {
-      console.log('processing ', id)
       let key = id.split(this.keySeperator).pop()
       let location = this.loadFile(key)
       let user = this.loadFile(location.user_id)
