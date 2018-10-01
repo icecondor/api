@@ -391,50 +391,24 @@ function process_user_stats(client, msg) {
 
 function process_activity_stats(client, msg) {
   var stats: any = {}
-  var allfilter: any = {}
-  if (client.flags.authenticated) {
-    allfilter.user_id = client.flags.authenticated.user_id
+
+  // 24 hour count
+  var today = msg.params.start ? new Date(msg.params.start) : new Date()
+  var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24)
+
+  // stats.day = {
+  //   total: c24,
+  //   start: yesterday.toISOString(),
+  //   stop: today.toISOString()
+  // }
+
+  stats = db.activity_count('location', yesterday, today)
+  if(stats) {
+    protocol.respond_success(client, msg.id, stats)
+  } else {
+    protocol.respond_success(client, msg.id, stats)
   }
-  console.log('process_activity_stats', '1 allfilter', allfilter)
-  db.activity_count(allfilter).then(function(count) {
-    stats.total = count
-    // 24 hour count
-    var today = msg.params.start ? new Date(msg.params.start) : new Date()
-    var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24)
-    allfilter.start = yesterday
-    allfilter.stop = today
-    console.log('process_activity_stats', '2 allfilter', allfilter)
-    db.activity_count(allfilter).then(function(c24) {
-      console.log('process_activity_stats', '2 allfilter result', c24)
-      stats.day = {
-        total: c24,
-        start: yesterday.toISOString(),
-        stop: today.toISOString()
-      }
-      if (msg.params && msg.params.type) {
-        allfilter.type = msg.params.type
-        console.log('process_activity_stats', '3 allfilter', allfilter)
-        db.activity_count(allfilter).then(function(ct24) {
-          stats.day[msg.params.type] = ct24
-          if (allfilter.user_id) {
-            db.get_user(allfilter.user_id).then(function(user) {
-              stats.username = user.username
-              protocol.respond_success(client, msg.id, stats)
-            })
-          } else {
-            console.log('process_activity_stats', '4 allfilter', allfilter)
-            allfilter.distinct_user = true
-            db.activity_count(allfilter).then(function(uct24) {
-              stats.day[msg.params.type + "_users"] = uct24
-              protocol.respond_success(client, msg.id, stats)
-            })
-          }
-        })
-      } else {
-        protocol.respond_success(client, msg.id, stats)
-      }
-    })
-  })
+
 }
 
 function process_stream_follow(client, msg) {

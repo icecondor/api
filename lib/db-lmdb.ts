@@ -394,6 +394,11 @@ export class Db extends DbBase {
     return { errors: 0 }
   }
 
+  activity_count(noun, start, stop) {
+    let kvs = this.getIdxBetween(noun, 'date', [start], [stop])
+    console.log(Object.keys(kvs).length)
+  }
+
   activity_last_date() {
     let key = this.getLast('location', 'date')
     console.log('activity_last_date', key)
@@ -452,7 +457,7 @@ export class Db extends DbBase {
     let access = access_data.reduce((m, kv) => {
       let rec: any = {
         created_at: kv['created_at'],
-        scopes: ['read']      
+        scopes: ['read']
 }
       if (kv['expires_at']) rec.expires_at = kv['expires_at']
       m[kv['key']] = rec
