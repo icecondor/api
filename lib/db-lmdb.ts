@@ -269,7 +269,7 @@ export class Db extends DbBase {
     let cursor = new lmdb.Cursor(txn, db)
 
     let kvs = {}
-    let schemakeyList = index[2].multi ? schemakeyList.concat(['id']): index[1]
+    let schemakeyList = index[1].concat(index[2].multi ? ['id'] : [])
     if (endkeyList.length < schemakeyList.length) {
       if (order) {
         txn.abort()
