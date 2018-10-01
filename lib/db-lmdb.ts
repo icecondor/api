@@ -397,7 +397,18 @@ export class Db extends DbBase {
 
   activity_count(noun, start, stop) {
     let kvs = this.getIdxBetween(noun, 'date', [start], [stop])
-    return {type: noun, start: start, stop: stop, count: Object.keys(kvs).length}
+    let nouns = Object.keys(kvs)
+    let lastseen = {}
+    for (const id of nouns) {
+      console.log('processing ', id)
+      let key = id.split(this.keySeperator).pop()
+      let location = this.loadFile(key)
+      let user = this.loadFile(location.user_id)
+      lastseen[user.username] = location.date
+    }
+    console.log(lastseen)
+    let users = Object.keys(lastseen)
+    return {type: noun, start: start, stop: stop, user_count: users.length, count: nouns.length}
   }
 
   activity_last_date() {
