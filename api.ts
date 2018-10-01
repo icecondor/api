@@ -402,7 +402,7 @@ function process_activity_stats(client, msg) {
   //   stop: today.toISOString()
   // }
 
-  stats = db.activity_count('location', yesterday, today)
+  stats = db.activity_count('location', yesterday.toISOString(), today.toISOString())
   if(stats) {
     protocol.respond_success(client, msg.id, stats)
   } else {
