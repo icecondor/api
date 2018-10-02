@@ -400,14 +400,9 @@ function process_activity_stats(client, msg) {
   for(let time = yesterday.getTime(); time < today.getTime(); time += timestep) {
     times.push(new Date(time))
   }
-  times = times.reduce(function(m,t,i){if(i % 2 == 1) m.push([times[i-1], t]); return m}, [])
-  // stats.day = {
-  //   total: c24,
-  //   start: yesterday.toISOString(),
-  //   stop: today.toISOString()
-  // }
+  times = times.reduce(function(m,t,i){if(i>0) m.push([times[i-1], t]); return m}, [])
 
-  var stats = {start: msg.params.start, stop: msg.params.stop, periods: [], period_length: timestep}
+  var stats = {start: today.toISOString(), stop: yesterday.toISOString(), periods: [], period_length: timestep}
   stats.periods = times.map(ts => db.activity_count('location', ts[0].toISOString(), ts[1].toISOString()))
   if(stats) {
     protocol.respond_success(client, msg.id, stats)
