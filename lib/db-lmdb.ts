@@ -405,7 +405,6 @@ export class Db extends DbBase {
       let user = this.loadFile(location.user_id)
       lastseen[user.username] = location.date
     }
-    console.log(lastseen)
     let users = Object.keys(lastseen)
     return {type: noun, start: start, stop: stop, user_count: users.length, count: nouns.length}
   }

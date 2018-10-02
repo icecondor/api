@@ -396,13 +396,18 @@ function process_activity_stats(client, msg) {
   var today = msg.params.start ? new Date(msg.params.start) : new Date()
   var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24)
 
+  var times = []
+  for(let time = yesterday.getTime(); time < today.getTime(); time += 60*60*1000) {
+    times.push(new Date(time))
+  }
+  times = times.reduce(function(m,t,i){if(i % 2 == 1) m.push([times[i-1], t]); return m}, [])
   // stats.day = {
   //   total: c24,
   //   start: yesterday.toISOString(),
   //   stop: today.toISOString()
   // }
 
-  stats = db.activity_count('location', yesterday.toISOString(), today.toISOString())
+  stats = times.map(ts => db.activity_count('location', ts[0].toISOString(), ts[1].toISOString()))
   if(stats) {
     protocol.respond_success(client, msg.id, stats)
   } else {
