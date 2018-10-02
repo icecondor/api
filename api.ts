@@ -390,14 +390,14 @@ function process_user_stats(client, msg) {
 }
 
 function process_activity_stats(client, msg) {
-  var stats: any = {}
 
   // 24 hour count
   var today = msg.params.start ? new Date(msg.params.start) : new Date()
   var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24)
+  var timestep = msg.params.timestep || 60*60*1000
 
   var times = []
-  for(let time = yesterday.getTime(); time < today.getTime(); time += 60*60*1000) {
+  for(let time = yesterday.getTime(); time < today.getTime(); time += timestep) {
     times.push(new Date(time))
   }
   times = times.reduce(function(m,t,i){if(i % 2 == 1) m.push([times[i-1], t]); return m}, [])
@@ -407,7 +407,8 @@ function process_activity_stats(client, msg) {
   //   stop: today.toISOString()
   // }
 
-  stats = times.map(ts => db.activity_count('location', ts[0].toISOString(), ts[1].toISOString()))
+  var stats = {start: msg.params.start, stop: msg.params.stop, periods: [], period_length: timestep}
+  stats.periods = times.map(ts => db.activity_count('location', ts[0].toISOString(), ts[1].toISOString()))
   if(stats) {
     protocol.respond_success(client, msg.id, stats)
   } else {
