@@ -407,9 +407,10 @@ export class Db extends DbBase {
       lastseen[user.username] = previous + 1
     }
     let users = Object.keys(lastseen)
-    let u_dev = standardDeviation(Object.keys(lastseen).map(k => lastseen[k]))
+    let u_avg = Math.floor(nouns.length / users.length)
+    let u_dev = Math.floor(standardDeviation(Object.keys(lastseen).map(k => lastseen[k])))
     return {type: noun, start: start, stop: stop, user_count: users.length,
-            user_stddev: u_dev, count: nouns.length}
+            user_avg: u_avg, user_stddev: u_dev, count: nouns.length}
   }
 
   activity_last_date() {
