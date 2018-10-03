@@ -403,10 +403,13 @@ export class Db extends DbBase {
       let key = id.split(this.keySeperator).pop()
       let location = this.loadFile(key)
       let user = this.loadFile(location.user_id)
-      lastseen[user.username] = location.date
+      let previous = lastseen[user.username] || 0
+      lastseen[user.username] = previous + 1
     }
     let users = Object.keys(lastseen)
-    return {type: noun, start: start, stop: stop, user_count: users.length, count: nouns.length}
+    let u_dev = standardDeviation(Object.keys(lastseen).map(k => lastseen[k]))
+    return {type: noun, start: start, stop: stop, user_count: users.length,
+            user_stddev: u_dev, count: nouns.length}
   }
 
   activity_last_date() {
@@ -662,3 +665,26 @@ export class Db extends DbBase {
   }
 }
 
+function standardDeviation(values){
+  var avg = average(values);
+
+  var squareDiffs = values.map(function(value){
+    var diff = value - avg;
+    var sqrDiff = diff * diff;
+    return sqrDiff;
+  });
+
+  var avgSquareDiff = average(squareDiffs);
+
+  var stdDev = Math.sqrt(avgSquareDiff);
+  return stdDev;
+}
+
+function average(data){
+  var sum = data.reduce(function(sum, value){
+    return sum + value;
+  }, 0);
+
+  var avg = sum / data.length;
+  return avg;
+}
