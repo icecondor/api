@@ -461,7 +461,7 @@ function stream_follow_user(stream_id, client, msg) {
 
     if (auth) {
       if (!msg.params.count) { msg.params.count = 1 }
-      var count = msg.params.count < 2000 ? msg.params.count : 2000
+      var count = msg.params.count < 86400 ? msg.params.count : 2000
       var start = msg.params.start && (new Date(msg.params.start))
       var stop = msg.params.stop && (new Date(msg.params.stop))
       var type = msg.params.type || "location"
