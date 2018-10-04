@@ -634,14 +634,12 @@ export class Db extends DbBase {
   }
 
   async update_user_by(user_id, params) {
-    //let sql = squel.update().table("user")
+    let user = this.loadFile(user_id)
     if (params.username) {
-      //sql = sql.set("username", params.username)
       console.log('updating user', user_id, 'username', params.username)
+      user.username = params.username
     }
-    //sql = sql.where("id = ?", user_id)
-    //let result = await this.update(sql)
-    return {}
+    this.save(user)
   }
 
   async find_locations(start, stop, count: number, desc: boolean) {
