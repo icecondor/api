@@ -621,6 +621,10 @@ export class Db extends DbBase {
     return this.loadFile(rule_id)
   }
 
+  async rule_del(rule_id) {
+    return this.del(rule_id)
+  }
+
   async rule_list(user_id) {
     let kvs = this.getIdxBetween('rule', 'user_id_id', [user_id], [user_id])
     let values = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
