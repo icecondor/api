@@ -936,6 +936,7 @@ function process_rule_add(client, msg) {
   if (client.flags.authenticated) {
     console.log('rule_add', msg)
     var rule: any = {}
+    rule.id = uuid.v4()
     rule.created_at = new Date()
     rule.user_id = client.flags.authenticated.user_id
     rule.fence_id = msg.params.fence_id
