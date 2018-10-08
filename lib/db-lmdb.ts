@@ -28,7 +28,7 @@ let schema = {
   },
   'access': {
     indexes: [
-      ['key', ['key'], {unique: true}],
+      ['key', ['key'], { unique: true }],
       ['user_id_key', ['user_id', 'key'], {}]
     ]
   },
@@ -108,18 +108,19 @@ export class Db extends DbBase {
   }
 
   ensure_index(dbname, resync) {
-        let mdb
-        try {
-          mdb = this.api.openDbi({ name: dbname })
-          if (resync) {
-            console.log("** ensure schema dropping index", dbname)
-            mdb.drop()
-            throw "create"
-          }
-        } catch(e)  {
-          console.log('** ensure schema creating index', dbname)
-          mdb = this.api.openDbi({ name: dbname, create: true })
-        }
+    let mdb
+    try {
+      mdb = this.api.openDbi({ name: dbname })
+      if (resync) {
+        console.log("** ensure schema dropping index", dbname)
+        mdb.drop()
+        throw "create"
+      }
+    } catch (e) {
+      console.log('** ensure schema creating index', dbname)
+      mdb = this.api.openDbi({ name: dbname, create: true })
+    }
+    return mdb
   }
 
   async schema_dump() {
@@ -138,7 +139,7 @@ export class Db extends DbBase {
   }
 
   async syncIndexes(typeName = null) {
-    console.log('** Sync walk begin on', this.settings.path, typeName ? "for type "+typeName : "for all types")
+    console.log('** Sync walk begin on', this.settings.path, typeName ? "for type " + typeName : "for all types")
     let groupSize = 1000
     let fileCount = 0
     let fileTotal = 0
@@ -155,7 +156,7 @@ export class Db extends DbBase {
           if (fileCount % groupSize == 0) {
             let elapsed = (new Date).getTime() - now.getTime()
             console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec of',
-              fileTotal, 'read so far', (typeName ? "with "+hitCount+" "+typeName: ''))
+              fileTotal, 'read so far', (typeName ? "with " + hitCount + " " + typeName : ''))
             fileCount = 0
             hitCount = 0
             now = new Date()
@@ -167,8 +168,8 @@ export class Db extends DbBase {
           }
         })
         .once('end', function() {
-          let durationSeconds = (new Date().getTime() - now.getTime())/1000
-          console.log('** Sync walk end', (durationSeconds/60).toFixed(1), 'minutes')
+          let durationSeconds = (new Date().getTime() - now.getTime()) / 1000
+          console.log('** Sync walk end', (durationSeconds / 60).toFixed(1), 'minutes')
           res()
         })
         .once('error', function(error) {
@@ -434,8 +435,10 @@ export class Db extends DbBase {
     let users = Object.keys(lastseen)
     let u_avg = Math.floor(nouns.length / users.length)
     let u_dev = Math.floor(standardDeviation(Object.keys(lastseen).map(k => lastseen[k])))
-    return {type: noun, start: start, stop: stop, user_count: users.length,
-            user_avg: u_avg, user_stddev: u_dev, count: nouns.length}
+    return {
+      type: noun, start: start, stop: stop, user_count: users.length,
+      user_avg: u_avg, user_stddev: u_dev, count: nouns.length
+    }
   }
 
   activity_last_date() {
@@ -497,7 +500,7 @@ export class Db extends DbBase {
       let rec: any = {
         created_at: kv['created_at'],
         scopes: ['read']
-}
+      }
       if (kv['expires_at']) rec.expires_at = kv['expires_at']
       m[kv['key']] = rec
       return m
@@ -697,10 +700,10 @@ export class Db extends DbBase {
   }
 }
 
-function standardDeviation(values){
+function standardDeviation(values) {
   var avg = average(values);
 
-  var squareDiffs = values.map(function(value){
+  var squareDiffs = values.map(function(value) {
     var diff = value - avg;
     var sqrDiff = diff * diff;
     return sqrDiff;
@@ -712,8 +715,8 @@ function standardDeviation(values){
   return stdDev;
 }
 
-function average(data){
-  var sum = data.reduce(function(sum, value){
+function average(data) {
+  var sum = data.reduce(function(sum, value) {
     return sum + value;
   }, 0);
 
