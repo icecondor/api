@@ -27,7 +27,10 @@ let schema = {
     ]
   },
   'access': {
-    indexes: [['user_id_key', ['user_id', 'key'], {}]]
+    indexes: [
+      ['key', ['key'], {unique: true}],
+      ['user_id_key', ['user_id', 'key'], {}]
+    ]
   },
   'heartbeat': {
     indexes: [['user_id', ['user_id'], { multi: true }]]
@@ -97,11 +100,26 @@ export class Db extends DbBase {
     for (const typeName in schema) {
       for (const index of schema[typeName].indexes) {
         let dbname = this.dbName(typeName, index[0])
-        if (resync) this.api.openDbi({ name: dbname, create: true }).drop()
-        this.db[dbname] = this.api.openDbi({ name: dbname, create: true })
+        let mdb = this.ensure_index(dbname, resync)
+        this.db[dbname] = mdb
       }
     }
     if (resync) await this.syncIndexes()
+  }
+
+  ensure_index(dbname, resync) {
+        let mdb
+        try {
+          mdb = this.api.openDbi({ name: dbname })
+          if (resync) {
+            console.log("** ensure schema dropping index", dbname)
+            mdb.drop()
+            throw "create"
+          }
+        } catch(e)  {
+          console.log('** ensure schema creating index', dbname)
+          mdb = this.api.openDbi({ name: dbname, create: true })
+        }
   }
 
   async schema_dump() {
@@ -119,11 +137,12 @@ export class Db extends DbBase {
     console.log('ram total', (ramtotal / 1024 / 1024).toFixed(1), 'MB')
   }
 
-  async syncIndexes() {
-    console.log('** Sync walk begin on', this.settings.path)
+  async syncIndexes(typeName = null) {
+    console.log('** Sync walk begin on', this.settings.path, typeName ? "for type "+typeName : "for all types")
     let groupSize = 1000
     let fileCount = 0
     let fileTotal = 0
+    let hitCount = 0
     let now = new Date()
     let that = this // this get munged in filewalker
 
@@ -135,15 +154,21 @@ export class Db extends DbBase {
           fileTotal += 1
           if (fileCount % groupSize == 0) {
             let elapsed = (new Date).getTime() - now.getTime()
-            console.log('** Sync walk', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec', fileTotal, 'done')
+            console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec of',
+              fileTotal, 'read so far', (typeName ? "with "+hitCount+" "+typeName: ''))
             fileCount = 0
+            hitCount = 0
             now = new Date()
           }
           let value = that.loadFile(filename)
-          that.saveIndexes(value)
+          if (!typeName || (typeName && value.type === typeName)) {
+            that.saveIndexes(value)
+            hitCount += 1
+          }
         })
         .once('end', function() {
-          console.log('sync end')
+          let durationSeconds = (new Date().getTime() - now.getTime())/1000
+          console.log('** Sync walk end', (durationSeconds/60).toFixed(1), 'minutes')
           res()
         })
         .once('error', function(error) {
