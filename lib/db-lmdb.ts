@@ -496,8 +496,8 @@ export class Db extends DbBase {
   user_load_access(user_id) {
     let kvs = this.getIdxBetween('access', 'user_id_key', [user_id], [user_id])
     let access_data = Object.keys(kvs).map(k => this.loadFile(kvs[k]))
-    let scope = kv['level'] || 'read'
     let access = access_data.reduce((m, kv) => {
+      let scope = kv['level'] || 'read'
       let rec: any = {
         created_at: kv['created_at'],
         scopes: [scope]
