@@ -11,12 +11,20 @@ let email = process.argv[2]
 if (email) {
   console.log('user dump', email)
   db.connect(async () => {
+    let user
     try {
-      let user = await db.find_user_by({ username: email })
+      user = await db.find_user_by({ email: email })
+    } catch (e) {
+      try {
+        user = await db.find_user_by({ username: email })
+      } catch (e) {
+      }
+    }
+    if(user) {
       console.log(JSON.stringify(user, null, 2))
       let friending = await db.friending_me(user.id)
       console.log(user.friends.length, 'friends', friending.length, 'friending')
-    } catch (e) {
+    } else {
       console.log(email, 'not found')
     }
   })
@@ -24,6 +32,11 @@ if (email) {
   db.connect(async () => {
     let last = db.getLastKey('user', 'email')
     let records = db.getIdxBetween('user', 'email', null, last)
-    console.log(records)
+    console.log(JSON.stringify(records))
+    console.log('-- user records --')
+    for(const key in records) {
+      let user = db.loadFile(records[key])
+      console.log(user.id, user.email, user.username, user.created_at)
+    }
   })
 }
