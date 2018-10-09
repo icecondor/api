@@ -272,7 +272,7 @@ export class Db extends DbBase {
     return id
   }
 
-  getLast(typeName, indexName) {
+  getLastKey(typeName, indexName) {
     let dbname = this.dbName(typeName, indexName)
     let txn = this.api.beginTxn()
     let cursor = new lmdb.Cursor(txn, this.db[dbname])
@@ -442,7 +442,7 @@ export class Db extends DbBase {
   }
 
   activity_last_date() {
-    let key = this.getLast('location', 'date')
+    let key = this.getLastKey('location', 'date')
     console.log('activity_last_date', key)
     return key ? key.split(this.keySeperator).shift() : null
   }

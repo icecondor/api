@@ -5,11 +5,11 @@ import * as fs from 'fs'
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
 
 console.log('storage', settings.storage)
+let db = new Db.Db(settings.storage)
 
 let email = process.argv[2]
 if (email) {
   console.log('user dump', email)
-  let db = new Db.Db(settings.storage)
   db.connect(async () => {
     try {
       let user = await db.find_user_by({ username: email })
@@ -21,5 +21,9 @@ if (email) {
     }
   })
 } else {
-  console.log('usage: userdump.js <username>')
+  db.connect(async () => {
+    let last = db.getLastKey('user', 'email')
+    let records = db.getIdxBetween('user', 'email', null, last)
+    console.log(records)
+  })
 }
