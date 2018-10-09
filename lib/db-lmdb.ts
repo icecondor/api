@@ -29,7 +29,7 @@ let schema = {
   'access': {
     indexes: [
       ['key', ['key'], { unique: true }],
-      ['user_id_key', ['user_id', 'key'], {}]
+      ['user_id_key', ['user_id', 'key'], { unique: true }]
     ]
   },
   'heartbeat': {
@@ -234,7 +234,7 @@ export class Db extends DbBase {
         if (exists) {
           if (exists != record.id) {
             txn.abort()
-            throw "type " + typeName + " index " + index[0] + " key " + key + " is " + exists + " (should be" + record.id + ")"
+            throw "unique fail on  " + dbname + " writing key/id: " + key+'/'+record.id +" collided with " +" id "+ record.id
           }
         }
       }
@@ -676,6 +676,13 @@ export class Db extends DbBase {
       user.username = params.username
     }
     this.save(user)
+  }
+
+  async update_user_access(user_id, access) {
+    // rethink holdover, remove previous accesses
+    let kvs = this.getIdxBetween('access', 'user_id_key', [user_id], [user_id])
+    Object.keys(kvs).map(k => this.del(kvs[k]))
+    for (const key of Object.keys(access)) this.user_add_access(user_id, key, access[key])
   }
 
   async find_locations(start, stop, count: number, desc: boolean) {
