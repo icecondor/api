@@ -499,7 +499,7 @@ export class Db extends DbBase {
     let access = access_data.reduce((m, kv) => {
       let rec: any = {
         created_at: kv['created_at'],
-        scopes: ['read']
+        scopes: [kv['level']]
       }
       if (kv['expires_at']) rec.expires_at = kv['expires_at']
       m[kv['key']] = rec
@@ -516,7 +516,8 @@ export class Db extends DbBase {
       created_at: new Date(value.created_at).toISOString(),
       expires_at: value.expires_at ? new Date(value.expires_at).toISOString() : null,
       user_id: user_id,
-      key: key
+      key: key,
+      level: value.scopes[0]
     }
     console.log('user_add_access =', access)
     this.save(access)

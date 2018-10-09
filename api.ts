@@ -713,7 +713,7 @@ function process_user_access_add(client, msg) {
       var key = uuid.v4().substr(0, 18)
       var rule: any = {
         created_at: new Date(),
-        scopes: ["read"]
+        scopes: msg.params.scopes
       }
       if (msg.params.expires_at) {
         rule.expires_at = msg.params.expires_at
