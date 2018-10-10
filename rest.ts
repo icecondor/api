@@ -70,11 +70,11 @@ function push_points(response, auth_token, points) {
 
   apiSocket.on('data', function(data) {
     var lines = data.toString('utf8').split('\n')
-    console.log('->', lines)
+    console.log('<-', lines)
     var msg = JSON.parse(lines[0])
     if (msg.method) {
-      console.log('method', msg.method)
       if (msg.method == "hello") {
+        console.log('-> auth.session device_key', auth_token.substr(0,4)+"...")
         apiSocket.write(JSON.stringify({
           id: "rpc-auth",
           method: "auth.session", params: { device_key: auth_token }
@@ -83,6 +83,7 @@ function push_points(response, auth_token, points) {
     }
 
     if (msg.error) {
+      console.log('<-', JSON.stringify(msg.error))
       apiSocket.end()
       if (msg.error.code == "BK1") {
         response.writeHead(401)
@@ -93,6 +94,7 @@ function push_points(response, auth_token, points) {
     }
 
     if (msg.id == "rpc-auth" && msg.result) {
+      console.log('<- auth good', JSON.stringify(msg.result))
       if (msg.result.user) {
         rpcNext(points, apiSocket)
       }
@@ -157,17 +159,15 @@ function rpcAdd(last_location, apiSocket) {
 function geojson2icecondor(geojson) {
 
   /*
-      {
-        "type": "Feature",
-        "geometry": {
-          "type": "Point",
-          "coordinates": [-122.621, 45.535]
-        },
-        "properties": {
-          "timestamp": "2017-01-01T10:00:00-0700",
-          "horizontal_accuracy": 65
-        }
-      }
+  // Overland examples
+  {
+    "type": "Feature",
+    "geometry": { "type": "Point", "coordinates": [-122.621, 45.535] }, // geojson
+    "properties": { // no activity field means new point
+      "timestamp": "2017-01-01T10:00:00-0700",
+      "horizontal_accuracy": 65
+    }
+  }
 
   { type: 'Feature',
     geometry: { type: 'Point', coordinates: [ -122.406417, 37.785834 ] },
