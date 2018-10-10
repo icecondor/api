@@ -133,8 +133,8 @@ function push_points(response, auth_token, points) {
 function rpcNext(points, apiSocket) {
   var last_location = points.pop()
   if (last_location) {
+    console.log('record #' + points.length, 'overland action', last_location.properties.action)
     if (last_location.properties.action) {
-      console.log('#' + points.length, 'overland action', last_location.properties.action, 'ignored')
       rpcNext(points, apiSocket)
     } else {
       console.log('#' + points.length, new Date())
