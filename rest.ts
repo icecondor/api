@@ -1,35 +1,49 @@
-'use strict'
 var net = require('net')
+var fs = require('fs')
 var http = require('http')
 var Url = require('url')
 var uuid = require('node-uuid')
-var settings = require('./settings')
+import * as Db from './lib/db-lmdb'
 
-console.log("rest listening on", settings.rest.listen_port)
-var server = http.createServer(function(request, response) {
-  var url = Url.parse(request.url)
-  var parts = url.query.split('&').map(function(r) { let z = r.match(/([^=]+)=(.*)/); let y = {}; y[z[1]] = z[2]; return y })
-  var params = Object.assign({}, ...parts)
-  let body = []
-  request.on('data', (chunk) => {
-    body.push(chunk)
-  }).on('end', () => {
-    body = Buffer.concat(body).toString()
-    try {
-      let jsonbody = JSON.parse(body)
-      console.log(JSON.stringify(jsonbody, null, 2))
-      push_points(response, params.token, jsonbody.locations)
-    } catch (e) {
-      console.log(e)
-      console.log(body)
-      response.writeHead(400)
-      response.end()
+let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
+
+let db = new Db.Db(settings.storage)
+db.connect(async () => {
+  console.log("rest listening on", settings.rest.listen_port)
+  var server = http.createServer(function(request, response) {
+    var url = Url.parse(request.url)
+    let params: any = {}
+    if (url.query) {
+      params = url.query.split('&').reduce((y, r) => { let z = r.match(/([^=]+)=(.*)/); if (z) y[z[1]] = z[2]; return y }, params)
     }
+    let bodyParts = []
+    request.on('data', (chunk) => {
+      bodyParts.push(chunk)
+    }).on('end', () => http_req_end(params, bodyParts, response))
   })
-
+  server.listen(settings.rest.listen_port)
 })
 
-server.listen(settings.rest.listen_port)
+function http_req_end(params, bodyParts, response) {
+  let body = Buffer.concat(bodyParts).toString()
+  if (body.length > 0) {
+    try {
+      let jsonbody = JSON.parse(body)
+      push_points(response, params.token, jsonbody.locations)
+    } catch (e) {
+      if (e instanceof SyntaxError) {
+        console.log('bad JSON', JSON.stringify(body.substr(0, 80)))
+      } else {
+        console.log('aborting connection.', e.name)
+      }
+      response.writeHead(400)
+    }
+  } else {
+    console.log('empty body. closed.')
+  }
+  response.end()
+}
+
 
 function push_points(response, auth_token, points) {
   console.log(new Date(), 'ws_connect')
@@ -141,7 +155,7 @@ function geojson2icecondor(geojson) {
           "horizontal_accuracy": 65
         }
       }
-  
+
   { type: 'Feature',
     geometry: { type: 'Point', coordinates: [ -122.406417, 37.785834 ] },
     properties:
@@ -159,7 +173,7 @@ function geojson2icecondor(geojson) {
        activity: 'other',
        desired_accuracy: 100,
        altitude: 0 } }
-  
+
   */
   /*
   {
