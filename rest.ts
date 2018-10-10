@@ -14,7 +14,7 @@ http
     let bodyParts = []
     request.on('data', (chunk) => {
       bodyParts.push(chunk)
-    }).on('end', () => http_req_json(params, bodyParts, (data) => {
+    }).on('end', () => http_assemble_json(bodyParts, (data) => {
       if(data)
         push_points(response, params.token, data.locations)
       else
@@ -30,13 +30,14 @@ function paramsFromUrl(urlStr) {
   if (url.query) {
     params = url.query.split('&').reduce((y, r) => {
       let z = r.match(/([^=]+)=(.*)/)
-      if (z) y[z[1]] = z[2]; return y
+      if (z) y[z[1]] = z[2]
+      return y
     }, params)
   }
   return params
 }
 
-function http_req_json(params, bodyParts, cb) {
+function http_assemble_json(bodyParts, cb) {
   let body = Buffer.concat(bodyParts).toString()
   if (body.length > 0) {
     try {
