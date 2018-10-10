@@ -234,7 +234,7 @@ export class Db extends DbBase {
         if (exists) {
           if (exists != record.id) {
             txn.abort()
-            throw "unique fail on  " + dbname + " writing key/id: " + key+'/'+record.id +" collided with " +" id "+ record.id
+            throw "unique fail on  " + dbname + " writing key/id: " + key + '/' + record.id + " collided with " + " id " + record.id
           }
         }
       }

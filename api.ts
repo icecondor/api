@@ -120,6 +120,8 @@ function friendly_fences_for(location, friends: string[]) {
       return cursor.toArray().then(fences =>
         fences.filter(fence => {
           if (fence.geojson) { // some fences are incomplete
+            // todo: first fastpass with fence bounding boxes
+            // https://github.com/mourner/flatbush
             let poly = turfhelp.polygon(fence.geojson.coordinates)
             return booleanPointInPolygon(pt, poly)
           }

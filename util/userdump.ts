@@ -20,7 +20,7 @@ if (email) {
       } catch (e) {
       }
     }
-    if(user) {
+    if (user) {
       console.log(JSON.stringify(user, null, 2))
       let friending = await db.friending_me(user.id)
       console.log(user.friends.length, 'friends', friending.length, 'friending')
@@ -33,7 +33,7 @@ if (email) {
     let last = db.getLastKey('user', 'email')
     let records = db.getIdxBetween('user', 'email', null, last)
     console.log('-- user records --')
-    for(const key in records) {
+    for (const key in records) {
       let user = db.loadFile(records[key])
       console.log(user.id, user.email, user.username, user.created_at)
     }
