@@ -13,7 +13,7 @@ http
     let params = paramsFromUrl(request.url)
     let bodyParts = []
     request.on('data', (chunk) => {
-      bodyParts.push(chunk)
+      if (chunk.length > 0) bodyParts.push(chunk)
     }).on('end', () => http_assemble_json(bodyParts, (data) => {
       if(data)
         push_points(response, params.token, data.locations)
