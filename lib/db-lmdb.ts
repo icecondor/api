@@ -509,6 +509,11 @@ export class Db extends DbBase {
     return access
   }
 
+  find_access(key) {
+    var key = this.get('access', 'key', key)
+    if(key) return this.loadFile(key)
+  }
+
   async user_add_access(user_id, key, value) {
     console.log('user_add_access', user_id, key, value)
     let access: noun.Access = {
@@ -520,7 +525,7 @@ export class Db extends DbBase {
       key: key,
       level: value.scopes[0]
     }
-    console.log('user_add_access =', access)
+    console.log('user_add_access ', JSON.stringify(access))
     this.save(access)
     return this.user_find_access(user_id, key)
   }

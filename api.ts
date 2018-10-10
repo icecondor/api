@@ -591,8 +591,15 @@ function process_auth_session(client, msg) {
           protocol.respond_success(client, msg.id, { user: { id: session.user_id } })
         }
       } else {
-        console.log("session for " + msg.params.device_key + " not found")
-        protocol.respond_fail(client, msg.id, { code: "BK1", message: "bad device_key" })
+        // look up access token
+        let access = db.findAccess(msg.params.token || msg.params.device_key)
+        if(access) {
+          console.log('(unimplemented) found access:', JSON.stringify(access))
+          protocol.respond_fail(client, msg.id, { code: "BK1", message: "api_key unimplemented" })
+        } else {
+          console.log("session for " + msg.params.device_key + " not found")
+          protocol.respond_fail(client, msg.id, { code: "BK1", message: "bad device_key" })
+        }
       }
     }).catch(function(err) { console.log('Err! ' + err) })
   }
@@ -626,7 +633,7 @@ function client_auth_check(client, msg, session) {
 
 function client_auth_trusted(client, session) {
   client.flags.authenticated = session
-  clog(client, "logged in user id " + session.user_id.substr(-8))
+  clog(client, "logged in user id " + session.user_id + " on device " + JSON.stringify(session.device_id))
 }
 
 function user_new(email, device_id) {
