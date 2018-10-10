@@ -3,45 +3,57 @@ var fs = require('fs')
 var http = require('http')
 var Url = require('url')
 var uuid = require('node-uuid')
-import * as Db from './lib/db-lmdb'
 
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
 
-let db = new Db.Db(settings.storage)
-db.connect(async () => {
-  console.log("rest listening on", settings.rest.listen_port)
-  var server = http.createServer(function(request, response) {
-    var url = Url.parse(request.url)
-    let params: any = {}
-    if (url.query) {
-      params = url.query.split('&').reduce((y, r) => { let z = r.match(/([^=]+)=(.*)/); if (z) y[z[1]] = z[2]; return y }, params)
-    }
+console.log("rest listening on", settings.rest.listen_port)
+
+http
+  .createServer(function(request, response) {
+    let params = paramsFromUrl(request.url)
     let bodyParts = []
     request.on('data', (chunk) => {
       bodyParts.push(chunk)
-    }).on('end', () => http_req_end(params, bodyParts, response))
+    }).on('end', () => http_req_json(params, bodyParts, (data) => {
+      if(data)
+        push_points(response, params.token, data.locations)
+      else
+        response.writeHead(400)
+      response.end()
+    }))
   })
-  server.listen(settings.rest.listen_port)
-})
+  .listen(settings.rest.listen_port)
 
-function http_req_end(params, bodyParts, response) {
+function paramsFromUrl(urlStr) {
+  var url = Url.parse(urlStr)
+  let params: any = {}
+  if (url.query) {
+    params = url.query.split('&').reduce((y, r) => {
+      let z = r.match(/([^=]+)=(.*)/)
+      if (z) y[z[1]] = z[2]; return y
+    }, params)
+  }
+  return params
+}
+
+function http_req_json(params, bodyParts, cb) {
   let body = Buffer.concat(bodyParts).toString()
   if (body.length > 0) {
     try {
-      let jsonbody = JSON.parse(body)
-      push_points(response, params.token, jsonbody.locations)
+      let data = JSON.parse(body)
+      cb(data)
     } catch (e) {
       if (e instanceof SyntaxError) {
         console.log('bad JSON', JSON.stringify(body.substr(0, 80)))
       } else {
         console.log('aborting connection.', e.name)
       }
-      response.writeHead(400)
+      cb()
     }
   } else {
     console.log('empty body. closed.')
+    cb()
   }
-  response.end()
 }
 
 
@@ -92,7 +104,7 @@ function push_points(response, auth_token, points) {
         if (!response.finished) {
           response.write(JSON.stringify(msg.result))
         } else {
-          console.log('!!client write when finished')
+          console.log('client closed before response write.')
         }
         rpcNext(points, apiSocket)
       }
@@ -129,7 +141,7 @@ function rpcNext(points, apiSocket) {
       rpcAdd(last_location, apiSocket)
     }
   } else {
-    console.log('last_location points.pop is null!')
+    // end recursion
   }
 }
 
