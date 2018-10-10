@@ -509,7 +509,7 @@ export class Db extends DbBase {
     return access
   }
 
-  find_access(key) {
+  findAccess(key) {
     var key = this.get('access', 'key', key)
     if(key) return this.loadFile(key)
   }
