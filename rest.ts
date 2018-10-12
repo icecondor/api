@@ -186,6 +186,34 @@ function geojson2icecondor(geojson) {
        activity: 'other',
        desired_accuracy: 100,
        altitude: 0 } }
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -122.60902139561254,
+          45.47959670769497
+        ]
+      },
+      "properties": {
+        "speed": 0,
+        "battery_state": "unplugged",
+        "motion": [],
+        "timestamp": "2018-10-11T01:15:34Z",
+        "battery_level": 0.8799999952316284,
+        "vertical_accuracy": 3,
+        "pauses": true,
+        "horizontal_accuracy": 12,
+        "wifi": "",
+        "deferred": 0,
+        "significant_change": 1,
+        "locations_in_payload": 1,
+        "activity": "fitness",
+        "device_id": "iphone6",
+        "altitude": 76,
+        "desired_accuracy": -1
+      }
+    },
 
   */
   /*

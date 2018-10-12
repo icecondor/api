@@ -90,6 +90,7 @@ function client_dispatch(me, msg) {
     case 'user.access.del': process_user_access_del(me, msg); break;
     case 'activity.add': process_activity_add(me, msg); break;
     case 'activity.stats': process_activity_stats(me, msg); break;
+    case 'device.list': process_device_list(me, msg); break;
     case 'fence.add': process_fence_add(me, msg); break;
     case 'fence.list': process_fence_list(me, msg); break;
     case 'fence.get': process_fence_get(me, msg); break;
@@ -854,6 +855,18 @@ function process_fence_add(client, msg) {
       if (result.inserted == 1) {
         protocol.respond_success(client, msg.id, fence)
       }
+    })
+  } else {
+    protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
+  }
+}
+
+function process_device_list(client, msg) {
+  if (client.flags.authenticated) {
+    db.device_list(client.flags.authenticated.user_id).then(function(cursor) {
+      cursor.toArray().then(function(devices) {
+        protocol.respond_success(client, msg.id, devices)
+      })
     })
   } else {
     protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
