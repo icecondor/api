@@ -17,6 +17,7 @@ import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 let major_version = 2
 import * as settingsLib from './lib/settings'
 let settings = settingsLib(major_version)
+import * as util from "./lib/util"
 import * as protocolLib from "./lib/protocol-v2"
 let protocol = protocolLib(settings.api)
 import * as serverLib from './lib/server'
@@ -66,6 +67,7 @@ function end_of_connection(client) {
 }
 
 function client_dispatch(me, msg) {
+  clog(me, msg)
   server.timer.hits += 1
   switch (msg.method) {
     case 'auth.email': process_auth_email(me, msg); break;
@@ -80,6 +82,8 @@ function client_dispatch(me, msg) {
     case 'activity.add': process_activity_add(me, msg); break;
     case 'activity.stats': process_activity_stats(me, msg); break;
     case 'device.list': process_device_list(me, msg); break;
+    case 'device.add': process_device_add(me, msg); break;
+    case 'device.genkey': process_device_genkey(me, msg); break;
     case 'fence.add': process_fence_add(me, msg); break;
     case 'fence.list': process_fence_list(me, msg); break;
     case 'fence.get': process_fence_get(me, msg); break;
@@ -858,6 +862,38 @@ function process_device_list(client, msg) {
         protocol.respond_success(client, msg.id, realdevices)
       })
     })
+  } else {
+    protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
+  }
+}
+
+function process_device_add(client, msg) {
+  if (client.flags.authenticated) {
+    let device = {
+      id: uuid.v4(),
+      device_id: uuid.v4(),
+      created_at: new Date().toISOString(),
+      name: msg.params.name,
+      user_id: client.flags.authenticated.user_id
+    }
+    db.device_add(device)
+    protocol.respond_success(client, msg.id, {id: device.id})
+  } else {
+    protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
+  }
+}
+
+function process_device_genkey(client, msg) {
+  if (client.flags.authenticated) {
+    let device = db.loadFile(msg.params.id)
+    server.create_token_temp({device_id: device.device_id})
+      .then(function(device_key) {
+        let token = util.sha256(device.device_id+device_key) // magic sauce
+        server.token_validate(token, client.flags.authenticated.user_id, device.device_id)
+        protocol.respond_success(client, msg.id, { token: token })
+      }, function(err) {
+        console.log('device.genkey error ' + err);
+      })
   } else {
     protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
   }
