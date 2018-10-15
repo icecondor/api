@@ -43,17 +43,6 @@ db.connect(function() {
   db.changes(activity_added)
 })
 
-function influxWrite(module, value) {
-  request({
-    method: 'POST',
-    uri: settings.influx.url + '/write?db=' + settings.influx.database,
-    body: "response_time,module=" + module + " value=" + value
-  },
-    function(error, response, body) {
-      if (error) { console.log(error) }
-    })
-}
-
 function listening() {
   console.log("api listening on *:" + settings.api.listen_port)
   timers.setInterval(function() {
@@ -865,7 +854,8 @@ function process_device_list(client, msg) {
   if (client.flags.authenticated) {
     db.device_list(client.flags.authenticated.user_id).then(function(cursor) {
       cursor.toArray().then(function(devices) {
-        protocol.respond_success(client, msg.id, devices)
+        let realdevices = devices.filter(d => d.device_id != 'browser')
+        protocol.respond_success(client, msg.id, realdevices)
       })
     })
   } else {
@@ -1010,4 +1000,15 @@ function process_stream_ziplist(client, msg) {
   } else {
     protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
   }
+}
+
+function influxWrite(module, value) {
+  request({
+    method: 'POST',
+    uri: settings.influx.url + '/write?db=' + settings.influx.database,
+    body: "response_time,module=" + module + " value=" + value
+  },
+    function(error, response, body) {
+      if (error) { console.log(error) }
+    })
 }
