@@ -642,6 +642,7 @@ function user_new(email, device_id) {
 }
 
 function process_user_detail(client, msg) {
+  console.log('process_user_detail start')
   var filter = {}
 
   if (msg.params && Object.keys(msg.params).length > 0) {
@@ -660,7 +661,7 @@ function process_user_detail(client, msg) {
     }
   }
 
-  console.log('process_user_detail', filter)
+  console.log('process_user_detail filter', filter)
   db.find_user_by(filter).then(function(user) {
     let empty_user: any = {
       id: user.id,
@@ -671,6 +672,7 @@ function process_user_detail(client, msg) {
     if (client.flags.authenticated) {
       var client_user_id = client.flags.authenticated.user_id
       if (user.id == client_user_id) {
+        console.log('process_user_detail full detail for', user.username)
         user_promise = user_promise.then(safe_user => {
           // basic profile
           safe_user.created_at = user.created_at
@@ -682,7 +684,9 @@ function process_user_detail(client, msg) {
           safe_user.level = user.level
           safe_user.latest = user.latest
           safe_user.location_stats = db.user_location_stats(user.id)
+          console.log('process_user_detail full detail for', user.username, 'stats built')
           return db.friending_me(user.id).then(friending_ids => {
+            console.log('process_user_detail full detail for', user.username, 'friending ids')
             safe_user.friending = friending_ids
             return safe_user
           })
@@ -710,8 +714,11 @@ function process_user_detail(client, msg) {
       }
     }
 
+    console.log('process_user_detail full detail for', user.username, 'end of func')
     return user_promise.then(safe_user => {
-      protocol.respond_success(client, msg.id, safe_user)})
+      console.log('process_user_detail full detail for', user.username, 'respond success')
+      protocol.respond_success(client, msg.id, safe_user)
+    })
   }, function(err) {
     protocol.respond_fail(client, msg.id, err)
   })
