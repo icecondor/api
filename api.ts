@@ -642,7 +642,6 @@ function user_new(email, device_id) {
 }
 
 function process_user_detail(client, msg) {
-  // default value is the authenticated user
   var filter = {}
 
   if (msg.params && Object.keys(msg.params).length > 0) {
@@ -652,6 +651,7 @@ function process_user_detail(client, msg) {
       filter = { username: msg.params.username }
     }
   } else {
+    // default value is the authenticated user
     if (client.flags.authenticated) {
       filter = { id: client.flags.authenticated.user_id }
     } else {
@@ -670,14 +670,18 @@ function process_user_detail(client, msg) {
     if (client.flags.authenticated) {
       var client_user_id = client.flags.authenticated.user_id
       if (user.id == client_user_id) {
+        // full profile
+        safe_user.created_at = user.created_at
         safe_user.email = user.email
         safe_user.photo = gravatar_url(user.email)
         safe_user.friends = user.friends
         safe_user.access = user.access
         safe_user.level = user.level
         safe_user.latest = user.latest
+        safe_user.friending = await db.friending_me(user.id)
       } else {
         if (user.friends.indexOf(client_user_id) > -1) {
+          // public profile for friends
           safe_user.photo = gravatar_url(user.email)
           safe_user.friends.push(client_user_id)
         }
