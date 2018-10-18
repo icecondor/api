@@ -609,6 +609,23 @@ export class Db extends DbBase {
     return user
   }
 
+  user_location_stats(user_id: string) {
+    let start = new Date("2008-08-01").toISOString()
+    let stop = new Date().toISOString()
+    let kvs = this.getIdxBetween('location', 'user_id_date',
+                                 [user_id, start],
+                                 [user_id, stop], null, true)
+    let kvs_length = Object.keys(kvs).length
+    let stats: any = { count: kvs_length }
+    if(kvs_length > 0) {
+      let first = this.loadFile(kvs[Object.keys(kvs)[0]])
+      let last = this.loadFile(kvs[Object.keys(kvs)[kvs_length-1]])
+      stats.first_date = first.date
+      stats.last_date = last.date
+    }
+    return stats
+  }
+
   async friending_me(user_id: string) {
     let kvs = this.getIdxBetween('friendship', 'friend_id_user_id', [user_id], [user_id])
     let friend_ids = Object.keys(kvs).map(k => k.split(this.keySeperator).pop())

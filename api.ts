@@ -662,40 +662,56 @@ function process_user_detail(client, msg) {
 
   console.log('process_user_detail', filter)
   db.find_user_by(filter).then(function(user) {
-    var safe_user: any = {
+    let empty_user: any = {
       id: user.id,
       username: user.username,
       friends: []
     }
+    let user_promise = Promise.resolve(empty_user)
     if (client.flags.authenticated) {
       var client_user_id = client.flags.authenticated.user_id
       if (user.id == client_user_id) {
-        // full profile
-        safe_user.created_at = user.created_at
-        safe_user.email = user.email
-        safe_user.photo = gravatar_url(user.email)
-        safe_user.friends = user.friends
-        safe_user.access = user.access
-        safe_user.level = user.level
-        safe_user.latest = user.latest
-        safe_user.friending = await db.friending_me(user.id)
+        user_promise = user_promise.then(safe_user => {
+          // basic profile
+          safe_user.created_at = user.created_at
+          safe_user.photo = gravatar_url(user.email)
+          // full profile
+          safe_user.email = user.email
+          safe_user.friends = user.friends
+          safe_user.access = user.access
+          safe_user.level = user.level
+          safe_user.latest = user.latest
+          safe_user.location_stats = db.user_location_stats(user.id)
+          return db.friending_me(user.id).then(friending_ids => {
+            safe_user.friending = friending_ids
+            return safe_user
+          })
+        })
       } else {
         if (user.friends.indexOf(client_user_id) > -1) {
           // public profile for friends
-          safe_user.photo = gravatar_url(user.email)
-          safe_user.friends.push(client_user_id)
+          user_promise = user_promise.then(safe_user => {
+            safe_user.created_at = user.created_at
+            safe_user.photo = gravatar_url(user.email)
+            //safe_user.friends.push(client_user_id)
+            return safe_user
+          })
         }
       }
     } else {
       if (user.access.public) {
-        safe_user.photo = gravatar_url(user.email)
+        user_promise = user_promise.then(safe_user => {
+          safe_user.photo = gravatar_url(user.email)
+          return safe_user
+        })
       } else {
         protocol.respond_fail(client, msg.id, { message: "Profile is private" })
         return
       }
     }
 
-    protocol.respond_success(client, msg.id, safe_user)
+    return user_promise.then(safe_user => {
+      protocol.respond_success(client, msg.id, safe_user)})
   }, function(err) {
     protocol.respond_fail(client, msg.id, err)
   })
