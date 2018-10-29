@@ -421,6 +421,10 @@ export class Db extends DbBase {
     return { errors: 0 }
   }
 
+  activity_count_user(noun, user_id, start, stop) {
+    return {}
+  }
+
   activity_count(noun, start, stop) {
     let kvs = this.getIdxBetween(noun, 'date', [start], [stop])
     let nouns = Object.keys(kvs)
