@@ -17,6 +17,7 @@ http
       if (chunk.length > 0) bodyParts.push(chunk)
     }).on('end', () => http_assemble_json(bodyParts, (data) => {
       if(data) {
+        console.log('<-HTTP', JSON.stringify(data))
         var locations = []
         if (data.locations) { // bundled message semantics
           locations = data.locations
@@ -78,7 +79,7 @@ function push_points(response, auth_token, points) {
 
   apiSocket.on('data', function(data) {
     var lines = data.toString('utf8').split('\n')
-    console.log('<-', lines)
+    console.log('<-IC', lines)
     var msg = JSON.parse(lines[0])
     if (msg.method) {
       if (msg.method == "hello") {
@@ -114,16 +115,18 @@ function push_points(response, auth_token, points) {
       if (msg.result) {
         if (points.length == 0) {
           response.statusCode = 200
-          console.log('response.statusCode 200')
+          console.log('response.statusCode 200', clientMode)
           msg.result.result = "ok"
           if (!response.finished) {
+            let responseJson
             if (clientMode == 'overland') {
-              console.log('response.write '+JSON.stringify(msg.result))
-              response.write(JSON.stringify(msg.result))
+              responseJson = JSON.stringify(msg.result)
             }
             if (clientMode == 'owntracks') {
-              response.write(JSON.stringify([]))
+              responseJson = JSON.stringify([])
             }
+            console.log('response.write '+responseJson)
+            response.write(responseJson)
           } else {
             console.log('client closed before response write.')
           }
