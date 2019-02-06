@@ -15,10 +15,17 @@ http
     request.on('data', (chunk) => {
       if (chunk.length > 0) bodyParts.push(chunk)
     }).on('end', () => http_assemble_json(bodyParts, (data) => {
-      if(data)
-        push_points(response, params.token, data.locations)
-      else
+      if(data) {
+        var locations = []
+        if (data.locations) { // bundled message semantics
+          locations = data.locations
+        } else {
+          locations.push(data)
+        }
+        push_points(response, params.token, locations)
+      } else {
         response.writeHead(400)
+      }
       response.end()
     }))
   })
@@ -166,6 +173,20 @@ function geojson2icecondor(geojson) {
 
   /*
   // Overland examples
+
+  // group msg
+  {"locations":[
+     {"type":"Feature",
+      "geometry":{"type":"Point",
+                    "coordinates":[-122.69711090116809,45.45002201836941]},
+                    "properties":{"speed":-1,"battery_state":"unplugged",
+                    "motion":[],"timestamp":"2019-02-06T22:43:15Z",
+                    "battery_level":0.7900000214576721,"vertical_accuracy":10,
+                    "pauses":true,"horizontal_accuracy":65,"wifi":"a1",
+                    "deferred":0,"significant_change":1,"locations_in_payload":1,
+                    "activity":"fitness","device_id":"iphoneX","altitude":155,
+                    "desired_accuracy":-1}}]}
+
   {
     "type": "Feature",
     "geometry": { "type": "Point", "coordinates": [-122.621, 45.535] }, // geojson
