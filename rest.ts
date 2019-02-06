@@ -111,11 +111,7 @@ function push_points(response, auth_token, points) {
       if (msg.result) {
         response.writeHead(200, { "Content-type": "application/json" })
         msg.result.result = "ok"
-        if (!response.finished) {
-          response.write(JSON.stringify(msg.result))
-        } else {
-          console.log('client closed before response write.')
-        }
+        response.write(JSON.stringify(msg.result))
         rpcNext(points, apiSocket)
       }
       if (msg.error) {
