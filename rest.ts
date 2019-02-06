@@ -150,7 +150,13 @@ function rpcNext(points, apiSocket) {
 
 function rpcAdd(last_location, apiSocket) {
   if (last_location) {
-    let rpc = { id: "rpc-add", method: "activity.add", params: geojson2icecondor(last_location) }
+    let params = {}
+    if(last_location.type == 'Feature') {
+      params = geojson2icecondor(last_location)
+    } else if (last_location._type == 'location') {
+      params = owntracks2icecondor(last_location)
+    }
+    let rpc = { id: "rpc-add", method: "activity.add", params: params }
     console.log(rpc)
     apiSocket.write(JSON.stringify(rpc) + "\n")
   }
@@ -235,6 +241,35 @@ function geojson2icecondor(geojson) {
     latitude: geojson.geometry.coordinates[1],
     longitude: geojson.geometry.coordinates[0],
     accuracy: geojson.properties.horizontal_accuracy,
+    provider: "network"
+  }
+}
+
+/*
+owntracks
+{ _type: 'location',
+  acc: 16,
+  alt: 0,
+  batt: 67,
+  conn: 'm',
+  lat: 45.5231465,
+  lon: -122.6620576,
+  t: 'u',
+  tid: 'li',
+  tst: 1549489702,
+  vac: 0,
+  vel: 0 }
+*/
+
+function owntracks2icecondor(owntracks) {
+  let date = new Date(owntracks.tst*1000)
+  return {
+    id: uuid.v4(),
+    type: "location",
+    date: date.toISOString(),
+    latitude: owntracks.lat,
+    longitude: owntracks.lon,
+    accuracy: owntracks.acc,
     provider: "network"
   }
 }
