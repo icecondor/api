@@ -108,19 +108,24 @@ function push_points(response, auth_token, points) {
     }
 
     if (msg.id == "rpc-add") {
+      console.log('<- rpc-add result', JSON.stringify(msg))
+      response.setHeader('content-type', 'application/json')
       if (msg.result) {
-        response.setHeader('content-type', 'application/json')
-        response.statusCode = 200
-        msg.result.result = "ok"
-        if (!response.finished) {
-          response.write(JSON.stringify(msg.result))
+        if (points.length == 0) {
+          response.statusCode = 200
+          msg.result.result = "ok"
+          if (!response.finished) {
+            response.write(JSON.stringify(msg.result))
+          } else {
+            console.log('client closed before response write.')
+          }
         } else {
-          console.log('client closed before response write.')
+          console.log('ignoring return value when points len '+points.length)
         }
         rpcNext(points, apiSocket)
       }
       if (msg.error) {
-        response.writeHead(500)
+        response.statusCode = 500
         response.write(JSON.stringify(msg.error))
       }
       response.end()
