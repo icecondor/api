@@ -5,6 +5,7 @@ var Url = require('url')
 var uuid = require('node-uuid')
 
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
+let clientMode
 
 console.log("rest listening on", settings.rest.listen_port)
 
@@ -116,8 +117,13 @@ function push_points(response, auth_token, points) {
           console.log('response.statusCode 200')
           msg.result.result = "ok"
           if (!response.finished) {
-            console.log('response.write '+JSON.stringify(msg.result))
-            response.write(JSON.stringify(msg.result))
+            if (clientMode == 'overland') {
+              console.log('response.write '+JSON.stringify(msg.result))
+              response.write(JSON.stringify(msg.result))
+            }
+            if (clientMode == 'owntracks') {
+              response.write(JSON.stringify([]))
+            }
           } else {
             console.log('client closed before response write.')
           }
@@ -132,6 +138,7 @@ function push_points(response, auth_token, points) {
       }
       console.log('response.end()')
       response.end()
+      clientMode = ''
     }
   })
 
@@ -168,8 +175,10 @@ function rpcAdd(last_location, apiSocket) {
   if (last_location) {
     let params = {}
     if(last_location.type == 'Feature') {
+      clientMode = 'overland'
       params = geojson2icecondor(last_location)
     } else if (last_location._type == 'location') {
+      clientMode = 'owntracks'
       params = owntracks2icecondor(last_location)
     }
     let rpc = { id: "rpc-add", method: "activity.add", params: params }
