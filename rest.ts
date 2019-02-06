@@ -182,7 +182,7 @@ function rpcAdd(last_location, apiSocket) {
       params = owntracks2icecondor(last_location)
     }
     let rpc = { id: "rpc-add", method: "activity.add", params: params }
-    console.log(rpc)
+    console.log(clientMode, rpc)
     apiSocket.write(JSON.stringify(rpc) + "\n")
   }
 }
