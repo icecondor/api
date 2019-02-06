@@ -109,9 +109,14 @@ function push_points(response, auth_token, points) {
 
     if (msg.id == "rpc-add") {
       if (msg.result) {
-        response.writeHead(200, { "Content-type": "application/json" })
+        response.setHeader('content-type', 'application/json')
+        response.statusCode = 200
         msg.result.result = "ok"
-        response.write(JSON.stringify(msg.result))
+        if (!response.finished) {
+          response.write(JSON.stringify(msg.result))
+        } else {
+          console.log('client closed before response write.')
+        }
         rpcNext(points, apiSocket)
       }
       if (msg.error) {
