@@ -25,8 +25,8 @@ http
         push_points(response, params.token, locations)
       } else {
         response.writeHead(400)
+        response.end()
       }
-      response.end()
     }))
   })
   .listen(settings.rest.listen_port)
