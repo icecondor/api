@@ -113,8 +113,10 @@ function push_points(response, auth_token, points) {
       if (msg.result) {
         if (points.length == 0) {
           response.statusCode = 200
+          console.log('response.statusCode 200')
           msg.result.result = "ok"
           if (!response.finished) {
+            console.log('response.write '+JSON.stringify(msg.result))
             response.write(JSON.stringify(msg.result))
           } else {
             console.log('client closed before response write.')
@@ -128,6 +130,7 @@ function push_points(response, auth_token, points) {
         response.statusCode = 500
         response.write(JSON.stringify(msg.error))
       }
+      console.log('response.end()')
       response.end()
     }
   })
