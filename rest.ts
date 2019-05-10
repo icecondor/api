@@ -3,6 +3,7 @@ var fs = require('fs')
 var http = require('http')
 var Url = require('url')
 var uuid = require('node-uuid')
+var querystring = require('querystring')
 
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))
 let clientMode
@@ -19,12 +20,13 @@ http
       if(data) {
         console.log('<-HTTP', JSON.stringify(data))
         var locations = []
-        if (data.locations) { // bundled message semantics
+	if (data.locations) { // bundled message semantics/geojson
           locations = data.locations
         } else {
           locations.push(data)
         }
-        push_points(response, params.token, locations)
+	let token = params.token || data.token
+        push_points(response, token, locations)
       } else {
         response.writeHead(400)
         response.end()
@@ -54,11 +56,17 @@ function http_assemble_json(bodyParts, cb) {
       cb(data)
     } catch (e) {
       if (e instanceof SyntaxError) {
-        console.log('bad JSON', JSON.stringify(body.substr(0, 80)))
+        let qbody = querystring.parse(body)
+        if(qbody) {
+	  cb(qbody)
+        } else {
+          console.log('payload not understood', JSON.stringify(body.substr(0, 280)))
+          cb()
+        }
       } else {
         console.log('aborting connection.', e.name)
+        cb()
       }
-      cb()
     }
   } else {
     console.log('empty body. closed.')
@@ -121,9 +129,10 @@ function push_points(response, auth_token, points) {
             let responseJson
             if (clientMode == 'overland') {
               responseJson = JSON.stringify(msg.result)
-            }
-            if (clientMode == 'owntracks') {
+            } else if (clientMode == 'owntracks') {
               responseJson = JSON.stringify([])
+            } else {
+	      console.log('rpc-add unknown clientMode', clientMode)
             }
             console.log('response.write '+responseJson)
             response.write(responseJson)
@@ -183,9 +192,12 @@ function rpcAdd(last_location, apiSocket) {
     } else if (last_location._type == 'location') {
       clientMode = 'owntracks'
       params = owntracks2icecondor(last_location)
+    } else if (last_location.timestamp) {
+      clientMode = 'nextcloud'
+      params = nextcloud2icecondor(last_location)
     }
     let rpc = { id: "rpc-add", method: "activity.add", params: params }
-    console.log(clientMode, rpc)
+    console.log(rpc)
     apiSocket.write(JSON.stringify(rpc) + "\n")
   }
 }
@@ -265,6 +277,7 @@ function geojson2icecondor(geojson) {
 
   */
   /*
+  Icecondor example
   {
     "id": "c7aaef5d-b785-4f1f-8c9d-0189749de972",
     "class": "com.icecondor.nest.db.activity.GpsLocation",
@@ -315,3 +328,22 @@ function owntracks2icecondor(owntracks) {
     provider: "network"
   }
 }
+
+/*
+nextcloud
+querystring to json:
+{"acc":"20.413999557495117","batt":"89.0","alt":"38.099998474121094","lon":"-122.6794917","lat":"45.552868",
+ "timestamp":"1554677785","token":"lBX"}
+*/
+function nextcloud2icecondor(next) {
+  return {
+    id: uuid.v4(),
+    type: "location",
+    date: new Date(parseInt(next["timestamp"])*1000).toISOString(),
+    latitude: parseFloat(next['lat']),
+    longitude: parseFloat(next['lon']),
+    accuracy: parseFloat(next['acc']),
+    provider: "network"
+  }
+}
+
