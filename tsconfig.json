@@ -1,11 +1,8 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es5",
-        "noImplicitAny": false,
-        "allowJs": true,
-        "sourceMap": true,
-        "outDir": "build",
-        "lib": ["es2015"]
-    }
+  "extends": "@tsconfig/node12/tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "outDir": "build"
+  }
 }
