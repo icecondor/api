@@ -17,15 +17,15 @@ http
     request.on('data', (chunk) => {
       if (chunk.length > 0) bodyParts.push(chunk)
     }).on('end', () => http_assemble_json(bodyParts, (data) => {
-      if(data) {
+      if (data) {
         console.log('<-HTTP', JSON.stringify(data))
         var locations = []
-	if (data.locations) { // bundled message semantics/geojson
+        if (data.locations) { // bundled message semantics/geojson
           locations = data.locations
         } else {
           locations.push(data)
         }
-	let token = params.token || data.token
+        let token = params.token || data.token
         push_points(response, token, locations)
       } else {
         response.writeHead(400)
@@ -57,8 +57,8 @@ function http_assemble_json(bodyParts, cb) {
     } catch (e) {
       if (e instanceof SyntaxError) {
         let qbody = querystring.parse(body)
-        if(qbody) {
-	  cb(qbody)
+        if (qbody) {
+          cb(qbody)
         } else {
           console.log('payload not understood', JSON.stringify(body.substr(0, 280)))
           cb()
@@ -91,7 +91,7 @@ function push_points(response, auth_token, points) {
     var msg = JSON.parse(lines[0])
     if (msg.method) {
       if (msg.method == "hello") {
-        console.log('-> auth.session device_key', auth_token.substr(0,4)+"...")
+        console.log('-> auth.session device_key', auth_token.substr(0, 4) + "...")
         apiSocket.write(JSON.stringify({
           id: "rpc-auth",
           method: "auth.session", params: { device_key: auth_token }
@@ -132,15 +132,15 @@ function push_points(response, auth_token, points) {
             } else if (clientMode == 'owntracks') {
               responseJson = JSON.stringify([])
             } else {
-	      console.log('rpc-add unknown clientMode', clientMode)
+              console.log('rpc-add unknown clientMode', clientMode)
             }
-            console.log('response.write '+responseJson)
+            console.log('response.write ' + responseJson)
             response.write(responseJson)
           } else {
             console.log('client closed before response write.')
           }
         } else {
-          console.log('ignoring return value when points len '+points.length)
+          console.log('ignoring return value when points len ' + points.length)
         }
         rpcNext(points, apiSocket)
       }
@@ -186,7 +186,7 @@ function rpcNext(points, apiSocket) {
 function rpcAdd(last_location, apiSocket) {
   if (last_location) {
     let params = {}
-    if(last_location.type == 'Feature') {
+    if (last_location.type == 'Feature') {
       clientMode = 'overland'
       params = geojson2icecondor(last_location)
     } else if (last_location._type == 'location') {
@@ -317,7 +317,7 @@ owntracks
 */
 
 function owntracks2icecondor(owntracks) {
-  let date = new Date(owntracks.tst*1000)
+  let date = new Date(owntracks.tst * 1000)
   return {
     id: uuid.v4(),
     type: "location",
@@ -339,7 +339,7 @@ function nextcloud2icecondor(next) {
   return {
     id: uuid.v4(),
     type: "location",
-    date: new Date(parseInt(next["timestamp"])*1000).toISOString(),
+    date: new Date(parseInt(next["timestamp"]) * 1000).toISOString(),
     latitude: parseFloat(next['lat']),
     longitude: parseFloat(next['lon']),
     accuracy: parseFloat(next['acc']),

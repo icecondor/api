@@ -3,6 +3,7 @@
   "compilerOptions": {
     "noImplicitAny": false,
     "sourceMap": true,
-    "outDir": "build"
+    "outDir": "build",
+    "newLine": "LF"  
   }
 }

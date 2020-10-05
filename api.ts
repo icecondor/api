@@ -587,7 +587,7 @@ function process_auth_session(client, msg) {
       } else {
         // look up access token
         let access = db.findAccess(msg.params.token || msg.params.device_key)
-        if(access) {
+        if (access) {
           console.log('(unimplemented) found access:', JSON.stringify(access))
           protocol.respond_fail(client, msg.id, { code: "BK1", message: "api_key unimplemented" })
         } else {
@@ -904,7 +904,7 @@ function process_device_add(client, msg) {
       user_id: client.flags.authenticated.user_id
     }
     db.device_add(device)
-    protocol.respond_success(client, msg.id, {id: device.id})
+    protocol.respond_success(client, msg.id, { id: device.id })
   } else {
     protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
   }
@@ -913,9 +913,9 @@ function process_device_add(client, msg) {
 function process_device_genkey(client, msg) {
   if (client.flags.authenticated) {
     let device = db.loadFile(msg.params.id)
-    server.create_token_temp({device_id: device.device_id})
+    server.create_token_temp({ device_id: device.device_id })
       .then(function(device_key) {
-        let token = util.sha256(device.device_id+device_key) // magic sauce
+        let token = util.sha256(device.device_id + device_key) // magic sauce
         server.token_validate(token, client.flags.authenticated.user_id, device.device_id)
         protocol.respond_success(client, msg.id, { token: token })
       }, function(err) {

@@ -515,7 +515,7 @@ export class Db extends DbBase {
 
   findAccess(key) {
     var key = this.get('access', 'key', key)
-    if(key) return this.loadFile(key)
+    if (key) return this.loadFile(key)
   }
 
   async user_add_access(user_id, key, value) {
@@ -617,13 +617,13 @@ export class Db extends DbBase {
     let start = new Date("2008-08-01").toISOString()
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date',
-                                 [user_id, start],
-                                 [user_id, stop], null, true)
+      [user_id, start],
+      [user_id, stop], null, true)
     let kvs_length = Object.keys(kvs).length
     let stats: any = { count: kvs_length }
-    if(kvs_length > 0) {
+    if (kvs_length > 0) {
       let first = this.loadFile(kvs[Object.keys(kvs)[0]])
-      let last = this.loadFile(kvs[Object.keys(kvs)[kvs_length-1]])
+      let last = this.loadFile(kvs[Object.keys(kvs)[kvs_length - 1]])
       stats.first_date = first.date
       stats.last_date = last.date
     }
