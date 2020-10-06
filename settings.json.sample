@@ -1,17 +1,41 @@
 {
-  "api":{
-    "listen_port":2020,
-    "progress_report_timer":3000,
-    "hostname":"server1"
-   },
-  "email":{
-    "from":"System <system@example.com>",
-    "alert":"System <system@example.com>"
+  "api": {
+    "progress_report_timer": 60000,
+    "listen_port": 2020
   },
-  "bouncy":{"listen_port":9340},
-  "web":{"listen_port":9350},
-  "socket_io":{"listen_port":9360},
-  "stripe":{"key":"pk_mDj6lh5H3J0jsTwomUiqCJ82Rdy3g"},
-  "influx": {"url": "https://user:pass@example.org/influx", "database": "icecondor"},
-  "rest":{"listen_port":9370}
+  "email": {
+    "from":"System <system@example.com>",
+    "alert":"Alert <system@example.com>"
+  },
+  "bouncy": {
+    "listen_port": 9340
+  },
+  "web": {
+    "root": "/home/devops/web/build",
+    "listen_port": 9350
+  },
+  "socket_io": {
+    "listen_port": 9360
+  },
+  "websockets": {
+    "listen_port": 2040
+  },
+  "rethinkdb": {
+    "host": "127.0.0.1"
+  },
+  "rqlite":{"host":"127.0.0.1",
+            "sql_folder":"../protobuf/"},
+  "stripe": {
+    "key": "stripe-key"
+  },
+  "influx": {
+    "url": "https://user:pass@donp.org/influx", 
+    "database": "icecondor"
+  },
+  "rest":{"listen_port":9370},
+  "storage":{
+    "path": "jsonlake",
+    "lmdb": {"path":"db", "maxDbs": 128, "mapSize": 8589934592 }
+  }
+
 }

@@ -27,7 +27,7 @@ let db = new dbLib.Db(settings.storage) as any
 import * as emailerLib from './lib/email'
 let emailer = emailerLib.factory(settings.email) as any
 import * as stripeLib from 'stripe'
-let stripe = stripeLib(settings.stripe.key);
+let stripe = stripeLib.default(settings.stripe.key);
 
 var motd = "version:" + settings.api.version + " server:" + settings.api.hostname
 console.log("api", motd)
