@@ -3,7 +3,6 @@ import * as path from 'path'
 // import * as levelup from 'levelup'
 import * as lmdb from 'node-lmdb'
 import * as mkdirp from 'mkdirp'
-import * as Reader from 'native-readdir-stream'
 
 import { Db as DbBase } from './db'
 import * as noun from './nouns'
@@ -138,7 +137,7 @@ export class Db extends DbBase {
     console.log('ram total', (ramtotal / 1024 / 1024).toFixed(1), 'MB')
   }
 
-  async syncIndexes(typeName = null) {
+  async syncIndexes(typeName?: string) {
     console.log('** Sync walk begin on', this.settings.path, typeName ? "for type " + typeName : "for all types")
     let groupSize = 1000
     let fileCount = 0
@@ -413,7 +412,7 @@ export class Db extends DbBase {
         user_id: a.user_id,
         device_id: a.device_id,
         recording: a.recording == "on" ? true : false,
-        recording_frequency: a.frequency ? parseFloat(a.frequency) * 60 : null,
+        recording_frequency: a.frequency ? parseFloat(a.frequency) * 60 : undefined,
         source: a.source || null
       }
       let result = this.save(thing)
@@ -524,7 +523,7 @@ export class Db extends DbBase {
       id: this.new_id(),
       type: "access",
       created_at: new Date(value.created_at).toISOString(),
-      expires_at: value.expires_at ? new Date(value.expires_at).toISOString() : null,
+      expires_at: value.expires_at ? new Date(value.expires_at).toISOString() : undefined,
       user_id: user_id,
       key: key,
       level: value.scopes[0]
@@ -618,7 +617,7 @@ export class Db extends DbBase {
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date',
       [user_id, start],
-      [user_id, stop], null, true)
+      [user_id, stop], undefined, true)
     let kvs_length = Object.keys(kvs).length
     let stats: any = { count: kvs_length }
     if (kvs_length > 0) {

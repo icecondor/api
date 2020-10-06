@@ -13,13 +13,13 @@ console.log("rest listening on", settings.rest.listen_port)
 http
   .createServer(function(request, response) {
     let params = paramsFromUrl(request.url)
-    let bodyParts = []
+    let bodyParts: string[] = []
     request.on('data', (chunk) => {
       if (chunk.length > 0) bodyParts.push(chunk)
     }).on('end', () => http_assemble_json(bodyParts, (data) => {
       if (data) {
         console.log('<-HTTP', JSON.stringify(data))
-        var locations = []
+        var locations: string[] = []
         if (data.locations) { // bundled message semantics/geojson
           locations = data.locations
         } else {

@@ -174,7 +174,7 @@ function progress_report() {
 }
 
 function clog(client, msg) {
-  var parts = []
+  let parts: string[] = []
   parts.push(new Date().toISOString())
   if (client.flags.authenticated) {
     var id_id = client.flags.authenticated.device_id.substr(0, 8) + ':' +
@@ -204,7 +204,7 @@ function pump(status) {
 function fences_add(location) {
   return friendly_fences_for(location, [location.user_id]).then(function(fences) {
     if (fences.length > 0) {
-      location.fences = fences.map(function(fence) { return fence.id })
+      location.fences = fences.map(function(fence: any) { return fence.id })
     }
     return location
   })
@@ -262,8 +262,8 @@ function process_activity_add(client, msg) {
           }
         })
     } else {
-      var fail = { message: 'invalid activity properties' };
-      protocol.respond_fail(client, msg.id, auth_fail)
+      let fail = { message: 'invalid activity properties' };
+      protocol.respond_fail(client, msg.id, fail)
     }
   } else {
     var auth_fail = { message: 'not authorized' };
@@ -301,8 +301,9 @@ function user_latest_freshen(location) {
                     fence_rule_run(user, last_location, location, fences_entered, "entered")
                     fence_rule_run(user, location, last_location, fences_exited, "exited")
 
-                    var my_fences = fences.filter(function(f) { return f.user_id == location.user_id })
-                      .map(function(fence) { return fence.id })
+                    var my_fences = fences.filter(
+                      function(f: any) { return f.user_id == location.user_id }
+                    ).map(function(fence: any) { return fence.id })
                     var latest = {
                       location_id: location.id,
                       fences: my_fences
@@ -392,18 +393,27 @@ function process_activity_stats(client, msg) {
   var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24)
   var timestep = msg.params.timestep || 60 * 60 * 1000
 
-  var times = []
+  var times: Date[] = []
   for (let time = yesterday.getTime(); time < today.getTime(); time += timestep) {
     times.push(new Date(time))
   }
-  times = times.reduce(function(m, t, i) { if (i > 0) m.push([times[i - 1], t]); return m }, [])
+  let good_times: any[] = times.reduce(
+    function(m: any[], t: Date, i: number) {
+      if (i > 0) m.push([times[i - 1], t]); return m
+    }, [])
 
-  var stats = { start: today.toISOString(), stop: yesterday.toISOString(), periods: [], period_length: timestep }
-  stats.periods = times.map(ts => db.activity_count('location', ts[0].toISOString(), ts[1].toISOString()))
+  var stats = {
+    start: today.toISOString(),
+    stop: yesterday.toISOString(),
+    periods: <any>[],
+    period_length: timestep
+  }
+  stats.periods = good_times.map(
+    ts => db.activity_count('location', ts[0].toISOString(), ts[1].toISOString()))
   if (stats) {
     protocol.respond_success(client, msg.id, stats)
   } else {
-    protocol.respond_success(client, msg.id, stats)
+    protocol.respond_success(client, msg.id, stats) // todo fail msg
   }
 
 }
