@@ -146,36 +146,27 @@ export class Db extends DbBase {
     let now = new Date()
     let that = this // this get munged in filewalker
 
-    return new Promise((res, rej) => {
-      new Reader(this.settings.path)
-        .on('data', function(filename) {
-          if (filename == "." || filename == "..") return
-          fileCount += 1
-          fileTotal += 1
-          if (fileCount % groupSize == 0) {
-            let elapsed = (new Date).getTime() - now.getTime()
-            console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec of',
-              fileTotal, 'read so far', (typeName ? "with " + hitCount + " " + typeName : ''))
-            fileCount = 0
-            hitCount = 0
-            now = new Date()
-          }
-          let value = that.loadFile(filename)
-          if (!typeName || (typeName && value.type === typeName)) {
-            that.saveIndexes(value)
-            hitCount += 1
-          }
-        })
-        .once('end', function() {
-          let durationSeconds = (new Date().getTime() - now.getTime()) / 1000
-          console.log('** Sync walk end', (durationSeconds / 60).toFixed(1), 'minutes')
-          res()
-        })
-        .once('error', function(error) {
-          console.log('!!sync error', error)
-          rej(error)
-        })
-    })
+    let dir = await fs.promises.opendir(this.settings.path)
+    for await (const dirent of dir) {
+      if (dirent.name == "." || dirent.name == "..") return
+      fileCount += 1
+      fileTotal += 1
+      if (fileCount % groupSize == 0) {
+        let elapsed = (new Date).getTime() - now.getTime()
+        console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec of',
+          fileTotal, 'read so far', (typeName ? "with " + hitCount + " " + typeName : ''))
+        fileCount = 0
+        hitCount = 0
+        now = new Date()
+      }
+      let value = that.loadFile(dirent.name)
+      if (!typeName || (typeName && value.type === typeName)) {
+        that.saveIndexes(value)
+        hitCount += 1
+      }
+    }
+    let durationSeconds = (new Date().getTime() - now.getTime()) / 1000
+    console.log('** Sync walk end', (durationSeconds / 60).toFixed(1), 'minutes')
   }
 
   dbName(typeName, indexName) { return typeName + '.' + indexName }
