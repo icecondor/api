@@ -19,9 +19,9 @@ import * as settingsLib from './lib/settings'
 let settings = settingsLib.default(major_version)
 import * as util from "./lib/util"
 import * as protocolLib from "./lib/protocol-v2"
-let protocol = protocolLib(settings.api)
+let protocol = protocolLib.default(settings.api)
 import * as serverLib from './lib/server'
-let server = serverLib.factory()
+let server: any = serverLib.factory()
 import * as dbLib from './lib/db-lmdb'
 let db = new dbLib.Db(settings.storage) as any
 import * as emailerLib from './lib/email'

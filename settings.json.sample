@@ -11,9 +11,7 @@
   "bouncy":{"listen_port":9340},
   "web":{"listen_port":9350},
   "socket_io":{"listen_port":9360},
-  "couchdb":{"url":"http://localhost:5984/icecondor"},
-  "rethinkdb":{"host":"127.0.0.1"}
   "stripe":{"key":"pk_mDj6lh5H3J0jsTwomUiqCJ82Rdy3g"},
-  "influx": {"url": "https://influx:hello@donp.org/influx", "database": "icecondor"},
+  "influx": {"url": "https://user:pass@example.org/influx", "database": "icecondor"},
   "rest":{"listen_port":9370}
 }
