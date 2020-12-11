@@ -16,9 +16,9 @@ http
     let bodyParts: string[] = []
     request.on('data', (chunk) => {
       if (chunk.length > 0) bodyParts.push(chunk)
-    }).on('end', () => http_assemble_json(bodyParts, (data) => {
+    }).on('end', () => http_assemble_json(request, bodyParts, (data) => {
       if (data) {
-        console.log('<-HTTP', JSON.stringify(data))
+        console.log('<-JSON', JSON.stringify(data))
         var locations: string[] = []
         if (data.locations) { // bundled message semantics/geojson
           locations = data.locations
@@ -26,6 +26,7 @@ http
           locations.push(data)
         }
         let token = params.token || data.token
+        if(token.length == 43) { token += '=' } // base64 in url hack
         push_points(response, token, locations)
       } else {
         response.writeHead(400)
@@ -48,10 +49,11 @@ function paramsFromUrl(urlStr) {
   return params
 }
 
-function http_assemble_json(bodyParts, cb) {
+function http_assemble_json(request, bodyParts, cb) {
   let body = Buffer.concat(bodyParts).toString()
   if (body.length > 0) {
     try {
+      console.log('<-HTTP', request.method, request.headers['content-type'], JSON.stringify(body))
       let data = JSON.parse(body)
       cb(data)
     } catch (e) {
@@ -131,6 +133,8 @@ function push_points(response, auth_token, points) {
               responseJson = JSON.stringify(msg.result)
             } else if (clientMode == 'owntracks') {
               responseJson = JSON.stringify([])
+            } else if (clientMode == 'nextcloud') {
+              responseJson = JSON.stringify("")
             } else {
               console.log('rpc-add unknown clientMode', clientMode)
             }

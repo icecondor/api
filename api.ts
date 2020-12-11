@@ -693,7 +693,7 @@ function process_user_detail(client, msg) {
           safe_user.access = user.access
           safe_user.level = user.level
           safe_user.latest = user.latest
-          safe_user.location_stats = db.user_location_stats(user.id)
+          safe_user.location_stats = {} //db.user_location_stats(user.id)
           console.log('process_user_detail full detail for', user.username, 'stats built')
           return db.friending_me(user.id).then(friending_ids => {
             console.log('process_user_detail full detail for', user.username, 'friending ids')
