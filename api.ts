@@ -1076,8 +1076,12 @@ function process_stream_ziplist(client, msg) {
 }
 
 async function influxWrite(module, value) {
-  let url = settings.influx.url + '/write?db=' + settings.influx.database
-  const post = bent.default('POST', 204); // accept only 204
-  let reading = "response_time,module=" + module + " value=" + value
-  const response = await post(url, reading);
+  try {
+    let url = settings.influx.url + '/write?db=' + settings.influx.database
+    const post = bent.default('POST', 204); // accept only 204
+    let reading = "response_time,module=" + module + " value=" + value
+    const response = await post(url, reading);
+  } catch(err) {
+    console.log('influxWrite', err)
+  }
 }
