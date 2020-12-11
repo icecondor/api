@@ -9,7 +9,7 @@ import * as os from 'os'
 // npm
 import * as moment from 'moment'
 import * as geojsonArea from 'geojson-area'
-import * as request from 'request'
+import * as bent from 'bent'
 import * as turfhelp from '@turf/helpers'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 
@@ -1075,13 +1075,9 @@ function process_stream_ziplist(client, msg) {
   }
 }
 
-function influxWrite(module, value) {
-  request({
-    method: 'POST',
-    uri: settings.influx.url + '/write?db=' + settings.influx.database,
-    body: "response_time,module=" + module + " value=" + value
-  },
-    function(error, response, body) {
-      if (error) { console.log(error) }
-    })
+async function influxWrite(module, value) {
+  let url = settings.influx.url + '/write?db=' + settings.influx.database
+  const post = bent('POST', 200); // accept only 200
+  let reading = "response_time,module=" + module + " value=" + value
+  const response = await post(url, reading);
 }
