@@ -340,20 +340,22 @@ export class Db extends DbBase {
     }
   }
 
+  idToFilepath(id: string): string {
+    return this.settings.path + '/' + id
+  }
+
   saveFile(value) {
-    var filepath = this.settings.path + '/' + value.id //.replace(/-/g,'/')
-    //mkdirp.sync(path.dirname(filepath))
-    //console.log('file save', value.type, value.id, filepath)
+    var filepath = this.idToFilepath(value.id)
     fs.writeFileSync(filepath, JSON.stringify(value))
   }
 
   delFile(id) {
-    var filepath = this.settings.path + '/' + id
+    var filepath = this.idToFilepath(id)
     fs.unlinkSync(filepath)
   }
 
   loadFile(id) {
-    var filepath = this.settings.path + '/' + id //.replace(/-/g,'/')
+    var filepath = this.idToFilepath(id)
     let json = fs.readFileSync(filepath, 'utf8')
     let data = JSON.parse(json)
     return data
