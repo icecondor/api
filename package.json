@@ -47,7 +47,7 @@
   "scripts": {
     "start": "if tsc && echo node build/api/api.js && node build/api/api.js ; then echo ''; fi",
     "build": "if tsc ; then echo ''; fi",
-    "test": "tsc && jest --testRegex '.*spec.js'",
+    "test": "jest --testRegex --testPathIgnorePatterns build '.*spec.ts'",
     "format": "tsfmt -r"
   },
   "compilerOptions": {
