@@ -344,9 +344,17 @@ export class Db extends DbBase {
     return this.settings.path + '/' + id
   }
 
+  serialize(value: any): string {
+    return JSON.stringify(value)
+  }
+
+  deserialize(blob: string): any {
+    return JSON.parse(blob)
+  }
+
   saveFile(value) {
     var filepath = this.idToFilepath(value.id)
-    fs.writeFileSync(filepath, JSON.stringify(value))
+    fs.writeFileSync(filepath, this.serialize(value))
   }
 
   delFile(id) {
@@ -357,7 +365,7 @@ export class Db extends DbBase {
   loadFile(id) {
     var filepath = this.idToFilepath(id)
     let json = fs.readFileSync(filepath, 'utf8')
-    let data = JSON.parse(json)
+    let data = this.deserialize(json)
     return data
   }
 
