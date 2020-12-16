@@ -26,7 +26,7 @@ http
           locations.push(data)
         }
         let token = params.token || data.token
-        if(token.length == 43) { token += '=' } // base64 in url hack
+        if (token.length == 43) { token += '=' } // base64 in url hack
         push_points(response, token, locations)
       } else {
         response.writeHead(400)

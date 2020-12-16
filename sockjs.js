@@ -12,7 +12,7 @@ server.listen(settings.socket_io.listen_port, '0.0.0.0');
 console.log("sockjs listening on " + settings.socket_io.listen_port)
 
 echo.on('connection', function(client) {
-  console.log(client.headers['x-forwarded-for']+" "+client.id + " connecting to API")
+  console.log(client.headers['x-forwarded-for'] + " " + client.id + " connecting to API")
   var apiSocket = net.createConnection(settings.api.listen_port, "localhost")
   var apiBuffer = "";
 
@@ -44,7 +44,7 @@ echo.on('connection', function(client) {
   })
 
   client.on('data', function(str) {
-    console.log(client.headers['x-forwarded-for']+" <- " + str)
+    console.log(client.headers['x-forwarded-for'] + " <- " + str)
     var written = apiSocket.write(str + "\n")
     if (!written) {
       console.log('sockjs write error')

@@ -1081,7 +1081,7 @@ async function influxWrite(module, value) {
     const post = bent.default('POST', 204); // accept only 204
     let reading = "response_time,module=" + module + " value=" + value
     const response = await post(url, reading);
-  } catch(err) {
+  } catch (err) {
     console.log('influxWrite', err)
   }
 }
