@@ -1,4 +1,4 @@
-var settings = require('../../lib/settings')(2)
+var settings = require('../../lib/settings')("settings.test.json")
 var protocol = require('../../lib/protocol-v2')(settings.api)
 var phoney_client = require('../client_mock')
 

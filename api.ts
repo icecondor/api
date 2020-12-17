@@ -14,9 +14,8 @@ import * as turfhelp from '@turf/helpers'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 
 // local
-let major_version = 2
 import * as settingsLib from './lib/settings'
-let settings = settingsLib.default(major_version)
+let settings = settingsLib.default("settings.json")
 import * as util from "./lib/util"
 import * as protocolLib from "./lib/protocol-v2"
 let protocol = protocolLib.default(settings.api)
