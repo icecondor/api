@@ -12,10 +12,9 @@ describe("existing users", function() {
       //   rethink_mock._next_answer('users', orig_user)
       //   db.find_user_by({ email: 'bob@server' }).then(function(user) {
       //     expect(user).toEqual(orig_user)
-      await db.create_user({ email: "a@b", username: "ab" })
-      let user = await db.find_user_by({ email: "a@b" })
-      console.log(user)
-      expect(user)
+      //await db.create_user({ email: "a@b", username: "ab" })
+      //let user = await db.find_user_by({ email: "a@b" })
+      expect(async () => await db.find_user_by({ email: "a@b" })).toThrowError()
       //   })
       // })
     })
