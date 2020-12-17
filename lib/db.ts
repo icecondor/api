@@ -121,7 +121,7 @@ export class Db extends DbDriver {
       console.log('find_user_by', e, 'DONE')
       return full_user
     } else {
-      throw "find_user_by reject " + index + " " + key
+      throw "find_user_by index '" + index + "' key not found: " + key
     }
   }
 

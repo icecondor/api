@@ -174,8 +174,8 @@ export class Db {
   dbName(typeName, indexName) { return typeName + '.' + indexName }
 
   save(value) {
-    this.saveFile(value)
     this.saveIndexes(value)
+    this.saveFile(value)
   }
 
   del(id) {
@@ -226,7 +226,7 @@ export class Db {
         if (exists) {
           if (exists != record.id) {
             txn.abort()
-            throw "unique fail on  " + dbname + " writing key/id: " + key + '/' + record.id + " collided with " + " id " + record.id
+            throw "unique constraint failed on " + dbname + " writing key/id: " + key + '/' + record.id + " collided with id" + exists
           }
         }
       }
