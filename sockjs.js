@@ -1,5 +1,4 @@
-var major_version = 2
-var settings = require('./lib/settings')(major_version),
+var settings = require('./lib/settings')("settings.json"),
   net = require('net'),
   http = require('http'),
   sockjs = require('sockjs')
