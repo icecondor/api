@@ -3,7 +3,7 @@ import * as uuid from 'node-uuid'
 import { Db as DbDriver } from './db-lmdb'
 import * as noun from './nouns'
 
-export class Db extends DbDriver{
+export class Db extends DbDriver {
 
   new_id() {
     return uuid.v4()
