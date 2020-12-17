@@ -1,5 +1,5 @@
 require('source-map-support').install()
-import * as Db from '../lib/db-lmdb'
+import * as Db from '../lib/db'
 import * as fs from 'fs'
 
 let settings = JSON.parse(fs.readFileSync("settings.json", 'utf8'))

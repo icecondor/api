@@ -21,7 +21,7 @@ import * as protocolLib from "./lib/protocol-v2"
 let protocol = protocolLib.default(settings.api)
 import * as serverLib from './lib/server'
 let server: any = serverLib.factory()
-import * as dbLib from './lib/db-lmdb'
+import * as dbLib from './lib/db'
 let db = new dbLib.Db(settings.storage) as any
 import * as emailerLib from './lib/email'
 let emailer = emailerLib.factory(settings.email) as any
