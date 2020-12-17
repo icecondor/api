@@ -91,7 +91,7 @@ export class Db extends DbDriver {
     return key ? key.split(this.keySeperator).shift() : null
   }
 
-  find_user_by(e) {
+  async find_user_by(e) {
     console.log('find_user_by', e)
     let index, key
     if (e.email_downcase || e.email) {
