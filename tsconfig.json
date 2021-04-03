@@ -1,7 +1,7 @@
 {
   "extends": "@tsconfig/node12/tsconfig.json",
   "compilerOptions": {
-  	"allowJs": true,
+    "allowJs": true,
     "noImplicitAny": false,
     "sourceMap": true,
     "outDir": "build",

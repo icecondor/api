@@ -7,7 +7,7 @@ import * as uuid from 'node-uuid'
 import * as os from 'os'
 
 // npm
-import * as moment from 'moment'
+import moment from 'moment'
 import * as geojsonArea from 'geojson-area'
 import * as bent from 'bent'
 import * as turfhelp from '@turf/helpers'
@@ -523,8 +523,8 @@ function send_last_locations(client, stream_id, user_id, start, stop, count, typ
   //db.count_locations_for(user_id, start, stop, count, type, order)
   //  .then(function(qcount){}) // stream helper
   let timer = new Date()
-  start = start || new Date("2008-08-01").toISOString()
-  stop = stop || new Date().toISOString()
+  start = start || moment().subtract(1, 'days').format()
+  stop = stop || moment().format()
   db.find_locations_for(user_id, start, stop, count, type, order)
     .then(function(locations) {
       console.log('send_last_locations', user_id, start, '-', stop, locations.length + '/' + count, 'points')
