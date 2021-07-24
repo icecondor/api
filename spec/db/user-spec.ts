@@ -14,7 +14,7 @@ describe("existing users", function() {
       //     expect(user).toEqual(orig_user)
       //await db.create_user({ email: "a@b", username: "ab" })
       //let user = await db.find_user_by({ email: "a@b" })
-      expect(async () => await db.find_user_by({ email: "a@b" })).toThrowError()
+      expect(db.find_user_id_by({ email: "a@b" })).rejects.toMatch('key not found')
       //   })
       // })
     })

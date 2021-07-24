@@ -11,16 +11,17 @@ let email = process.argv[2]
 if (email) {
   console.log('user dump', email)
   db.connect(async () => {
-    let user
+    let user_id
     try {
-      user = await db.find_user_by({ email: email })
+      user_id = await db.find_user_id_by({ email: email })
     } catch (e) {
       try {
-        user = await db.find_user_by({ username: email })
+        user_id = await db.find_user_id_by({ username: email })
       } catch (e) {
       }
     }
-    if (user) {
+    if (user_id) {
+      let user = await db.get_user(user_id)
       console.log(JSON.stringify(user, null, 2))
       let friending = await db.friending_me(user.id)
       console.log(user.friends.length, 'friends', friending.length, 'friending')

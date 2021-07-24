@@ -91,8 +91,14 @@ export class Db extends DbDriver {
     return key ? key.split(this.keySeperator).shift() : null
   }
 
-  async find_user_by(e) {
-    console.log('find_user_by', e)
+  activity_last_date_user(user) {
+    let key = this.getLastKey('location', 'date')
+    console.log('activity_last_date', key)
+    return key ? key.split(this.keySeperator).shift() : null
+  }
+
+  async find_user_id_by(e: {[key: string]: any} ) {
+    console.log('find_user_id_by', e)
     let index, key
     if (e.email_downcase || e.email) {
       index = 'email'
@@ -108,18 +114,7 @@ export class Db extends DbDriver {
     }
     let user_id = this.get('user', index, key)
     if (user_id) {
-      let user = this.loadFile(user_id)
-      let full_user: any = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        created_at: user.created_at,
-      }
-      full_user.devices = this.user_load_devices(full_user.id)
-      full_user.friends = this.user_load_friends(full_user.id)
-      full_user.access = this.user_load_access(full_user.id)
-      console.log('find_user_by', e, 'DONE')
-      return full_user
+      return user_id
     } else {
       console.log("throwing")
       throw "find_user_by index '" + index + "' key not found: " + key
@@ -207,12 +202,12 @@ export class Db extends DbDriver {
   async ensure_user(u) {
     try {
       console.log('ensure_user checking', u.email, u.id)
-      return await this.find_user_by({ email_downcase: u.email })
+      return await this.find_user_id_by({ email_downcase: u.email }).then(this.get_user)
     } catch (e) {
       // not found
       console.log('ensure_user creating', u.email, u.id)
       this.create_user(u)
-      let user: noun.User = await this.find_user_by({ email_downcase: u.email.toLowerCase() })
+      let user: noun.User = await this.find_user_id_by({ email_downcase: u.email.toLowerCase() }).then(this.get_user)
       if (u.devices) {
         if (u.devices.length > 0) console.log('adding', u.devices.length, 'devices')
         for (const device_id of u.devices) this.user_add_device(user.id, device_id)
@@ -226,7 +221,7 @@ export class Db extends DbDriver {
         for (const friend of u.friends) this.user_add_friend(user.id, friend)
       }
 
-      return this.find_user_by({ email: u.email })
+      return this.find_user_id_by({ email: u.email }).then(this.get_user)
     }
   }
 
@@ -242,16 +237,27 @@ export class Db extends DbDriver {
   }
 
   async get_user(user_id: string) {
-    let user = await this.find_user_by({ id: user_id })
+    let user = this.loadFile(user_id)
+    console.log('get_user', user_id, user.username)
+    let full_user: any = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      created_at: user.created_at,
+    }
+    full_user.devices = this.user_load_devices(full_user.id)
+    full_user.friends = this.user_load_friends(full_user.id)
+    full_user.access = this.user_load_access(full_user.id)
+    // last pt
     let start = new Date("2008-08-01").toISOString()
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
       [user_id, stop], 2, true)
     let location_keys = Object.keys(kvs)
-    if (location_keys.length == 2) {
+    if (location_keys.length == 2) { // why 2 pts
       user.latest = { location_id: kvs[location_keys[1]] }
     }
-    return user
+    return full_user
   }
 
   user_location_stats(user_id: string) {

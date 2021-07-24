@@ -1,5 +1,5 @@
 module.exports = {
-  apps : [{
+  apps: [{
     script: './build/api/api.js',
   }, {
     script: './build/api/rest.js',
