@@ -443,7 +443,7 @@ function process_stream_follow(client, msg) {
 function stream_follow_user(stream_id, client, msg) {
   var findby: any = { username: msg.params.username }
   if (msg.params.id) { findby = { id: msg.params.id } }
-  db.find_user_by(findby).then(function(user) {
+  db.find_user_id_by(findby).then(db.get_user).then(function(user) {
     var auth = false
 
     if (msg.params.key) {
@@ -609,7 +609,7 @@ function process_auth_session(client, msg) {
 }
 
 function client_auth_check(client, msg, session) {
-  db.find_user_by({ email_downcase: session.email.toLowerCase() }).then(function(user) {
+  db.find_user_id_by({ email_downcase: session.email.toLowerCase() }).then(db.get_user).then(function(user) {
     clog(client, 'authenticating session for ' + session.email)
     if (user.devices.indexOf(session.device_id) > -1) {
       clog(client, '* existing device ' + session.device_id);
@@ -671,7 +671,7 @@ function process_user_detail(client, msg) {
   }
 
   console.log('process_user_detail filter', filter)
-  db.find_user_by(filter).then(function(user) {
+  db.find_user_id_by(filter).then(db.get_user).then(function(user) {
     let empty_user: any = {
       id: user.id,
       username: user.username,
@@ -748,7 +748,7 @@ function process_user_update(client, msg) {
 
 function process_user_access_add(client, msg) {
   if (client.flags.authenticated) {
-    db.find_user_by({ id: client.flags.authenticated.user_id }).then(function(user) {
+    db.find_user_id_by({ id: client.flags.authenticated.user_id }).then(db.get_user).then(function(user) {
       var key = uuid.v4().substr(0, 18)
       var rule: any = {
         created_at: new Date(),
@@ -769,7 +769,7 @@ function process_user_access_add(client, msg) {
 
 function process_user_access_del(client, msg) {
   if (client.flags.authenticated) {
-    db.find_user_by({ id: client.flags.authenticated.user_id }).then(function(user) {
+    db.find_user_id_by({ id: client.flags.authenticated.user_id }).then(db.get_user).then(function(user) {
       if (user.access[msg.params.key]) {
         delete user.access[msg.params.key]
         db.update_user_access(client.flags.authenticated.user_id, user.access)
@@ -786,7 +786,7 @@ function process_user_access_del(client, msg) {
 function process_user_payment(client, msg) {
   if (client.flags.authenticated) {
     var client_user_id = client.flags.authenticated.user_id
-    db.find_user_by({ id: client.flags.authenticated.user_id }).then(function(user) {
+    db.find_user_id_by({ id: client.flags.authenticated.user_id }).then(db.get_user).then(function(user) {
       // user loaded, process payment
       console.log('process_user_payment', 'stripe.customers.create', user.email)
       stripe.customers.create({
@@ -855,7 +855,7 @@ function user_add_time(user, product) {
 function process_user_friend(client, msg) {
   if (client.flags.authenticated) {
     var client_user_id = client.flags.authenticated.user_id
-    db.find_user_by({ username: msg.params.username }).then(function(friend) {
+    db.find_user_id_by({ username: msg.params.username }).then(db.get_user).then(function(friend) {
       db.user_add_friend(client_user_id, friend.id).then(function(result) {
         protocol.respond_success(client, msg.id, result)
         // inefficient
