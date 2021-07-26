@@ -594,6 +594,7 @@ function process_auth_session(client, msg) {
           protocol.respond_success(client, msg.id, { user: { id: session.user_id } })
         }
       } else {
+          console.log('debug, session not found for', msg.params.device_key)
         // look up access token
         let access = db.findAccess(msg.params.token || msg.params.device_key)
         if (access) {
@@ -604,7 +605,7 @@ function process_auth_session(client, msg) {
           protocol.respond_fail(client, msg.id, { code: "BK1", message: "bad device_key" })
         }
       }
-    }).catch(function(err) { console.log('Err! ' + err) })
+    }).catch(function(err) { console.log('process_auth_session', err) })
   }
 }
 
