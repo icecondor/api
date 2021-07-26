@@ -206,7 +206,7 @@ export class Db extends DbDriver {
       // not found
       console.log('ensure_user creating', u.email, u.id)
       this.create_user(u)
-      let user: noun.User = await this.find_user_id_by({ email_downcase: u.email.toLowerCase() }).then(this.get_user)
+      let user: noun.User = await this.find_user_id_by({ email_downcase: u.email.toLowerCase() }).then(this.get_user.bind(this))
       if (u.devices) {
         if (u.devices.length > 0) console.log('adding', u.devices.length, 'devices')
         for (const device_id of u.devices) this.user_add_device(user.id, device_id)
@@ -220,7 +220,7 @@ export class Db extends DbDriver {
         for (const friend of u.friends) this.user_add_friend(user.id, friend)
       }
 
-      return this.find_user_id_by({ email: u.email }).then(this.get_user)
+      return this.find_user_id_by({ email: u.email }).then(this.get_user.bind(this))
     }
   }
 
