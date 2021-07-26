@@ -116,7 +116,6 @@ export class Db extends DbDriver {
     if (user_id) {
       return user_id
     } else {
-      console.log("throwing")
       throw "find_user_id_by index '" + index + "' key not found: " + key
     }
   }
