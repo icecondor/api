@@ -246,7 +246,7 @@ export class Db {
       if (this.onChange) this.onChange({ index: dbname, key: key, new_val: record })
       return record.id
     } else {
-      console.log('Warning: key generation failed for index', dbname)
+      console.log('Warning: key generation failed for typename', typeName, 'indexname', indexName, 'record', record)
     }
   }
 
@@ -366,6 +366,7 @@ export class Db {
 
   loadFile(id) {
     var filepath = this.idToFilepath(id)
+    console.log(filepath)
     let json = fs.readFileSync(filepath, 'utf8')
     let data = this.deserialize(json)
     return data

@@ -2,7 +2,7 @@ var settings = require('./lib/settings')("settings.json"),
   net = require('net'),
   http = require('http'),
   sockjs = require('sockjs')
-echo = sockjs.createServer();
+let echo = sockjs.createServer();
 
 var server = http.createServer();
 echo.installHandlers(server, { prefix: '/sockjs' });

@@ -202,7 +202,7 @@ export class Db extends DbDriver {
   async ensure_user(u) {
     try {
       console.log('ensure_user checking', u.email, u.id)
-      return await this.find_user_id_by({ email_downcase: u.email }).then(this.get_user)
+      return await this.find_user_id_by({ email_downcase: u.email })
     } catch (e) {
       // not found
       console.log('ensure_user creating', u.email, u.id)
