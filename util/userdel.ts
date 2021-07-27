@@ -28,5 +28,5 @@ if (email) {
     }
   })
 } else {
-    console.log('userdel <username>')
+  console.log('userdel <username>')
 }

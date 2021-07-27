@@ -594,7 +594,7 @@ function process_auth_session(client, msg) {
           protocol.respond_success(client, msg.id, { user: { id: session.user_id } })
         }
       } else {
-          console.log('debug, session not found for', msg.params.device_key)
+        console.log('debug, session not found for', msg.params.device_key)
         // look up access token
         let access = db.findAccess(msg.params.token || msg.params.device_key)
         if (access) {

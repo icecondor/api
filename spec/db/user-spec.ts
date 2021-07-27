@@ -4,9 +4,9 @@ import * as dbLib from '../../lib/db'
 let db = new dbLib.Db(settings.storage) as any
 
 beforeAll(() => {
-    return db.connect(async function() {
-      await db.create_user({ email: "a@b", username: "ab" })
-    })
+  return db.connect(async function() {
+    await db.create_user({ email: "a@b", username: "ab" })
+  })
 });
 
 describe("existing users", function() {

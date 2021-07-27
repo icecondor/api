@@ -366,7 +366,6 @@ export class Db {
 
   loadFile(id) {
     var filepath = this.idToFilepath(id)
-    console.log(filepath)
     let json = fs.readFileSync(filepath, 'utf8')
     let data = this.deserialize(json)
     return data

@@ -33,7 +33,7 @@ if (email) {
   db.connect(async () => {
     let last = db.getLastKey('user', 'email')
     let records = db.getIdxBetween('user', 'email', null, last)
-    console.log('-- '+Object.keys(records).length+' user records --')
+    console.log('-- ' + Object.keys(records).length + ' user records --')
     for (const key in records) {
       let user = db.loadFile(records[key])
       console.log(user.id, user.email, user.username, user.created_at)

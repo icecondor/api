@@ -97,7 +97,7 @@ export class Db extends DbDriver {
     return key ? key.split(this.keySeperator).shift() : null
   }
 
-  async find_user_id_by(e: {[key: string]: any} ) {
+  async find_user_id_by(e: { [key: string]: any }) {
     console.log('find_user_id_by', e)
     let index, key
     if (e.email_downcase || e.email) {
@@ -247,16 +247,20 @@ export class Db extends DbDriver {
     full_user.devices = this.user_load_devices(full_user.id)
     full_user.friends = this.user_load_friends(full_user.id)
     full_user.access = this.user_load_access(full_user.id)
+    full_user.latest = this.user_latest_location(user_id)
+    return full_user
+  }
+
+  user_latest_location(user_id) {
     // last pt
     let start = new Date("2008-08-01").toISOString()
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
-      [user_id, stop], 2, true)
+      [user_id, stop], 1, true)
     let location_keys = Object.keys(kvs)
-    if (location_keys.length == 2) { // why 2 pts
-      user.latest = { location_id: kvs[location_keys[1]] }
+    if (location_keys.length == 1) {
+      return kvs[location_keys[0]]
     }
-    return full_user
   }
 
   user_location_stats(user_id: string) {
