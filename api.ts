@@ -708,7 +708,7 @@ function process_user_detail(client, msg) {
             safe_user.created_at = user.created_at
             safe_user.photo = gravatar_url(user.email)
             if (user.latest.location) {
-              safe_user.latest = { location: { date: user.location.date }, fences: [] } // use just date (todo: privacy fence check)
+              safe_user.latest = { location: { date: user.latest.location.date }, fences: [] } // use just date (todo: privacy fence check)
             }
             return safe_user
           })
