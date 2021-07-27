@@ -247,7 +247,7 @@ export class Db extends DbDriver {
     full_user.devices = this.user_load_devices(full_user.id)
     full_user.friends = this.user_load_friends(full_user.id)
     full_user.access = this.user_load_access(full_user.id)
-    full_user.latest = {location: this.user_latest_location(user_id), fences: []}
+    full_user.latest = { location: this.user_latest_location(user_id), fences: [] }
     return full_user
   }
 

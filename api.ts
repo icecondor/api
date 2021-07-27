@@ -707,7 +707,9 @@ function process_user_detail(client, msg) {
           user_promise = user_promise.then(safe_user => {
             safe_user.created_at = user.created_at
             safe_user.photo = gravatar_url(user.email)
-            //safe_user.friends.push(client_user_id)
+            if (user.latest.location) {
+              safe_user.latest = { location: { date: user.location.date }, fences: [] } // use just date (todo: privacy fence check)
+            }
             return safe_user
           })
         }
