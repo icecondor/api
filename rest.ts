@@ -119,7 +119,7 @@ function push_points(response, auth_token, points) {
       }
     }
 
-    if (msg.id == "rpc-add") {
+    if (msg.id.startsWith("rpc-add-location")) {
       console.log('<- rpc-add result', JSON.stringify(msg))
       response.setHeader('content-type', 'application/json')
       if (msg.result) {
@@ -209,7 +209,7 @@ function rpcAdd(last_location, apiSocket) {
 }
 
 function rpcWrite(params, apiSocket) {
-    let rpc = { id: "rpc-add-"+params.id.substr(-6), method: "activity.add", params: params }
+    let rpc = { id: "rpc-add-"+params.id.type+"-"+params.id.substr(-6), method: "activity.add", params: params }
     console.log(rpc)
     apiSocket.write(JSON.stringify(rpc) + "\n")
 }
