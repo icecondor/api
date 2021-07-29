@@ -209,7 +209,7 @@ function rpcAdd(last_location, apiSocket) {
 }
 
 function rpcWrite(params, apiSocket) {
-    let rpc = { id: "rpc-add-"+params.id.type+"-"+params.id.substr(-6), method: "activity.add", params: params }
+    let rpc = { id: "rpc-add-"+params.type+"-"+params.id.substr(-6), method: "activity.add", params: params }
     console.log(rpc)
     apiSocket.write(JSON.stringify(rpc) + "\n")
 }
