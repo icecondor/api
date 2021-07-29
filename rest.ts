@@ -194,6 +194,7 @@ function rpcAdd(last_location, apiSocket) {
     if (last_location.type == 'Feature') {
       clientMode = 'overland'
       location_params = geojson2icecondor(last_location)
+      heartbeat_params = overland2heartbeat(last_location)
     } else if (last_location._type == 'location') {
       clientMode = 'owntracks'
       location_params = owntracks2icecondor(last_location)
@@ -209,6 +210,7 @@ function rpcAdd(last_location, apiSocket) {
 }
 
 function rpcWrite(params, apiSocket) {
+    console.log('rpc-write', params)
     let rpc = { id: "rpc-add-"+params.type+"-"+params.id.substr(-6), method: "activity.add", params: params }
     console.log(rpc)
     apiSocket.write(JSON.stringify(rpc) + "\n")
@@ -309,6 +311,14 @@ function geojson2icecondor(geojson) {
     longitude: geojson.geometry.coordinates[0],
     accuracy: geojson.properties.horizontal_accuracy,
     provider: "network"
+  }
+}
+
+function overland2heartbeat(geojson) {
+  return {
+    id: uuid.v4(),
+    type: "heartbeat",
+    battery_percentage: geojson.properties.battery_level * 100
   }
 }
 
