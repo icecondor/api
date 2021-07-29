@@ -189,21 +189,29 @@ function rpcNext(points, apiSocket) {
 
 function rpcAdd(last_location, apiSocket) {
   if (last_location) {
-    let params = {}
+    let location_params: any = {}
+    let heartbeat_params = {}
     if (last_location.type == 'Feature') {
       clientMode = 'overland'
-      params = geojson2icecondor(last_location)
+      location_params = geojson2icecondor(last_location)
     } else if (last_location._type == 'location') {
       clientMode = 'owntracks'
-      params = owntracks2icecondor(last_location)
+      location_params = owntracks2icecondor(last_location)
+      heartbeat_params = owntracks2heartbeat(last_location)
     } else if (last_location.timestamp) {
       clientMode = 'nextcloud'
-      params = nextcloud2icecondor(last_location)
+      location_params = nextcloud2icecondor(last_location)
+      heartbeat_params = nextcloud2heartbeat(last_location)
     }
-    let rpc = { id: "rpc-add", method: "activity.add", params: params }
+    rpcWrite(location_params, apiSocket)
+    rpcWrite(heartbeat_params, apiSocket)
+  }
+}
+
+function rpcWrite(params, apiSocket) {
+    let rpc = { id: "rpc-add-"+params.id.substr(-6), method: "activity.add", params: params }
     console.log(rpc)
     apiSocket.write(JSON.stringify(rpc) + "\n")
-  }
 }
 
 function geojson2icecondor(geojson) {
@@ -333,8 +341,16 @@ function owntracks2icecondor(owntracks) {
   }
 }
 
+function owntracks2heartbeat(owntracks) {
+  return {
+    id: uuid.v4(),
+    type: "heartbeat",
+    battery_percentage: owntracks.batt
+  }
+}
+
 /*
-nextcloud
+nextcloud/phonetrack
 querystring to json:
 {"acc":"20.413999557495117","batt":"89.0","alt":"38.099998474121094","lon":"-122.6794917","lat":"45.552868",
  "timestamp":"1554677785","token":"lBX"}
@@ -348,6 +364,14 @@ function nextcloud2icecondor(next) {
     longitude: parseFloat(next['lon']),
     accuracy: parseFloat(next['acc']),
     provider: "network"
+  }
+}
+
+function nextcloud2heartbeat(next) {
+  return {
+    id: uuid.v4(),
+    type: "heartbeat",
+    battery_percentage: parseFloat(next['batt'])
   }
 }
 
