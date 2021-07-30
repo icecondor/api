@@ -1,12 +1,12 @@
-import { Access as AccessTs } from '../../protobuf/ts/access'
-import { Config as ConfigTs } from '../../protobuf/ts/config'
-import { Device as DeviceTs } from '../../protobuf/ts/device'
-import { Friendship as FriendshipTs } from '../../protobuf/ts/friendship'
-import { Heartbeat as HeartbeatTs } from '../../protobuf/ts/heartbeat'
-import { Location as LocationTs } from '../../protobuf/ts/location'
-import { User as UserTs } from '../../protobuf/ts/user'
-import { Fence as FenceTs } from '../../protobuf/ts/fence'
-import { Rule as RuleTs } from '../../protobuf/ts/rule'
+import { Access as AccessTs } from '../../serialization/protobuf/ts/access'
+import { Config as ConfigTs } from '../../serialization/protobuf/ts/config'
+import { Device as DeviceTs } from '../../serialization/protobuf/ts/device'
+import { Friendship as FriendshipTs } from '../../serialization/protobuf/ts/friendship'
+import { Heartbeat as HeartbeatTs } from '../../serialization/protobuf/ts/heartbeat'
+import { Location as LocationTs } from '../../serialization/protobuf/ts/location'
+import { User as UserTs } from '../../serialization/protobuf/ts/user'
+import { Fence as FenceTs } from '../../serialization/protobuf/ts/fence'
+import { Rule as RuleTs } from '../../serialization/protobuf/ts/rule'
 
 interface Index {
   type: string

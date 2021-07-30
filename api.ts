@@ -12,6 +12,7 @@ import * as geojsonArea from 'geojson-area'
 import * as bent from 'bent'
 import * as turfhelp from '@turf/helpers'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
+import * as flatbuffers from 'flatbuffers'
 
 // local
 import * as settingsLib from './lib/settings'
