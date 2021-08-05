@@ -226,7 +226,7 @@ export class Db {
         if (exists) {
           if (exists != record.id) {
             txn.abort()
-            throw "unique constraint failed on " + dbname + " writing key/id: " + key + '/' + record.id + " collided with id" + exists
+            throw "unique constraint failed on " + dbname + " writing key " + key + ' id ' + record.id + " collided with id " + exists
           }
         }
       }
