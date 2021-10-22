@@ -719,16 +719,18 @@ function process_user_detail(client, msg) {
       let key_auth = false
       if (msg.params && Object.keys(msg.params).length > 0) {
         if (msg.params.key) {
-          console.log('process_user_detail for', user.username, 'key check', msg.params.key)
           var rule = user.access[msg.params.key]
           if (typeof rule === 'object') {
             if (rule_check(rule)) {
 	      key_auth = true
 	    } else {
-              protocol.respond_fail(client, msg.id, { message: "invalid key" })
+              protocol.respond_fail(client, msg.id, { message: "key has insufficient permissions" })
               return
 	    }
-          }
+	  } else {
+            protocol.respond_fail(client, msg.id, { message: "invalid key" })
+            return
+	  }
 	}
       }
       if (!key_auth) {
