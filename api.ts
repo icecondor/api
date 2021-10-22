@@ -655,6 +655,7 @@ function process_user_detail(client, msg) {
   console.log('process_user_detail start')
   var filter = {}
 
+  // identify the user to look up - auth check happens below
   if (msg.params && Object.keys(msg.params).length > 0) {
     if (msg.params.id) {
       filter = { id: msg.params.id }
@@ -666,7 +667,7 @@ function process_user_detail(client, msg) {
     if (client.flags.authenticated) {
       filter = { id: client.flags.authenticated.user_id }
     } else {
-      protocol.respond_fail(client, msg.id, { message: "Not authenticated" })
+      protocol.respond_fail(client, msg.id, { message: "Login or specify a username/id to lookup" })
       return
     }
   }
