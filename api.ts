@@ -716,20 +716,35 @@ function process_user_detail(client, msg) {
         }
       }
     } else {
-      if (user.access.public) {
-        user_promise = user_promise.then(safe_user => {
-          safe_user.photo = gravatar_url(user.email)
-          return safe_user
-        })
-      } else {
-        protocol.respond_fail(client, msg.id, { message: "Profile is private" })
-        return
+      let key_auth = false
+      if (msg.params && Object.keys(msg.params).length > 0) {
+        if (msg.params.key) {
+          var rule = user.access[msg.params.key]
+          if (typeof rule === 'object') {
+            if (rule_check(rule)) {
+	      key_auth = true
+	    } else {
+              protocol.respond_fail(client, msg.id, { message: "invalid key" })
+              return
+	    }
+          }
+	}
+      }
+      if (!key_auth) {
+        if (user.access.public) {
+          user_promise = user_promise.then(safe_user => {
+            safe_user.photo = gravatar_url(user.email)
+            return safe_user
+          })
+        } else {
+          protocol.respond_fail(client, msg.id, { message: "Profile is private" })
+          return
+        }
       }
     }
 
-    console.log('process_user_detail full detail for', user.username, 'end of func')
     return user_promise.then(safe_user => {
-      console.log('process_user_detail full detail for', user.username, 'respond success')
+      console.log('process_user_detail for', user.username, 'respond success')
       protocol.respond_success(client, msg.id, safe_user)
     })
   }, function(err) {
