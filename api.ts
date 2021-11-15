@@ -129,7 +129,7 @@ function rules_for(user_id, fence_id) {
       let winning = rules.filter(function(rule) {
         return rule.fence_id === fence_id
       })
-      console.log('rules_for', user_id, fence_id, rules.length, 'rules count', winning.length, 'applies to fence')
+      //console.log('rules_for', user_id, fence_id, rules.length, 'rules count', winning.length, 'applies to fence')
       return winning
     })
   })
