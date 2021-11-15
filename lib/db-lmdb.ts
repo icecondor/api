@@ -300,9 +300,9 @@ export class Db {
     }
     cursor.close()
     txn.commit()
-    console.log('getIdxBetween', typeName, schemakeyList, startkeyList, '<->', endkeyList,
-      endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare",
-      Object.keys(kvs).length + (count ? '/' + count : ''), 'found')
+    //console.log('getIdxBetween', typeName, schemakeyList, startkeyList, '<->', endkeyList,
+    //  endkeyList.length < schemakeyList.length ? "idxPrefixMatch" : "idxKeyCompare",
+    //  Object.keys(kvs).length + (count ? '/' + count : ''), 'found')
     return kvs
   }
 
