@@ -7,6 +7,7 @@ import * as dbLib from '../../lib/db'
 let db = new dbLib.Db(settings.storage) as any
 import serverLib from '../../lib/server'
 let server: any = serverLib(settings, db, protocol)
+import * as uuid from 'node-uuid'
 
 let new_user: any = {}
 let email = "a@b.c"
@@ -23,8 +24,17 @@ beforeAll(() => {
 describe("location", function() {
   test('user_latest_freshen', () => {
     return db.connect(async function() {
-      console.log('test new_user', new_user)
-      server.user_latest_freshen({ user_id: new_user.id })
+      let location = {
+        id: uuid.v4(),
+        type: "location", 
+        user_id: new_user.id,
+        date: new Date().toISOString(),
+        latitude: 45.5,
+        longitude: -122.6,
+      }
+    console.log('new_user before', new_user)
+      server.user_latest_freshen(location)
+    console.log('new_user after', new_user)
     })
   })
 })
