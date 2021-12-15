@@ -200,11 +200,9 @@ export class Db extends DbDriver {
 
   async ensure_user(u) {
     try {
-      console.log('ensure_user checking', u.email, u.id)
       return await this.find_user_id_by({ email_downcase: u.email })
     } catch (e) {
       // not found
-      console.log('ensure_user creating', u.email, u.id)
       this.create_user(u)
       let user: noun.User = await this.find_user_id_by({ email_downcase: u.email.toLowerCase() }).then(this.get_user.bind(this))
       if (u.devices) {
@@ -233,6 +231,7 @@ export class Db extends DbDriver {
       created_at: u.created_at || new Date().toISOString()
     }
     this.save(new_user)
+    return new_user
   }
 
   async get_user(user_id: string) {

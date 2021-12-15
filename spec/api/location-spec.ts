@@ -8,9 +8,24 @@ let db = new dbLib.Db(settings.storage) as any
 import serverLib from '../../lib/server'
 let server: any = serverLib(settings, db, protocol)
 
-describe("api login", function() {
-  test('placeholder', () => {
-    server.user_latest_freshen()
+let new_user: any = {}
+let email = "a@b.c"
+let device_id = "1"
+let username = "abc"
+
+beforeAll(() => {
+  return db.connect(async function() {
+    new_user = await db.create_user({ email: email, username: username })
+    console.log('setup new_user', new_user)
+  })
+})
+
+describe("location", function() {
+  test('user_latest_freshen', () => {
+    return db.connect(async function() {
+      console.log('test new_user', new_user)
+      server.user_latest_freshen({ user_id: new_user.id })
+    })
   })
 })
 
