@@ -17,30 +17,38 @@ let username = "abc"
 beforeAll(() => {
   return db.connect(async function() {
     new_user = await db.create_user({ email: email, username: username })
+    console.log(new_user)
   })
 })
 
 describe("location", function() {
-  test('user_latest_freshen', () => {
+  let new_date = new Date()
+  console.log('needed', new_user)
+  let location = {
+    id: uuid.v4(),
+    type: "location",
+    user_id: "", // db.create_user hasnt run yet
+    date: new_date.toISOString(),
+    latitude: 45.5,
+    longitude: -122.6,
+  }
+
+  beforeAll(() => {
+    location.user_id = new_user.id // fixup location with new user id
     return db.connect(async function() {
-      let new_date = new Date()
-      let location = {
-        id: uuid.v4(),
-        type: "location",
-        user_id: new_user.id,
-        date: new_date.toISOString(),
-        latitude: 45.5,
-        longitude: -122.6,
-      }
       await db.activity_add(location)
-
-      await server.user_latest_freshen(location)
-
-      await db.find_locations_for(new_user.id, new_date, new_date, 1, "location")
-        .then(function(locations) {
-          expect(locations.length).toEqual(1)
-        })
+      console.log('activity added')
     })
+  })
+
+  test('read/write', () => {
+    //      await server.user_latest_freshen(location)
+
+    return db.find_locations_for(new_user.id, new_date, new_date, 1, "location")
+      .then(function(locations) {
+        expect(locations.length).toEqual(1)
+        expect(locations[0].user_id).toEqual(new_user.id)
+      })
   })
 })
 
