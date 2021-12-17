@@ -32,18 +32,12 @@ describe("location", function() {
         latitude: 45.5,
         longitude: -122.6,
       }
-      console.log('location date', location.date)
-      db.activity_add(location)
-        .then(function(result) {
-          console.log('activity_add', result)
-        })
-      let after = await server.user_latest_freshen(location)
-      console.log('user_latest_freshen', after)
+      await db.activity_add(location)
 
-      console.log('search new_date', new_date)
+      await server.user_latest_freshen(location)
+
       await db.find_locations_for(new_user.id, new_date, new_date, 1, "location")
         .then(function(locations) {
-          console.log("db find", locations)
           expect(locations.length).toEqual(1)
         })
     })
