@@ -10,9 +10,9 @@ let server: any = serverLib(settings, db, protocol)
 import * as uuid from 'node-uuid'
 
 let new_user: any = {}
-let email = "a@b.c"
+let email = "fence-a@b.c"
 let device_id = "1"
-let username = "abc"
+let username = "fence-abc"
 
 beforeAll(() => {
   return db.connect(async function() {
@@ -21,7 +21,7 @@ beforeAll(() => {
   })
 })
 
-describe("location", function() {
+describe("fence", function() {
   let new_date = new Date()
   console.log('needed', new_user)
   let location = {
@@ -41,12 +41,25 @@ describe("location", function() {
     })
   })
 
-  test('read/write', () => {
-    return db.find_locations_for(new_user.id, new_date, new_date, 1, "location")
-      .then(function(locations) {
-        expect(locations.length).toEqual(1)
-        expect(locations[0].user_id).toEqual(new_user.id)
-      })
+  test('fence enter', () => {
+    let second_date = new Date()
+    let second_location = {
+      id: uuid.v4(),
+      type: "location",
+      user_id: new_user.id,
+      date: second_date.toISOString(),
+      latitude: 45.6,
+      longitude: -122.6,
+    }
+    return db.connect(async function() {
+      await db.activity_add(second_location)
+      console.log('second location added')
+      await db.find_locations_for(new_user.id, new_date, second_date, 1, "location")
+        .then(function(locations) {
+          expect(locations.length).toEqual(2)
+        })
+      await server.user_latest_freshen(location)
+    })
   })
 })
 
