@@ -993,8 +993,8 @@ export default function(settings, db, protocol) {
           if (msg.params.name) { fence.name = msg.params.name }
           if (msg.params.geojson) {
             // typescript gets confused on geometry.coordinates.coordinates
-            let turfcoord: any = turfhelp.polygon(msg.params.geojson.geometry).geometry.coordinates
-            fence.geojson = { type: turfcoord.type, coordinates: turfcoord.coordinates }
+            let turfcoord = turfhelp.polygon(msg.params.geojson.geometry.coordinates)
+            fence.geojson = { type: turfcoord.type, coordinates: turfcoord.geometry.coordinates }
             fence.area = parseInt(geojsonArea.geometry(msg.params.geojson.geometry))
           }
           db.fence_update(fence).then(function(result) {

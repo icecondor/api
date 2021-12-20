@@ -42,13 +42,13 @@ describe("fence", function() {
       fence.created_at = new Date()
       fence.name = "test fence"
       fence.user_id = new_user.id
-      let geometry = [[[-5, 52], [-4, 56], [-2, 51], [-7, 54], [-5, 52]]]
-      console.log(geometry.length)
-      let turfcoord: any = turfhelp.polygon(geometry).geometry.coordinates
-      fence.geojson = { type: turfcoord.type, coordinates: turfcoord.coordinates }
+      let geometry = { type: "Polygon", coordinates: [[[-5, 52], [-4, 56], [-2, 51], [-7, 54], [-5, 52]]] }
+      let turfcoord = turfhelp.polygon(geometry.coordinates)
+      fence.geojson = { type: turfcoord.type, coordinates: turfcoord.geometry.coordinates }
       fence.area = parseInt(geojsonArea.geometry(geometry))
+      console.log(fence)
       await db.fence_add(fence).then(function(result) {
-        expect(result.inserted).toEqual(1) 
+        expect(result.inserted).toEqual(1)
       })
     })
   })
@@ -69,7 +69,7 @@ describe("fence", function() {
         .then(function(locations) {
           expect(locations.length).toEqual(2)
         })
-      //await server.user_latest_freshen(location)
+      await server.user_latest_freshen(location)
     })
   })
 })
