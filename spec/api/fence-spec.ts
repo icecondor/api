@@ -17,13 +17,11 @@ let username = "fence-abc"
 beforeAll(() => {
   return db.connect(async function() {
     new_user = await db.create_user({ email: email, username: username })
-    console.log(new_user)
   })
 })
 
 describe("fence", function() {
   let new_date = new Date()
-  console.log('needed', new_user)
   let location = {
     id: uuid.v4(),
     type: "location",
@@ -37,7 +35,6 @@ describe("fence", function() {
     location.user_id = new_user.id // fixup location with new user id
     return db.connect(async function() {
       await db.activity_add(location)
-      console.log('activity added')
     })
   })
 
@@ -53,8 +50,7 @@ describe("fence", function() {
     }
     return db.connect(async function() {
       await db.activity_add(second_location)
-      console.log('second location added')
-      await db.find_locations_for(new_user.id, new_date, second_date, 1, "location")
+      await db.find_locations_for(new_user.id, new_date, second_date, 2, "location")
         .then(function(locations) {
           expect(locations.length).toEqual(2)
         })
