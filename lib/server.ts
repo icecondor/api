@@ -992,10 +992,10 @@ export default function(settings, db, protocol) {
         if (fence.user_id == client.flags.authenticated.user_id) {
           if (msg.params.name) { fence.name = msg.params.name }
           if (msg.params.geojson) {
-            // typescript gets confused on geometry.coordinates.coordinates
-            let turfcoord = turfhelp.polygon(msg.params.geojson.geometry.coordinates)
+            let geometry = msg.params.geojson.geometry
+            let turfcoord = turfhelp.polygon(geometry.coordinates)
             fence.geojson = { type: turfcoord.type, coordinates: turfcoord.geometry.coordinates }
-            fence.area = parseInt(geojsonArea.geometry(msg.params.geojson.geometry))
+            fence.area = parseInt(geojsonArea.geometry(geometry))
           }
           db.fence_update(fence).then(function(result) {
             if (fence.user_id == client.flags.authenticated.user_id) {
