@@ -321,14 +321,14 @@ export class Db {
 
   idxKeyCompare(kvs, startKey, endKey, count, txn, cursor, db, descending) {
     let nextKey = cursor.goToRange(startKey)
-    console.log('idxKeycompare startKey', startKey, 'nextKey', nextKey)
+    //console.log('idxKeycompare startKey', startKey, 'nextKey', nextKey)
     if (descending) {
-      console.log('idxKeycompare reverse first key attempt', endKey)
+      //console.log('idxKeycompare reverse first key attempt', endKey)
       // simulate goToRange in reverse
       nextKey = cursor.goToKey(endKey)
       if (!nextKey) {
         nextKey = cursor.goToPrev()
-        console.log('idxKeycompare reverse first key attempt failed. Prev is', nextKey)
+        //console.log('idxKeycompare reverse first key attempt failed. Prev is', nextKey)
       }
     }
     while (nextKey !== null) {

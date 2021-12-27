@@ -37,7 +37,6 @@ describe("location", function() {
     location.user_id = new_user.id // fixup location with new user id
     return db.connect(async function() {
       await db.activity_add(location)
-      console.log('activity added')
     })
   })
 

@@ -267,14 +267,16 @@ export default function(settings, db, protocol) {
 
   server.user_latest_freshen = function(location) {
     return db.get_user(location.user_id).then(function(user) {
-      db.friending_me(user.id)
+      return db.friending_me(user.id)
         .then(function(friend_ids) {
           var me_and_friends = [user.id].concat(friend_ids)
-          server.newer_user_location(user, location)
+          console.log('newer_user_location calling', user, location)
+          return server.newer_user_location(user, location)
             .then(function(last_location: any) {
-              server.friendly_fences_for(last_location, me_and_friends)
+              console.log('newer_user_location returned last_location', last_location)
+              return server.friendly_fences_for(last_location, me_and_friends)
                 .then(function(last_fences) {
-                  server.friendly_fences_for(location, me_and_friends)
+                  return server.friendly_fences_for(location, me_and_friends)
                     .then(function(fences) {
                       console.log(user.username, 'new pt', location.latitude, location.longitude, 'in', fences.length, 'fences.',
                         'prev pt', last_location.latitude, last_location.longitude, ' in', last_fences.length, 'fences.')
@@ -289,11 +291,6 @@ export default function(settings, db, protocol) {
                       var my_fences = fences.filter(
                         function(f: any) { return f.user_id == location.user_id }
                       ).map(function(fence: any) { return fence.id })
-                      var latest = {
-                        location_id: location.id,
-                        fences: my_fences
-                      }
-                      //db.update_user_latest(location.user_id, latest)
                       console.log('user_latest_freshen', fences_entered, fences_exited, new Date())
                       return [fences_entered, fences_exited]
                     })
@@ -309,8 +306,9 @@ export default function(settings, db, protocol) {
     return new Promise(function(resolve, reject) {
       if (user.latest && user.latest.location_id) {
         let last_location = db.loadFile(user.latest.location_id)
-        console.log('newer_user_location', user.username, user.id, location.date, last_location.date)
+        console.log('newer_user_location pre-check', user.username, user.id, location.date, last_location.date)
         if (location.date > last_location.date) {
+          console.log('newer_user_location NEWER')
           resolve(last_location)
         } else {
           reject()
