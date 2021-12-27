@@ -14,7 +14,7 @@ import * as turfhelp from '@turf/helpers'
 let new_user: any = {}
 let email = "fence-a@b.c"
 let device_id = "1"
-let username = "fence-abc"
+let username = "testuser-fence"
 
 beforeAll(() => {
   return db.connect(async function() {
@@ -30,7 +30,7 @@ describe("fence", function() {
     user_id: "", // db.create_user hasnt run yet
     date: new_date.toISOString(),
     latitude: 45.5,
-    longitude: -122.6,
+    longitude: -123.6,
   }
 
   beforeAll(() => {
@@ -42,11 +42,11 @@ describe("fence", function() {
       fence.created_at = new Date()
       fence.name = "test fence"
       fence.user_id = new_user.id
-      let geometry = { type: "Polygon", coordinates: [[[-5, 52], [-4, 56], [-2, 51], [-7, 54], [-5, 52]]] }
+      let geometry = { type: "Polygon", coordinates: [[[-123, 40], [-123, 50], [-121, 50], [-121, 40], [-123, 40]]] }
       let turfcoord = turfhelp.polygon(geometry.coordinates)
       fence.geojson = { type: turfcoord.type, coordinates: turfcoord.geometry.coordinates }
       fence.area = parseInt(geojsonArea.geometry(geometry))
-      console.log(fence)
+      console.log('fence', fence)
       await db.fence_add(fence).then(function(result) {
         expect(result.inserted).toEqual(1)
       })
@@ -61,15 +61,17 @@ describe("fence", function() {
       user_id: new_user.id,
       date: second_date.toISOString(),
       latitude: 45.6,
-      longitude: -122.6,
+      longitude: -122.5,
     }
     return db.connect(async function() {
       await db.activity_add(second_location)
       await db.find_locations_for(new_user.id, new_date, second_date, 2, "location")
         .then(function(locations) {
           expect(locations.length).toEqual(2)
+          console.log('fence enter test found locations', locations)
         })
-      await server.user_latest_freshen(location)
+      let a = await server.user_latest_freshen(second_location)
+      console.log('user latest freshen', 'ret:', a, new Date())
     })
   })
 })

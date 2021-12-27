@@ -11,6 +11,7 @@ import * as stripeLib from 'stripe'
 // local
 import * as util from "./util"
 import * as emailerLib from './email'
+import * as noun from './nouns'
 
 var net = require('net')
 var then_redis = require('then-redis')
@@ -275,8 +276,8 @@ export default function(settings, db, protocol) {
                 .then(function(last_fences) {
                   server.friendly_fences_for(location, me_and_friends)
                     .then(function(fences) {
-                      console.log(user.username, 'new pt', location.date, 'in', fences.length, 'fences.',
-                        'prev pt', last_location.date, ' in', last_fences.length, 'fences.')
+                      console.log(user.username, 'new pt', location.latitude, location.longitude, 'in', fences.length, 'fences.',
+                        'prev pt', last_location.latitude, last_location.longitude, ' in', last_fences.length, 'fences.')
                       var fences_exited = server.fences_diff(last_fences, fences)
                       var fences_entered = server.fences_diff(fences, last_fences)
                       console.log(user.username, 'fences_exited', fences_exited.map(f => f.name),
@@ -292,7 +293,9 @@ export default function(settings, db, protocol) {
                         location_id: location.id,
                         fences: my_fences
                       }
-                      return db.update_user_latest(location.user_id, latest)
+                      //db.update_user_latest(location.user_id, latest)
+                      console.log('user_latest_freshen', fences_entered, fences_exited, new Date())
+                      return [fences_entered, fences_exited]
                     })
                 })
             }, function() {
