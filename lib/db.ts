@@ -98,7 +98,6 @@ export class Db extends DbDriver {
   }
 
   async find_user_id_by(e: { [key: string]: any }) {
-    console.log('find_user_id_by', e)
     let index, key
     if (e.email_downcase || e.email) {
       index = 'email'
@@ -236,7 +235,6 @@ export class Db extends DbDriver {
 
   async get_user(user_id: string) {
     let user = this.loadFile(user_id)
-    console.log('get_user', user_id, user.username)
     let full_user: any = {
       id: user.id,
       email: user.email,

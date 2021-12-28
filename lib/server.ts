@@ -264,16 +264,12 @@ export default function(settings, db, protocol) {
       return db.friending_me(user.id)
         .then(function(friend_ids) {
           var me_and_friends = [user.id].concat(friend_ids)
-          console.log('newer_user_location calling', user, location)
           return server.newer_user_location(user, location)
             .then(function(last_location: any) {
-              console.log('newer_user_location returned last_location', last_location)
               return server.friendly_fences_for(last_location, me_and_friends)
                 .then(function(last_fences) {
                   return server.friendly_fences_for(location, me_and_friends)
                     .then(function(fences) {
-                      console.log(user.username, 'new pt', location.latitude, location.longitude, 'in', fences.length, 'fences.',
-                        'prev pt', last_location.latitude, last_location.longitude, ' in', last_fences.length, 'fences.')
                       var fences_exited = server.fences_diff(last_fences, fences)
                       var fences_entered = server.fences_diff(fences, last_fences)
                       console.log(user.username, 'fences_exited', fences_exited.map(f => f.name),
@@ -285,7 +281,6 @@ export default function(settings, db, protocol) {
                       var my_fences = fences.filter(
                         function(f: any) { return f.user_id == location.user_id }
                       ).map(function(fence: any) { return fence.id })
-                      console.log('user_latest_freshen', fences_entered, fences_exited, new Date())
                       return [fences_entered, fences_exited]
                     })
                 })
