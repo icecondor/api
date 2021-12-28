@@ -63,13 +63,13 @@ describe("fence", function() {
       longitude: -122.5,
     }
     return db.connect(async function() {
-//      await db.activity_add(second_location)
+      await db.activity_add(second_location)
       await db.find_locations_for(new_user.id, new_date, second_date, 2, "location")
         .then(function(locations) {
           console.log('fence enter test found locations', locations)
-  //        expect(locations.length).toEqual(2)
+          expect(locations.length).toEqual(2)
         })
-      let a = await server.user_latest_freshen(second_location)
+      let a = await server.user_fence_run(second_location)
       console.log('user latest freshen', 'ret:', a, new Date())
       expect(a[0].length).toEqual(1)
     })

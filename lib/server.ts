@@ -11,7 +11,7 @@ import * as stripeLib from 'stripe'
 // local
 import * as util from "./util"
 import * as emailerLib from './email'
-import * as noun from './nouns'
+import * as nouns from './nouns'
 
 var net = require('net')
 var then_redis = require('then-redis')
@@ -236,7 +236,7 @@ export default function(settings, db, protocol) {
               })
               if (msg.params.type === 'location') {
                 clog(client, 'activity ' + msg.params.type + ' ' + msg.params.id + ' ' + msg.params.date)
-                server.user_latest_freshen(msg.params)
+                server.user_fence_run(msg.params)
               }
               if (msg.params.type === 'config') {
                 clog(client, 'activity ' + msg.params.type + ' recording ' + msg.params.recording + ' ' + msg.params.date)
@@ -265,7 +265,7 @@ export default function(settings, db, protocol) {
     return true
   }
 
-  server.user_latest_freshen = function(location) {
+  server.user_fence_run = function(location: nouns.Location) {
     return db.get_user(location.user_id).then(function(user) {
       return db.friending_me(user.id)
         .then(function(friend_ids) {
