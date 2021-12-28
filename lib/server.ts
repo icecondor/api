@@ -7,6 +7,7 @@ import * as geojsonArea from 'geojson-area'
 import * as turfhelp from '@turf/helpers'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import * as stripeLib from 'stripe'
+import * as bent from 'bent'
 
 // local
 import * as util from "./util"
@@ -45,22 +46,15 @@ export default function(settings, db, protocol) {
     }
   }
 
-  function clog(client, msg) {
-    let parts: string[] = []
-    parts.push(new Date().toISOString())
-    if (client.flags.authenticated) {
-      var id_id = client.flags.authenticated.device_id.substr(0, 8) + ':' +
-        client.flags.authenticated.user_id.substr(0, 8)
-      parts.push(id_id)
-    } else if (client.socket) {
-      parts.push(client.socket.remoteAddress + ':' + client.socket.remotePort)
+  server.influxWrite = async function(module, value) {
+    try {
+      let url = settings.influx.url + '/write?db=' + settings.influx.database
+      const post = bent.default('POST', 204); // accept only 204
+      let reading = "response_time,module=" + module + " value=" + value
+      const response = await post(url, reading);
+    } catch (err) {
+      console.log('influxWrite', err)
     }
-    if (typeof msg !== "string") {
-      parts.push(JSON.stringify(msg))
-    } else {
-      parts.push(msg)
-    }
-    console.log(parts.join(' '))
   }
 
   server.create_token_temp = function(params) {
@@ -180,7 +174,7 @@ export default function(settings, db, protocol) {
     server.clients.list.forEach(function(client) {
       if (client.flags.stats) {
         var stats_str = JSON.stringify(status)
-        clog(client, stats_str)
+        util.clog(client, stats_str)
         protocol.respond_success(client, client.flags.stats, status)
       }
     })
@@ -235,11 +229,11 @@ export default function(settings, db, protocol) {
                 id: msg.params.id
               })
               if (msg.params.type === 'location') {
-                clog(client, 'activity ' + msg.params.type + ' ' + msg.params.id + ' ' + msg.params.date)
+                util.clog(client, 'activity ' + msg.params.type + ' ' + msg.params.id + ' ' + msg.params.date)
                 server.user_fence_run(msg.params)
               }
               if (msg.params.type === 'config') {
-                clog(client, 'activity ' + msg.params.type + ' recording ' + msg.params.recording + ' ' + msg.params.date)
+                util.clog(client, 'activity ' + msg.params.type + ' recording ' + msg.params.recording + ' ' + msg.params.date)
               }
             } else {
               var fail = { message: result.first_error };
@@ -598,24 +592,24 @@ export default function(settings, db, protocol) {
 
   server.client_auth_check = function(client, msg, session) {
     db.find_user_id_by({ email_downcase: session.email.toLowerCase() }).then((user_id) => db.get_user(user_id)).then(function(user) {
-      clog(client, 'authenticating session for ' + session.email)
+      util.clog(client, 'authenticating session for ' + session.email)
       if (user.devices.indexOf(session.device_id) > -1) {
-        clog(client, '* existing device ' + session.device_id);
+        util.clog(client, '* existing device ' + session.device_id);
         return user
       } else {
-        clog(client, '* adding device ' + session.device_id);
+        util.clog(client, '* adding device ' + session.device_id);
         return db.user_add_device(user.id, session.device_id).then(function() { return user })
       }
     }, function(err) {
-      clog(client, '* user not found by ' + session.email + ' ' + JSON.stringify(err))
+      util.clog(client, '* user not found by ' + session.email + ' ' + JSON.stringify(err))
       var new_user = server.user_new(session.email, session.device_id)
       var email = emailer.build_admin_email('New user ' + session.email)
       emailer.send_email(email)
       return db.ensure_user(new_user)
     }).then(function(user) {
-      clog(client, '* token validate ' + JSON.stringify(user))
+      util.clog(client, '* token validate ' + JSON.stringify(user))
       server.token_validate(msg.params.device_key, user.id, session.device_id).then(function(session) {
-        clog(client, "post token validate w/ " + JSON.stringify(session))
+        util.clog(client, "post token validate w/ " + JSON.stringify(session))
         server.client_auth_trusted(client, session)
         protocol.respond_success(client, msg.id, { user: { id: user.id } })
       })
@@ -624,7 +618,7 @@ export default function(settings, db, protocol) {
 
   server.client_auth_trusted = function(client, session) {
     client.flags.authenticated = session
-    clog(client, "logged in user id " + session.user_id + " on device " + JSON.stringify(session.device_id))
+    util.clog(client, "logged in user id " + session.user_id + " on device " + JSON.stringify(session.device_id))
   }
 
   server.user_new = function(email, device_id) {

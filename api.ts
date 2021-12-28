@@ -6,7 +6,6 @@ import * as uuid from 'node-uuid'
 import * as os from 'os'
 
 //npm
-import * as bent from 'bent'
 
 // local
 import * as settingsLib from './lib/settings'
@@ -74,17 +73,6 @@ function progress_report() {
     server.clients.list.length + ' clients.'
   console.log(srep)
   server.pump(stats)
-}
-
-async function influxWrite(module, value) {
-  try {
-    let url = settings.influx.url + '/write?db=' + settings.influx.database
-    const post = bent.default('POST', 204); // accept only 204
-    let reading = "response_time,module=" + module + " value=" + value
-    const response = await post(url, reading);
-  } catch (err) {
-    console.log('influxWrite', err)
-  }
 }
 
 function client_dispatch(me, msg) {
