@@ -246,20 +246,17 @@ export class Db extends DbDriver {
     full_user.devices = this.user_load_devices(full_user.id)
     full_user.friends = this.user_load_friends(full_user.id)
     full_user.access = this.user_load_access(full_user.id)
-    full_user.latest = { location_id: this.user_latest_location_id(user_id), fences: [] }
+    full_user.latest = { location_ids: this.user_latest_locations_id(user_id, 2), fences: [] }
     return full_user
   }
 
-  user_latest_location_id(user_id) {
+  user_latest_locations_id(user_id, count) {
     // last pt
     let start = new Date("2008-08-01").toISOString()
     let stop = new Date().toISOString()
     let kvs = this.getIdxBetween('location', 'user_id_date', [user_id, start],
-      [user_id, stop], 1, true)
-    let location_keys = Object.keys(kvs)
-    if (location_keys.length == 1) {
-      return kvs[location_keys[0]]
-    }
+      [user_id, stop], count, true)
+    return Object.values(kvs)
   }
 
   user_location_stats(user_id: string) {

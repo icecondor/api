@@ -304,13 +304,14 @@ export default function(settings, db, protocol) {
 
   server.newer_user_location = function(user, location) {
     return new Promise(function(resolve, reject) {
-      if (user.latest && user.latest.location_id) {
-        let last_location = db.loadFile(user.latest.location_id)
-        console.log('newer_user_location pre-check', user.username, user.id, location.date, last_location.date)
-        if (location.date > last_location.date) {
-          console.log('newer_user_location NEWER')
+      if (user.latest.location_ids.length >= 2) {
+        let newer = user.latest.location_ids[0]
+        let older = user.latest.location_ids[1]
+        console.log('newer_user_location', user.username, user.id, 'older', older, 'newer', newer)
+        if (newer == location.id) { // received newest
+          let last_location = db.loadFile(older)
           resolve(last_location)
-        } else {
+        } else { // historical
           reject()
         }
       } else {
