@@ -174,8 +174,8 @@ export class Db {
   dbName(typeName, indexName) { return typeName + '.' + indexName }
 
   save(value) {
-    this.saveIndexes(value)
     this.saveFile(value)
+    this.saveIndexes(value)
   }
 
   del(id) {
