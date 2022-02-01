@@ -143,7 +143,7 @@ export class Db {
     console.log('** Sync walk begin on', this.settings.path, typeName ? "for type " + typeName : "for all types", 
                 startCount ? "starting at "+startCount : "")
     let groupSize = 1000
-    let fileCount = 0
+    let fileGroupCount = 0
     let fileTotal = 0
     let hitCount = 0
     let now = new Date()
@@ -152,17 +152,17 @@ export class Db {
     let dir = await fs.promises.opendir(this.settings.path)
     for await (const dirent of dir) {
       if (dirent.name == "." || dirent.name == "..") return
-      fileCount += 1
+      fileGroupCount += 1
       fileTotal += 1
-      if (fileCount % groupSize == 0) {
+      if (fileGroupCount % groupSize == 0) {
         let elapsed = (new Date).getTime() - now.getTime()
         console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'files/sec of',
           fileTotal + (startCount ? "/"+startCount : ""), 'read so far', (typeName ? "with " + hitCount + " " + typeName : ''))
-        fileCount = 0
+        fileGroupCount = 0
         hitCount = 0
         now = new Date()
       }
-      if (fileCount >= startCount) {
+      if (fileTotal >= startCount) {
         let value = that.loadFile(dirent.name)
         if (!typeName || (typeName === value.type)) {
           that.saveIndexes(value)
