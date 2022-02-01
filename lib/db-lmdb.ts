@@ -139,7 +139,7 @@ export class Db {
     console.log('ram total', (ramtotal / 1024 / 1024).toFixed(1), 'MB')
   }
 
-  async syncIndexes(typeName?: string) {
+  async syncIndexes(typeName?: string, startCount: number = 0) {
     console.log('** Sync walk begin on', this.settings.path, typeName ? "for type " + typeName : "for all types")
     let groupSize = 1000
     let fileCount = 0
@@ -161,10 +161,12 @@ export class Db {
         hitCount = 0
         now = new Date()
       }
-      let value = that.loadFile(dirent.name)
-      if (!typeName || (typeName && value.type === typeName)) {
-        that.saveIndexes(value)
-        hitCount += 1
+      if (fileCount >= startCount) {
+        let value = that.loadFile(dirent.name)
+        if (!typeName || (typeName && value.type === typeName)) {
+          that.saveIndexes(value)
+          hitCount += 1
+        }
       }
     }
     let durationSeconds = (new Date().getTime() - now.getTime()) / 1000
@@ -246,7 +248,8 @@ export class Db {
       if (this.onChange) this.onChange({ index: dbname, key: key, new_val: record })
       return record.id
     } else {
-      console.log('Warning: key generation failed for typename', typeName, 'indexname', indexName, 'record', record)
+      console.log('Warning: key generation failed for typename', JSON.stringify(typeName), 'indexname', JSON.stringify(indexName))
+      console.log(JSON.stringify(record))
     }
   }
 

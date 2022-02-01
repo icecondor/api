@@ -11,6 +11,7 @@
     "babel-plugin-syntax-async-generators": "^6.13.0",
     "bent": "*",
     "bluebird": "2.2.*",
+    "commander": "^9.0.0",
     "geojson-area": "~0.2.0",
     "jade": "^1.11.0",
     "mkdirp": "^0.5.1",
