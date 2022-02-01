@@ -140,7 +140,8 @@ export class Db {
   }
 
   async syncIndexes(typeName?: string, startCount: number = 0) {
-    console.log('** Sync walk begin on', this.settings.path, typeName ? "for type " + typeName : "for all types")
+    console.log('** Sync walk begin on', this.settings.path, typeName ? "for type " + typeName : "for all types", 
+                startCount ? "starting at "+startCount : "")
     let groupSize = 1000
     let fileCount = 0
     let fileTotal = 0
@@ -156,7 +157,7 @@ export class Db {
       if (fileCount % groupSize == 0) {
         let elapsed = (new Date).getTime() - now.getTime()
         console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec of',
-          fileTotal, 'read so far', (typeName ? "with " + hitCount + " " + typeName : ''))
+          fileTotal + (startCount ? "/"+startCount : ""), 'read so far', (typeName ? "with " + hitCount + " " + typeName : ''))
         fileCount = 0
         hitCount = 0
         now = new Date()
