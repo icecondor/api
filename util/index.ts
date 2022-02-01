@@ -1,6 +1,6 @@
 require('source-map-support').install()
 // npm
-import { Command } from 'commander'
+import * as Command from 'commander'
 
 // local
 import * as Db from '../lib/db-lmdb'
@@ -8,10 +8,10 @@ import * as Db from '../lib/db-lmdb'
 // node
 import * as fs from 'fs'
 
-const commander = new Command()
+const commander = new Command.Command()
 
 commander
-  .option('--start <char>')
+  .option('--start <count>', 'skip count files before processing', myParseInt)
   .option('--type_name <name>')
 commander.parse()
 const options = commander.opts()
@@ -44,3 +44,13 @@ if (process.argv.length >= 3) {
 } else {
   console.log('usage: index_refresh <stat | sync <index name>>')
 }
+
+function myParseInt(value, dummyPrevious) {
+  // parseInt takes a string and a radix
+  const parsedValue = parseInt(value, 10);
+  if (isNaN(parsedValue)) {
+    throw new Command.InvalidArgumentError('Not a number.');
+  }
+  return parsedValue;
+}
+
