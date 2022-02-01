@@ -26,11 +26,6 @@ if (process.argv.length >= 3) {
   let cmd = process.argv[2]
   switch (cmd) {
     case "sync": 
-      var type_name
-      if (process.argv.length >= 4) {
-        type_name = process.argv[3]
-        console.log('index refresh for type', type_name)
-      }
       db.connect(async () => {
         await db.syncIndexes(options.type_name, options.start)
       })
