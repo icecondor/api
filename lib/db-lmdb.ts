@@ -156,7 +156,7 @@ export class Db {
       fileTotal += 1
       if (fileCount % groupSize == 0) {
         let elapsed = (new Date).getTime() - now.getTime()
-        console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'rows/sec of',
+        console.log('** Sync walk reading', (groupSize / (elapsed / 1000)).toFixed(0), 'files/sec of',
           fileTotal + (startCount ? "/"+startCount : ""), 'read so far', (typeName ? "with " + hitCount + " " + typeName : ''))
         fileCount = 0
         hitCount = 0
@@ -164,7 +164,7 @@ export class Db {
       }
       if (fileCount >= startCount) {
         let value = that.loadFile(dirent.name)
-        if (!typeName || (typeName && value.type === typeName)) {
+        if (!typeName || (typeName === value.type)) {
           that.saveIndexes(value)
           hitCount += 1
         }
