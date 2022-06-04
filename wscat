@@ -5,14 +5,14 @@ var Url = require('url');
 var wsock = require('websock');
 
 var url = process.argv[2]
-if(typeof url == "undefined") {
-  console.log("Usage: "+path.basename(process.argv[1])+" wss://webserver");
+if (typeof url == "undefined") {
+  console.log("Usage: " + path.basename(process.argv[1]) + " wss://webserver");
   process.exit(1);
 }
 var uri = Url.parse(url)
 var sockopts = {}
-if(uri.protocol == 'wss:'){
-  sockopts.agent = {rejectUnauthorized:false}
+if (uri.protocol == 'wss:') {
+  sockopts.agent = { rejectUnauthorized: false }
 }
 var ws = new wsock.connect(uri, sockopts)
 
@@ -20,12 +20,12 @@ var rl = readline.createInterface(process.stdin, process.stdout);
 rl.setPrompt('')
 
 ws.on('open', function() {
-  console.log('connected to '+url)
-  rl.on('line', function(answer){
-      ws.send(answer); 
-    }).on('close', function() {
-                       process.exit(0);
-                     });
+  console.log('connected to ' + url)
+  rl.on('line', function(answer) {
+    ws.send(answer);
+  }).on('close', function() {
+    process.exit(0);
+  });
 });
 
 ws.on('message', function(data) {
@@ -37,4 +37,5 @@ ws.on('error', function(data) {
 });
 
 ws.on('close', function() {
+  rl.close()
 });
