@@ -10,12 +10,12 @@ function ws_connect(socket) {
   var apis = []
   openCount += 1
   console.log('websockets #' + openCount + ' open.')
-  apiAdd(apis, socket, 'localhost', settings.api.listen_port)
-  apiAdd(apis, socket, 'staging.icecondor.com', settings.api.listen_port, true)
+  apiAdd(apis, socket, 'api.icecondor.com', settings.api.listen_port)
+  //apiAdd(apis, socket, 'staging.icecondor.com', settings.api.listen_port, true)
 
   socket.on('message', function(data) {
     for (const api of apis) {
-      console.log(api._host + ' <-ws ' + data)
+      console.log(api._host + ':' + settings.api.listen_port + ' <- ' + socket.connection._peername.address + ':' + socket.connection._peername.port, data.toString().trim())
       api.write(data + "\n")
     }
   })
@@ -28,7 +28,7 @@ function ws_connect(socket) {
 }
 
 function apiAdd(apis, socket, host, port, silent) {
-  console.log('connecting to api on ', settings.api.listen_port, silent ? "SILENT MODE" : "");
+  console.log('connecting to api on ', port, silent ? "SILENT MODE" : "");
   var sockApi = silent ? silentRelayTo(socket, host, port) : relayTo(socket, host, port)
   if (sockApi) {
     apis.push(sockApi)
@@ -41,7 +41,7 @@ function relayTo(socket, host, port) {
   var apiSocket = new net.Socket();
 
   apiSocket.on('data', function(data) {
-    console.log(host + ':' + port + ' -> :' + socket.connection._peername.port, data.toString().trim())
+    console.log(host + ':' + port + ' -> ' + socket.connection._peername.address + ':' + socket.connection._peername.port, data.toString().trim())
     socket.send(data)
   })
 
